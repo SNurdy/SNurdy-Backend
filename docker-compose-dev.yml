@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  db-dev:
+    image: mysql:8.0
+    container_name: snurdy-db-dev
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+
+  app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    container_name: snurdy-app-dev
+    restart: always
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db-dev
+    environment:
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create

@@ -1,5 +1,11 @@
 FROM amazoncorretto:21-al2023-jdk
+
 WORKDIR /app
+
+RUN yum install -y curl && yum clean all
+
 COPY build/libs/*.jar app.jar
+
 ENV SPRING_PROFILES_ACTIVE=dev
+
 ENTRYPOINT ["java", "-jar", "app.jar"]

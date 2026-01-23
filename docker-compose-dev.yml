@@ -1,44 +1,26 @@
-version: '3.8'
 services:
-  db-dev:
-    image: mysql:8.0
-    container_name: snurdy-db-dev
-    restart: always
-    env_file:
-      - .env.dev
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "3307:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-    volumes:
-      - mysql-data:/var/lib/mysql
-
   app-dev:
     build:
       context: .
       dockerfile: Dockerfile-dev
     container_name: snurdy-app-dev
     restart: always
-    ports:
-      - "8081:8080"
-    depends_on:
-      db-dev:
-        condition: service_healthy
-    env_file:
-      - .env.dev
     environment:
-      SPRING_DATASOURCE_URL: ${DB_URL}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_URL: jdbc:mysql://snurdy-db-dev:3306/snurdy_dev
+      SPRING_DATASOURCE_USERNAME: snurdy
+      SPRING_DATASOURCE_PASSWORD: snurdy
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    networks:
+      - snurdy-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
 
-volumes:
-  mysql-data:
+networks:
+  snurdy-network:
+    external: true

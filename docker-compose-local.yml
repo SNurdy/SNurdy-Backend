@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  mysql-local:
+    image: mysql:8.0
+    container_name: snurdy-mysql-local
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: snurdy_dev
+      MYSQL_USER: snurdy
+      MYSQL_PASSWORD: snurdy
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-local-data:/var/lib/mysql
+    networks:
+      - snurdy-network
+
+networks:
+  snurdy-network:
+    driver: bridge
+
+volumes:
+  mysql-local-data:

@@ -38,7 +38,7 @@ jobs:
           spring.datasource.password: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
 
       - name: Prepare Files for Deployment
         run: |

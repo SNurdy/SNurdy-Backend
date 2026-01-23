@@ -1,0 +1,40 @@
+name: SNurdy-Dev-CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Inject Secrets into application.yml
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: 'src/main/resources/application.yml'
+        env:
+          spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
+          spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          spring.datasource.password: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew clean build

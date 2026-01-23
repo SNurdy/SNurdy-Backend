@@ -1,0 +1,87 @@
+name: SNurdy-Dev-CD
+
+on:
+  push:
+    branches:
+      - develop
+      - hotfix/**
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'liberica'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Inject Secrets into application.yml
+        uses: microsoft/variable-substitution@v1
+        with:
+          files: 'src/main/resources/application.yml'
+        env:
+          spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
+          spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
+          spring.datasource.password: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew clean build
+
+      - name: Prepare Files for Deployment
+        run: |
+          mkdir -p deployment/build/libs
+          cp Dockerfile-dev docker-compose-dev.yml deployment/
+          cp build/libs/*.jar deployment/build/libs/
+
+      - name: Get Github Actions IP
+        id: ip
+        uses: candidob/get-runner-ip@v1.0.0
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Add Github Actions IP to Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress --group-id ${{ secrets.AWS_DEV_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
+      - name: Upload Files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_DEV_SSH_PRIVATE_KEY }}
+          source: "deployment/*"
+          target: "/home/ubuntu/snurdy-backend/"
+
+      - name: Deploy using Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_DEV_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_DEV_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/snurdy-backend/deployment/
+            docker-compose -f docker-compose-dev.yml down
+            docker-compose -f docker-compose-dev.yml up -d --build --no-deps app-dev
+
+      - name: Remove Github Actions IP from Security Group
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress --group-id ${{ secrets.AWS_DEV_SECURITY_GROUP_ID }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32

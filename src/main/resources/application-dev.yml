@@ -9,3 +9,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:default_secret_key_at_least_32_chars}
+  access-token-expiration: 3600000 # 1시간
+  refresh-token-expiration: 2592000000 # 30일
+
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    redirect-uri: https://api-test.snurdy.org/api/v1/auth/kakao/callback

@@ -27,10 +27,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Inject Secrets into application.yml
+      - name: Inject Secrets into application-dev.yml
         uses: microsoft/variable-substitution@v1
         with:
-          files: 'src/main/resources/application.yml'
+          files: 'src/main/resources/application-dev.yml'
         env:
           spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
           spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}

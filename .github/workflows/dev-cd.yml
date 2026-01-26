@@ -28,10 +28,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Inject Secrets into application.yml
+      - name: Inject Secrets into application-dev.yml
         uses: microsoft/variable-substitution@v1
         with:
-          files: 'src/main/resources/application.yml'
+          files: 'src/main/resources/application-dev.yml' # 파일명 확인!
         env:
           spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
           spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
@@ -43,8 +43,9 @@ jobs:
       - name: Prepare Files for Deployment
         run: |
           mkdir -p deployment/build/libs
-          cp Dockerfile-dev docker-compose-dev.yml deployment/
-          cp build/libs/*.jar deployment/build/libs/
+          cp Dockerfile deployment/
+          cp docker-compose-dev.yml deployment/
+          cp build/libs/*-SNAPSHOT.jar deployment/build/libs/app.jar
 
       - name: Get Github Actions IP
         id: ip

@@ -1,12 +1,18 @@
-FROM amazoncorretto:21-al2023-jdk
-
+# 1단계: Jar 분해 (Extract)
+FROM amazoncorretto:21-al2023-jdk AS builder
 WORKDIR /app
 
-RUN yum install -y curl && yum clean all
+COPY build/libs/app.jar app.jar
 
-COPY build/libs/*-SNAPSHOT.jar app.jar
+# Spring Boot의 Layertools 이용해 Jar 분해
+RUN java -Djarmode=layertools -jar app.jar extract --destination extracted
 
-ARG PHASE=dev
-ENV SPRING_PROFILES_ACTIVE=${PHASE}
+FROM amazoncorretto:21-al2023-jdk
+WORKDIR /app
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+COPY --from=builder /app/extracted/dependencies/ ./
+COPY --from=builder /app/extracted/spring-boot-loader/ ./
+COPY --from=builder /app/extracted/snapshot-dependencies/ ./
+COPY --from=builder /app/extracted/application/ ./
+
+ENTRYPOINT ["java", "-Duser.timezone=Asia/Seoul", "org.springframework.boot.loader.launch.JarLauncher"]

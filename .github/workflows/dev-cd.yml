@@ -31,7 +31,7 @@ jobs:
       - name: Inject Secrets into application-dev.yml
         uses: microsoft/variable-substitution@v1
         with:
-          files: 'src/main/resources/application-dev.yml' # 파일명 확인!
+          files: 'src/main/resources/application-dev.yml'
         env:
           spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
           spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}

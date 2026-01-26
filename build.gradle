@@ -1,61 +1,49 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '4.0.1'
-	id 'io.spring.dependency-management' version '1.1.7'
+    // 1. Kotlin JVM 플러그인을 가장 먼저 선언하는 것이 좋습니다.
+    id 'org.jetbrains.kotlin.jvm' version '1.9.22'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.22'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.22'
+
+    id 'org.springframework.boot' version '3.4.2' // 4.0.1에서 안정 버전으로 내림
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
 }
 
 group = 'com.snurdy'
 version = '0.0.1-SNAPSHOT'
-description = 'Backend API service for SNurdy project'
 
+// Kotlin 프로젝트에서는 java toolchain 대신 kotlin 설정을 주로 사용합니다.
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17) // jvmTarget과 맞춤
+    }
 }
 
 repositories {
-	mavenCentral()
-}
-
-ext {
-	set('springModulithVersion', "2.0.1")
+    mavenCentral()
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springframework.modulith:spring-modulith-starter-core'
-	implementation 'org.springframework.modulith:spring-modulith-starter-jpa'
-	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    // Kotlin 필수 라이브러리
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web' // webmvc -> web
+
     runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-dependencyManagement {
-	imports {
-		mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
-	}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
+    kotlinOptions {
+        freeCompilerArgs = ['-Xjsr305=strict']
+        jvmTarget = '17'
+    }
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

@@ -1,15 +1,15 @@
 services:
   app-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile-dev
+    # 빌드된 이미지를 사용하거나, EC2에서 직접 빌드할 경우 context 유지
+    image: ${DOCKER_IMAGE_NAME:-snurdy-app-dev}
     container_name: snurdy-app-dev
     restart: always
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://snurdy-db-dev:3306/snurdy_dev
-      SPRING_DATASOURCE_USERNAME: snurdy
-      SPRING_DATASOURCE_PASSWORD: snurdy
+      SPRING_DATASOURCE_URL: jdbc:mysql://${RDS_HOSTNAME}:3306/${RDS_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${RDS_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${RDS_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_PROFILES_ACTIVE: dev
     ports:
       - "8080:8080"
     networks:

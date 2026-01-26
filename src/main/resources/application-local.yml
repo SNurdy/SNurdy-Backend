@@ -4,9 +4,19 @@ spring:
       on-profile: local
   datasource:
     url: jdbc:mysql://localhost:3306/snurdy_dev
-    username: snurdy
+    username: snurdy          # snurdy 대신 root 사용
     password: snurdy
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:default_secret_key_at_least_32_chars}
+  access-token-expiration: 3600000 # 1시간
+  refresh-token-expiration: 2592000000 # 30일
+
+oauth:
+  kakao:
+    client-id: d1ced0dd5d85d974ff088fe07caffee8
+    redirect-uri: http://localhost:8080/api/v1/auth/kakao/callback

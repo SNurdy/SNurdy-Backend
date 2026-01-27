@@ -5,5 +5,6 @@ import org.springframework.data.repository.CrudRepository
 import java.util.*
 
 interface RefreshTokenRepository : CrudRepository<RefreshToken, UUID> {
+    fun findByToken(token: String): RefreshToken?
     fun deleteByUserId(userId: UUID)
 }

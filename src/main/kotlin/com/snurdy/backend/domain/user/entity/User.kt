@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.entity
 
+import com.snurdy.backend.api.auth.client.SocialUserInfo
 import jakarta.persistence.*
 import java.util.*
 
@@ -39,6 +40,18 @@ class User(
     fun updateProfile(nickname: String, email: String?) {
         this.nickname = nickname
         this.email = email
+    }
+
+    companion object {
+        fun create(socialUserInfo: SocialUserInfo, socialType: SocialType): User {
+            return User(
+                socialId = socialUserInfo.socialId,
+                socialType = socialType,
+                email = socialUserInfo.email,
+                nickname = socialUserInfo.nickname ?: "SNurdy_${UUID.randomUUID().toString().take(5)}",
+                role = Role.USER
+            )
+        }
     }
 }
 

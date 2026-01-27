@@ -1,70 +1,69 @@
 package com.snurdy.backend.global.security.jwt
 
+import com.snurdy.backend.api.auth.dto.response.TokenResponse
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
-import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
-import java.nio.charset.StandardCharsets
-import java.security.Key
 import java.util.*
 
 @Component
 class JwtTokenProvider(
     private val jwtProperties: JwtProperties
 ) {
-    private lateinit var key: Key
+    private val secretKey = Keys.hmacShaKeyFor(jwtProperties.secretKey.toByteArray())
 
-    @PostConstruct
-    protected fun init() {
-        val keyBytes = jwtProperties.secretKey.toByteArray(StandardCharsets.UTF_8)
-        this.key = Keys.hmacShaKeyFor(keyBytes)
-    }
-
-    // Access Token 생성
-    fun createAccessToken(userId: UUID, role: String = "USER"): String {
-        val claims = Jwts.claims().setSubject(userId.toString())
-        claims["role"] = role
-
+    fun generateAccessToken(userId: UUID): String {
         val now = Date()
+        val expiryDate = Date(now.time + jwtProperties.accessTokenExpiration)
+
         return Jwts.builder()
-            .setClaims(claims)
-            .setIssuedAt(now)
-            .setExpiration(Date(now.time + jwtProperties.accessTokenExpiration))
-            .signWith(key, SignatureAlgorithm.HS256)
+            .subject(userId.toString())
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey)
             .compact()
     }
 
-    // Refresh Token 생성
-    fun createRefreshToken(): String {
+    fun generateRefreshToken(userId: UUID): String {
         val now = Date()
+        val expiryDate = Date(now.time + jwtProperties.refreshTokenExpiration)
+
         return Jwts.builder()
-            .setIssuedAt(now)
-            .setExpiration(Date(now.time + jwtProperties.refreshTokenExpiration))
-            .signWith(key, SignatureAlgorithm.HS256)
+            .subject(userId.toString())
+            .issuedAt(now)
+            .expiration(expiryDate)
+            .signWith(secretKey)
             .compact()
     }
 
-    // 토큰에서 UUID 추출
-    fun getUserId(token: String): String {
-        return Jwts.parserBuilder()
-            .setSigningKey(key)
-            .build()
-            .parseClaimsJws(token)
-            .body
-            .subject
-    }
-
-    // 토큰 유효성 검증
     fun validateToken(token: String): Boolean {
         return try {
-            val claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+            Jwts.parser()
+                .verifyWith(secretKey)
                 .build()
-                .parseClaimsJws(token)
-            !claims.body.expiration.before(Date())
+                .parseSignedClaims(token)
+            true
         } catch (e: Exception) {
             false
         }
+    }
+
+    fun getUserIdFromToken(token: String): UUID {
+        val claims = Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        return UUID.fromString(claims.subject)
+    }
+
+    fun createToken(userId: UUID): TokenResponse {
+        return TokenResponse(
+            accessToken = generateAccessToken(userId),
+            refreshToken = generateRefreshToken(userId),
+            accessTokenExpiresIn = jwtProperties.accessTokenExpiration,
+            refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration
+        )
     }
 }

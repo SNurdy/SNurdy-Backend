@@ -43,8 +43,8 @@ jobs:
       - name: Prepare Files for Deployment
         run: |
           mkdir -p deployment/build/libs
-          cp Dockerfile deployment/
-          cp docker-compose-dev.yml deployment/
+          cp infra/Dockerfile deployment/
+          cp infra/docker-compose-dev.yml deployment/
           cp build/libs/*-SNAPSHOT.jar deployment/build/libs/app.jar
 
       - name: Get Github Actions IP

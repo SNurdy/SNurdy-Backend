@@ -1,7 +1,7 @@
 services:
   app-dev:
     build:
-      context: ../..
+      context: .
       dockerfile: Dockerfile
     container_name: snurdy-app-dev
     environment:

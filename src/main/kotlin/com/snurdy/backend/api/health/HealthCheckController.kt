@@ -9,7 +9,7 @@ class HealthCheckController {
     @GetMapping("/")
     fun root() = "SNurdy API Server Running"
 
-    @GetMapping("/api/v1/health")
+    @GetMapping("/v1/health")
     fun healthCheck(): ResponseEntity<String?> {
         return ResponseEntity.ok<String?>("UP")
     }

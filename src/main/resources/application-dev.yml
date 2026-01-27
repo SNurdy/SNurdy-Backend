@@ -11,7 +11,7 @@ spring:
       ddl-auto: update
 
 jwt:
-  secret-key: ${JWT_SECRET_KEY:default_secret_key_at_least_32_chars}
+  secret-key: ${JWT_SECRET_KEY}
   access-token-expiration: 3600000 # 1시간
   refresh-token-expiration: 2592000000 # 30일
 

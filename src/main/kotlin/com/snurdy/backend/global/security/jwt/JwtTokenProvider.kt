@@ -3,14 +3,31 @@ package com.snurdy.backend.global.security.jwt
 import com.snurdy.backend.api.auth.dto.response.TokenResponse
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 import java.util.*
+import javax.crypto.SecretKey
 
 @Component
 class JwtTokenProvider(
     private val jwtProperties: JwtProperties
 ) {
-    private val secretKey = Keys.hmacShaKeyFor(jwtProperties.secretKey.toByteArray())
+    private lateinit var secretKey: SecretKey
+
+    @PostConstruct
+    fun init() {
+        val rawKey = jwtProperties.secretKey
+
+        require(rawKey.isNotBlank()) {
+            "JWT Secret Key가 주입되지 않았습니다. 환경 변수(JWT_SECRET_KEY)를 확인하세요."
+        }
+
+        require(rawKey.length >= 32) {
+            "JWT Secret Key는 보안을 위해 최소 32자 이상이어야 합니다. (현재 길이: ${rawKey.length})"
+        }
+
+        this.secretKey = Keys.hmacShaKeyFor(rawKey.toByteArray())
+    }
 
     fun generateAccessToken(userId: UUID): String {
         val now = Date()

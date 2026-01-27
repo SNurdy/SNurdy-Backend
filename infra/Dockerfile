@@ -1,10 +1,8 @@
-# 1단계: Jar 분해 (Extract)
 FROM amazoncorretto:21-al2023-jdk AS builder
 WORKDIR /app
 
 COPY build/libs/app.jar app.jar
 
-# Spring Boot의 Layertools 이용해 Jar 분해
 RUN java -Djarmode=layertools -jar app.jar extract --destination extracted
 
 FROM amazoncorretto:21-al2023-jdk

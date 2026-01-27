@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.auth.config
+package com.snurdy.backend.global.security.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,8 +24,8 @@ class SecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/", "/api/v1/health", "/health").permitAll()
-                    .requestMatchers("/api/v1/auth/**").permitAll()
+                    .requestMatchers("/", "/v1/health", "/health").permitAll()
+                    .requestMatchers("/v1/auth/**").permitAll()
                     .anyRequest().authenticated()
             }
             .build()

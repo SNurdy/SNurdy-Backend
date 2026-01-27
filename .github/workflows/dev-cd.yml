@@ -36,6 +36,7 @@ jobs:
           spring.datasource.url: ${{ secrets.SPRING_DATASOURCE_URL }}
           spring.datasource.username: ${{ secrets.SPRING_DATASOURCE_USERNAME }}
           spring.datasource.password: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
+          oauth.kakao.client-id: ${{ secrets.KAKAO_CLIENT_ID }}
 
       - name: Build with Gradle Wrapper
         run: ./gradlew clean build -x test

@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p deployment/build/libs
           cp infra/Dockerfile deployment/
-          cp infra/docker-compose-dev.yml deployment/
+          cp infra/dev/docker-compose-dev.yml deployment/
           cp build/libs/*-SNAPSHOT.jar deployment/build/libs/app.jar
 
       - name: Get Github Actions IP

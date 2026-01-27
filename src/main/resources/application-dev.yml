@@ -8,7 +8,7 @@ spring:
     password: ${spring.datasource.password}
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
 
 jwt:
   secret-key: ${JWT_SECRET_KEY:default_secret_key_at_least_32_chars}

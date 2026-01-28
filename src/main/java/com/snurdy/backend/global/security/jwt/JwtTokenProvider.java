@@ -2,6 +2,7 @@ package com.snurdy.backend.global.security.jwt;
 
 import com.snurdy.backend.domain.auth.dto.response.TokenResponse;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,9 +22,8 @@ public class JwtTokenProvider {
 
 	@PostConstruct
 	public void init() {
-		this.secretKey = Keys.hmacShaKeyFor(
-			jwtProperties.secretKey().getBytes(StandardCharsets.UTF_8)
-		);
+		byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secretKey());
+		this.secretKey = Keys.hmacShaKeyFor(keyBytes);
 	}
 
 	public TokenResponse createToken(UUID userId) {

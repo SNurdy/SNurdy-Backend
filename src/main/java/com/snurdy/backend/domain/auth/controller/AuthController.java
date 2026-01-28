@@ -18,7 +18,7 @@ public class AuthController {
 
 	private final AuthService authService;
 
-	@PostMapping("/kakao")
+	@PostMapping("/kakao/callback")
 	public ApiResponse<TokenResponse> kakaoLogin(@RequestBody @Valid KakaoLoginRequest request) {
 		TokenResponse token = authService.socialLogin(SocialType.KAKAO, request.authorizationCode());
 		return ApiResponse.success(SuccessType.LOGIN_SUCCESS, token);

@@ -6,7 +6,9 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import jakarta.annotation.PostConstruct;
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.UUID;
 
@@ -15,6 +17,14 @@ import java.util.UUID;
 public class JwtTokenProvider {
 
 	private final JwtProperties jwtProperties;
+	private SecretKey secretKey;
+
+	@PostConstruct
+	public void init() {
+		this.secretKey = Keys.hmacShaKeyFor(
+			jwtProperties.secretKey().getBytes(StandardCharsets.UTF_8)
+		);
+	}
 
 	public TokenResponse createToken(UUID userId) {
 		String accessToken = generateAccessToken(userId);
@@ -36,7 +46,7 @@ public class JwtTokenProvider {
 			.subject(userId.toString())
 			.issuedAt(now)
 			.expiration(expiryDate)
-			.signWith(getSecretKey())
+			.signWith(secretKey)
 			.compact();
 	}
 
@@ -48,14 +58,14 @@ public class JwtTokenProvider {
 			.subject(userId.toString())
 			.issuedAt(now)
 			.expiration(expiryDate)
-			.signWith(getSecretKey())
+			.signWith(secretKey)
 			.compact();
 	}
 
 	public boolean validateToken(String token) {
 		try {
 			Jwts.parser()
-				.verifyWith(getSecretKey())
+				.verifyWith(secretKey)
 				.build()
 				.parseSignedClaims(token);
 			return true;
@@ -66,16 +76,12 @@ public class JwtTokenProvider {
 
 	public UUID getUserIdFromToken(String token) {
 		String subject = Jwts.parser()
-			.verifyWith(getSecretKey())
+			.verifyWith(secretKey)
 			.build()
 			.parseSignedClaims(token)
 			.getPayload()
 			.getSubject();
 
 		return UUID.fromString(subject);
-	}
-
-	private SecretKey getSecretKey() {
-		return Keys.hmacShaKeyFor(jwtProperties.secretKey().getBytes());
 	}
 }

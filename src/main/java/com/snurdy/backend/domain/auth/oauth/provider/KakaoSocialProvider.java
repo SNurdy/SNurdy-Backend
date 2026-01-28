@@ -1,12 +1,18 @@
-package com.snurdy.backend.domain.auth.client;
+package com.snurdy.backend.domain.auth.oauth.provider;
 
-import com.snurdy.backend.domain.auth.dto.external.KakaoUserInfoResponse;
+import com.snurdy.backend.domain.auth.oauth.client.KakaoApiClient;
+import com.snurdy.backend.domain.auth.oauth.client.KakaoAuthClient;
+import com.snurdy.backend.domain.auth.oauth.dto.SocialUserInfo;
+import com.snurdy.backend.domain.auth.oauth.dto.external.KakaoUserInfoResponse;
 import com.snurdy.backend.domain.user.entity.SocialType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class KakaoSocialProvider implements SocialProvider {
+
+	private static final String GRANT_TYPE = "authorization_code";
+	private static final String BEARER_PREFIX = "Bearer ";
 
 	private final KakaoAuthClient kakaoAuthClient;
 	private final KakaoApiClient kakaoApiClient;
@@ -32,7 +38,7 @@ public class KakaoSocialProvider implements SocialProvider {
 	@Override
 	public String getAccessToken(String authorizationCode) {
 		var response = kakaoAuthClient.getAccessToken(
-			"authorization_code",
+			GRANT_TYPE,
 			clientId,
 			redirectUri,
 			authorizationCode
@@ -42,7 +48,7 @@ public class KakaoSocialProvider implements SocialProvider {
 
 	@Override
 	public SocialUserInfo getSocialUserInfo(String accessToken) {
-		var response = kakaoApiClient.getUserInfo("Bearer " + accessToken);
+		var response = kakaoApiClient.getUserInfo(BEARER_PREFIX + accessToken);
 
 		KakaoUserInfoResponse.KakaoAccount account = response.kakaoAccount();
 		KakaoUserInfoResponse.Profile profile = account != null ? account.profile() : null;

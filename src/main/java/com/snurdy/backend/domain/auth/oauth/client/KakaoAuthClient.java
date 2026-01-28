@@ -1,13 +1,10 @@
-package com.snurdy.backend.domain.auth.client;
+package com.snurdy.backend.domain.auth.oauth.client;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.snurdy.backend.domain.auth.dto.external.KakaoTokenResponse;
-import com.snurdy.backend.domain.auth.dto.external.KakaoUserInfoResponse;
+import com.snurdy.backend.domain.auth.oauth.dto.external.KakaoTokenResponse;
 
 @FeignClient(name = "kakaoAuthClient", url = "https://kauth.kakao.com")
 public interface KakaoAuthClient {
@@ -21,11 +18,3 @@ public interface KakaoAuthClient {
 	);
 }
 
-@FeignClient(name = "kakaoApiClient", url = "https://kapi.kakao.com")
-interface KakaoApiClient {
-
-	@GetMapping("/v2/user/me")
-	KakaoUserInfoResponse getUserInfo(
-		@RequestHeader("Authorization") String accessToken
-	);
-}

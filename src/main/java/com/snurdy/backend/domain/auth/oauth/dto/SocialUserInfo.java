@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.auth.client;
+package com.snurdy.backend.domain.auth.oauth.dto;
 
 public record SocialUserInfo(
 	String socialId,

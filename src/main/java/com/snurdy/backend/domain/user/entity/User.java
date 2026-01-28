@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.util.UUID;
 
-import com.snurdy.backend.domain.auth.client.SocialUserInfo;
+import com.snurdy.backend.domain.auth.oauth.dto.SocialUserInfo;
 
 @Entity
 @Table(name = "users")
@@ -34,8 +34,13 @@ public class User {
 	@Column(nullable = false)
 	private Role role;
 
+	@Builder.Default
 	private int currentStreak = 0;
+
+	@Builder.Default
 	private int totalLearningTerms = 0;
+
+	@Builder.Default
 	private int longestStreak = 0;
 
 	public static User from(SocialUserInfo info, SocialType type) {

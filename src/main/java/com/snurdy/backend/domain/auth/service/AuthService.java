@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.auth.service;
 
-import com.snurdy.backend.domain.auth.client.SocialProvider;
-import com.snurdy.backend.domain.auth.client.SocialUserInfo;
+import com.snurdy.backend.domain.auth.oauth.provider.SocialProvider;
+import com.snurdy.backend.domain.auth.oauth.dto.SocialUserInfo;
 import com.snurdy.backend.domain.auth.dto.response.TokenResponse;
 import com.snurdy.backend.domain.auth.entity.RefreshToken;
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository;
@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -31,10 +33,10 @@ public class AuthService {
 		SocialUserInfo userInfo = fetchSocialUserInfo(socialType, authorizationCode);
 
 		// DB 작업 및 토큰 발행 -> 트랜잭션 내부
-		return transactionTemplate.execute(status -> {
+		return Objects.requireNonNull(transactionTemplate.execute(status -> {
 			User user = loginOrRegister(socialType, userInfo);
 			return issueTokens(user);
-		});
+		}));
 	}
 
 	private SocialUserInfo fetchSocialUserInfo(SocialType socialType, String code) {

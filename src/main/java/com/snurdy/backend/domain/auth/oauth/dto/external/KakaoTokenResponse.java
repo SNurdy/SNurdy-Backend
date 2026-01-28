@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.auth.dto.external;
+package com.snurdy.backend.domain.auth.oauth.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

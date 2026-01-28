@@ -1,4 +1,4 @@
-package com.snurdy.backend.api.health;
+package com.snurdy.backend.global.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

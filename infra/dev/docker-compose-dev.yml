@@ -6,11 +6,6 @@ services:
     container_name: snurdy-app-dev
     environment:
       - SPRING_PROFILES_ACTIVE=dev
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
     ports:
       - "8080:8080"
     networks:

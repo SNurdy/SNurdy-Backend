@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.auth.oauth.provider;
 
+import java.util.Map;
+
 import com.snurdy.backend.domain.auth.oauth.client.KakaoApiClient;
 import com.snurdy.backend.domain.auth.oauth.client.KakaoAuthClient;
 import com.snurdy.backend.domain.auth.oauth.dto.SocialUserInfo;
@@ -37,12 +39,14 @@ public class KakaoSocialProvider implements SocialProvider {
 
 	@Override
 	public String getAccessToken(String authorizationCode) {
-		var response = kakaoAuthClient.getAccessToken(
-			GRANT_TYPE,
-			clientId,
-			redirectUri,
-			authorizationCode
+		Map<String, String> params = Map.of(
+			"grant_type", "authorization_code",
+			"client_id", clientId,
+			"redirect_uri", redirectUri,
+			"code", authorizationCode
 		);
+
+		var response = kakaoAuthClient.getAccessToken(params);
 		return response.accessToken();
 	}
 

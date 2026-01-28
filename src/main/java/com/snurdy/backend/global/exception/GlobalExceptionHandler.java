@@ -54,7 +54,7 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity
 			.status(405)
-			.body(ApiResponse.error(ErrorType.BAD_REQUEST));
+			.body(ApiResponse.error(ErrorType.METHOD_NOT_ALLOWED));
 	}
 
 	@ExceptionHandler(MethodArgumentTypeMismatchException.class)

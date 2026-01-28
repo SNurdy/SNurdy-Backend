@@ -39,27 +39,23 @@ public class JwtTokenProvider {
 	}
 
 	public String generateAccessToken(UUID userId) {
-		Date now = new Date();
-		Date expiryDate = new Date(now.getTime() + jwtProperties.accessTokenExpiration());
-
-		return Jwts.builder()
-			.subject(userId.toString())
-			.issuedAt(now)
-			.expiration(expiryDate)
-			.signWith(secretKey)
-			.compact();
+		return buildToken(userId, jwtProperties.accessTokenExpiration());
 	}
 
 	public String generateRefreshToken(UUID userId) {
+		return buildToken(userId, jwtProperties.refreshTokenExpiration());
+	}
+
+	private String buildToken(UUID userId, long expirationMillis) {
 		Date now = new Date();
-		Date expiryDate = new Date(now.getTime() + jwtProperties.refreshTokenExpiration());
+		Date expiryDate = new Date(now.getTime() + expirationMillis);
 
 		return Jwts.builder()
-			.subject(userId.toString())
-			.issuedAt(now)
-			.expiration(expiryDate)
-			.signWith(secretKey)
-			.compact();
+		.subject(userId.toString())
+		.issuedAt(now)
+		.expiration(expiryDate)
+		.signWith(secretKey)
+		.compact();
 	}
 
 	public boolean validateToken(String token) {

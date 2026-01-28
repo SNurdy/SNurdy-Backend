@@ -7,18 +7,23 @@ import java.util.UUID;
 import com.snurdy.backend.domain.auth.oauth.dto.SocialUserInfo;
 
 @Entity
-@Table(name = "users")
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(
+	name = "users",
+	uniqueConstraints = {
+		@UniqueConstraint(name = "uk_user_social_id_type", columnNames = {"socialId", "socialType"})
+	}
+)
 public class User {
 
 	@Id
 	@Column(columnDefinition = "BINARY(16)")
 	private UUID id;
 
-	@Column(nullable = false, unique = true)
+	@Column(nullable = false)
 	private String socialId;
 
 	@Enumerated(EnumType.STRING)

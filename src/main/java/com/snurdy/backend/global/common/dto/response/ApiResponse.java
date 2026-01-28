@@ -59,7 +59,7 @@ public record ApiResponse<T>(
 		return new ApiResponse<>(
 			errorType.getHttpStatusCode(),
 			errorType.getMessage(),
-			exception.getMessage(),
+			null,
 			LocalDateTime.now()
 		);
 	}

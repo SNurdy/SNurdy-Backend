@@ -9,5 +9,4 @@ reviews:
     - "!**/build/**"
     - "!**/.gradle/**"
     - "!**/gradle/**"
-    - "!**/test/**"
     - "!**/*.md"

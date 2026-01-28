@@ -6,6 +6,8 @@ import com.snurdy.backend.domain.auth.service.AuthService;
 import com.snurdy.backend.domain.user.entity.SocialType;
 import com.snurdy.backend.global.common.constants.SuccessType;
 import com.snurdy.backend.global.common.dto.response.ApiResponse;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +19,7 @@ public class AuthController {
 	private final AuthService authService;
 
 	@PostMapping("/kakao")
-	public ApiResponse<TokenResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
+	public ApiResponse<TokenResponse> kakaoLogin(@RequestBody @Valid KakaoLoginRequest request) {
 		TokenResponse token = authService.socialLogin(SocialType.KAKAO, request.authorizationCode());
 		return ApiResponse.success(SuccessType.LOGIN_SUCCESS, token);
 	}

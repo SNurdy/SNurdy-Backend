@@ -60,8 +60,8 @@ jobs:
           file: ./infra/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/app-dev:latest
-            ghcr.io/${{ github.repository }}/app-dev:${{ github.sha }}
+            ${{ steps.prep.outputs.image }}:latest
+            ${{ steps.prep.outputs.image }}:${{ github.sha }}
 
   deploy:
     needs: build-and-push

@@ -3,8 +3,7 @@ name: SNurdy-Dev-CD
 on:
   push:
     branches:
-      - develop
-      - hotfix/**
+      - main
 
 jobs:
   build-and-deploy:

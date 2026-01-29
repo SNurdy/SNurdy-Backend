@@ -1,16 +1,37 @@
 services:
   app-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: yo0oni/snurdy-app-dev:latest
     container_name: snurdy-app-dev
+    restart: unless-stopped
     environment:
       - SPRING_PROFILES_ACTIVE=dev
+      - TZ=Asia/Seoul
     ports:
       - "8080:8080"
+    depends_on:
+      - db-dev
+    networks:
+      - snurdy-network
+
+  db-dev:
+    image: mysql:8.0
+    container_name: snurdy-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
     networks:
       - snurdy-network
 
 networks:
   snurdy-network:
-    external: true
+    driver: bridge
+
+volumes:
+  mysql-data:

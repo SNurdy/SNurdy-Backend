@@ -1,17 +1,37 @@
 services:
-  snurdy-db-local:
-    image: mysql:8.0
-    container_name: snurdy-db-local
-    restart: always
+  app-dev:
+    image: yo0oni/snurdy-app-dev:latest
+    container_name: snurdy-app-dev
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: snurdy_dev
-      MYSQL_USER: snurdy
-      MYSQL_PASSWORD: snurdy
+      - SPRING_PROFILES_ACTIVE=dev
+      - TZ=Asia/Seoul
     ports:
-      - "3306:3306"
+      - "8080:8080"
+    depends_on:
+      - db-dev
+    networks:
+      - snurdy-network
+
+  db-dev:
+    image: mysql:8.0
+    container_name: snurdy-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3307:3306"
     volumes:
-      - mysql-local-data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+    networks:
+      - snurdy-network
+
+networks:
+  snurdy-network:
+    driver: bridge
 
 volumes:
-  mysql-local-data:
+  mysql-data:

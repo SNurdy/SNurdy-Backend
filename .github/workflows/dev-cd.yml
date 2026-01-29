@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
-          distribution: 'liberica'
+          distribution: 'corretto'
           cache: gradle
 
       - name: Inject Secrets & Build
@@ -40,8 +40,12 @@ jobs:
       - name: Build with Gradle
         run: chmod +x gradlew && ./gradlew clean build -x test
 
-      - name: Rename Jar
-        run: mv build/libs/*.jar build/libs/app.jar || true
+      - name: Prepare Deployment Files
+        run: |
+          mkdir -p deployment/build/libs
+          cp infra/Dockerfile deployment/
+          cp infra/dev/docker-compose-dev.yml deployment/
+          cp build/libs/*-SNAPSHOT.jar deployment/build/libs/app.jar
 
       - name: Prepare Image Name
         id: prep
@@ -59,8 +63,8 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./infra/Dockerfile
+          context: ./deployment
+          file: ./deployment/Dockerfile
           push: true
           tags: |
             ${{ steps.prep.outputs.image }}:latest

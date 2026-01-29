@@ -42,7 +42,7 @@ jobs:
           mkdir -p deployment/build/libs
           cp infra/Dockerfile deployment/
           cp infra/dev/docker-compose-dev.yml deployment/
-          cp build/libs/*.jar deployment/build/libs/app.jar
+          cp build/libs/snurdy-backend-*-SNAPSHOT.jar deployment/build/libs/app.jar
 
       - name: Docker Hub 로그인
         uses: docker/login-action@v3

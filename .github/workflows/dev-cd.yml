@@ -40,6 +40,9 @@ jobs:
       - name: Build with Gradle
         run: chmod +x gradlew && ./gradlew clean build -x test
 
+      - name: Rename Jar
+        run: mv build/libs/*.jar build/libs/app.jar || true
+
       - name: Prepare Image Name
         id: prep
         run: |

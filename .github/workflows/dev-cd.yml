@@ -1,16 +1,21 @@
 name: SNurdy-Dev-CD
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "배포 환경 (dev/prod)"
+        required: true
+        default: "dev"
+        type: string
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+      packages: write
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,13 +26,7 @@ jobs:
           distribution: 'liberica'
           cache: gradle
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Inject Secrets into application-dev.yml
+      - name: Inject Secrets & Build
         uses: microsoft/variable-substitution@v1
         with:
           files: 'src/main/resources/application-dev.yml'
@@ -37,16 +36,37 @@ jobs:
           spring.datasource.password: ${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           oauth.kakao.client-id: ${{ secrets.KAKAO_CLIENT_ID }}
           jwt.secret-key: ${{ secrets.JWT_SECRET_KEY }}
-      - name: Build with Gradle Wrapper
-        run: ./gradlew clean build -x test
 
-      - name: Prepare Files for Deployment
+      - name: Build with Gradle
+        run: chmod +x gradlew && ./gradlew clean build -x test
+
+      - name: Prepare Image Name
+        id: prep
         run: |
-          mkdir -p deployment/build/libs
-          cp infra/Dockerfile deployment/
-          cp infra/dev/docker-compose-dev.yml deployment/
-          cp build/libs/*-SNAPSHOT.jar deployment/build/libs/app.jar
+          REPO_LOWER=$(echo "ghcr.io/${{ github.repository }}/app-dev" | tr '[:upper:]' '[:lower:]')
+          echo "image=${REPO_LOWER}" >> $GITHUB_OUTPUT
 
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./infra/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/app-dev:latest
+            ghcr.io/${{ github.repository }}/app-dev:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
       - name: Get Github Actions IP
         id: ip
         uses: candidob/get-runner-ip@v1.0.0
@@ -58,34 +78,28 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Add Github Actions IP to Security Group
+      - name: Add IP to Security Group
         run: |
           aws ec2 authorize-security-group-ingress \
             --group-id ${{ secrets.AWS_DEV_SECURITY_GROUP_ID }} \
             --protocol tcp --port 22 \
             --cidr ${{ steps.ip.outputs.ipv4 }}/32 || true
 
-      - name: Upload Files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_DEV_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_DEV_SSH_PRIVATE_KEY }}
-          source: "deployment/*"
-          target: "/home/ubuntu/snurdy-backend/"
-
-      - name: Deploy using Docker Compose
+      - name: EC2 Deployment (Docker Pull)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_DEV_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_DEV_SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/snurdy-backend/deployment/
-            docker-compose -f docker-compose-dev.yml down
-            docker-compose -f docker-compose-dev.yml up -d --build --no-deps app-dev
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            IMAGE_NAME="ghcr.io/yo0oni/snurdy-backend/app-dev"
+            cd ~/snurdy-backend/deployment
+            docker pull ${IMAGE_NAME}:latest
+            docker-compose -f docker-compose-dev.yml up -d
+            docker image prune -f
 
-      - name: Remove Github Actions IP from Security Group
+      - name: Remove IP from Security Group
         if: always()
         run: |
           aws ec2 revoke-security-group-ingress \

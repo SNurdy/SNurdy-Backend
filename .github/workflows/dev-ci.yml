@@ -2,11 +2,9 @@ name: SNurdy-Dev-CI
 
 on:
   push:
-    branches:
-      - develop
-    paths-ignore:
-      - '**.md'
-      - '.gitignore'
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
 
 jobs:
   build:

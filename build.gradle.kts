@@ -1,0 +1,65 @@
+plugins {
+    kotlin("jvm") version "1.9.25"
+    kotlin("plugin.spring") version "1.9.25"
+    kotlin("plugin.jpa") version "1.9.25"
+    id("org.springframework.boot") version "3.4.2"
+    id("io.spring.dependency-management") version "1.1.7"
+}
+
+group = "com.snurdy"
+version = "0.0.1-SNAPSHOT"
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+val springCloudVersion by extra("2024.0.0")
+
+dependencies {
+    // Spring Boot & Kotlin
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // Database
+    runtimeOnly("com.mysql:mysql-connector-j")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // JWT
+    implementation("io.jsonwebtoken:jjwt-api:0.12.7")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.7")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.7")
+
+    // OpenFeign
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+    // Test
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+    }
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs += "-Xannotation-default-target=param-property"
+        jvmTarget = "21"
+    }
+}
+
+tasks.getByName<Test>("test") {
+    useJUnitPlatform()
+}

@@ -39,7 +39,7 @@ class SecurityConfig(
                 // 인증 관련
                 authorize("/v1/auth/**", permitAll)
 
-                // Swagger 및 API Docs (중요: 정적 리소스 경로 포함)
+                // Swagger 및 API Docs
                 authorize("/swagger-ui/**", permitAll)
                 authorize("/swagger-resources/**", permitAll)
                 authorize("/v3/api-docs/**", permitAll)

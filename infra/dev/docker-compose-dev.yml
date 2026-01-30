@@ -13,7 +13,7 @@ services:
     depends_on:
       - db-dev
     volumes:
-      - ${APPLE_KEY_HOST_PATH}:/app/keys/apple-auth-key.p8
+      - ${APPLE_KEY_HOST_PATH}:/app/keys/apple-auth-key.p8:ro
     networks:
       - snurdy-network
 

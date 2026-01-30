@@ -3,9 +3,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://snurdy-db-dev:3306/${MYSQL_DATABASE}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update

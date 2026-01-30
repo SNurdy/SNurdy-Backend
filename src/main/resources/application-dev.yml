@@ -3,19 +3,36 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${spring.datasource.url}
-    username: ${spring.datasource.username}
-    password: ${spring.datasource.password}
+    url: jdbc:mysql://snurdy-db-dev:3306/${DB_NAME:snurdy_dev}
+    username: ${DB_USER:snurdy}
+    password: ${DB_PASSWORD:snurdy}
   jpa:
     hibernate:
       ddl-auto: update
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: 3600000 # 1시간
-  refresh-token-expiration: 2592000000 # 30일
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000000}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger
+    display-request-duration: true
+    groups-order: DESC
+    operations-sorter: method
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
 
 oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
-    redirect-uri: https://api-test.snurdy.org/api/v1/auth/kakao/callback
+    redirect-uri: ${KAKAO_REDIRECT_URI_DEV}
+  apple:
+    team-id: ${APPLE_TEAM_ID}
+    client-id: ${APPLE_CLIENT_ID}
+    key-id: ${APPLE_KEY_ID}
+    redirect-uri: ${APPLE_REDIRECT_URI_DEV}
+    key-path: ${APPLE_KEY_PATH}

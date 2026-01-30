@@ -13,10 +13,16 @@ spring:
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: 3600000 # 1시간
-  refresh-token-expiration: 2592000000 # 30일
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
-    redirect-uri: http://localhost:8080/api/v1/auth/login/kakao
+    redirect-uri: ${KAKAO_REDIRECT_URI_LOCAL}
+  apple:
+    team-id: ${APPLE_TEAM_ID}
+    client-id: ${APPLE_CLIENT_ID}
+    key-id: ${APPLE_KEY_ID}
+    redirect-uri: ${APPLE_REDIRECT_URI_LOCAL}
+    key-path: ${APPLE_KEY_PATH}

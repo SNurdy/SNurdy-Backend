@@ -31,10 +31,21 @@ class SecurityConfig(
             }
 
             authorizeHttpRequests {
+                // 헬스체크 및 기본 경로
                 authorize("/", permitAll)
                 authorize("/health", permitAll)
-                authorize("/v1/health", permitAll)
+                authorize("/api/health", permitAll) // context-path가 /api이므로 확인 필요
+
+                // 인증 관련
                 authorize("/v1/auth/**", permitAll)
+
+                // Swagger 및 API Docs (중요: 정적 리소스 경로 포함)
+                authorize("/swagger-ui/**", permitAll)
+                authorize("/swagger-resources/**", permitAll)
+                authorize("/v3/api-docs/**", permitAll)
+                authorize("/webjars/**", permitAll)
+
+                // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)
             }
 

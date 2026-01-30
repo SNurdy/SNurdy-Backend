@@ -34,7 +34,7 @@ class SecurityConfig(
                 // 헬스체크 및 기본 경로
                 authorize("/", permitAll)
                 authorize("/health", permitAll)
-                authorize("/api/health", permitAll) // context-path가 /api이므로 확인 필요
+                authorize("/v1/health", permitAll) // context-path가 /api이므로 확인 필요
 
                 // 인증 관련
                 authorize("/v1/auth/**", permitAll)

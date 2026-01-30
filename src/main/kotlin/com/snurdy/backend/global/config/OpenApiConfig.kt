@@ -52,6 +52,5 @@ class SwaggerConfig {
             .addSecurityItem(
                 SecurityRequirement()
                     .addList("Access Token")
-                    .addList("Refresh Token")
             )
 }

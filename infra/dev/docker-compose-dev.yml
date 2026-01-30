@@ -11,7 +11,8 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db-dev
+      db-dev:
+        condition: service_healthy
     volumes:
       - ${APPLE_KEY_HOST_PATH}:/app/keys/apple-auth-key.p8:ro
     networks:
@@ -26,6 +27,11 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u\"$${MYSQL_USER}\" -p\"$${MYSQL_PASSWORD}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "3306:3306"
     volumes:

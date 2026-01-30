@@ -93,7 +93,7 @@ jobs:
             IMAGE_NAME="${{ secrets.DOCKERHUB_USERNAME }}/snurdy-app-dev"
             cd ~/snurdy-backend/deployment
             docker pull ${IMAGE_NAME}:latest
-            docker-compose -f docker-compose-dev.yml up -d
+            docker-compose -f docker-compose-dev.yml up -d --force-recreate app-dev
             docker image prune -f
 
       - name: 보안 그룹에서 IP 제거

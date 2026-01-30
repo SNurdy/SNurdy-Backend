@@ -38,8 +38,9 @@ out/
 
 .env
 *.env
+.env.local
+.env.dev
 !.env.example
-build/
 *.jar
 
 *.p8

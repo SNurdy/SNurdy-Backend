@@ -3,36 +3,16 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:mysql://snurdy-db-dev:3306/${DB_NAME:snurdy_dev}
-    username: ${DB_USER:snurdy}
-    password: ${DB_PASSWORD:snurdy}
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
+    show-sql: false
 
-jwt:
-  secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000000}
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger
-    display-request-duration: true
-    groups-order: DESC
-    operations-sorter: method
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
-
-oauth:
-  kakao:
-    client-id: ${KAKAO_CLIENT_ID}
-    redirect-uri: ${KAKAO_REDIRECT_URI_DEV}
-  apple:
-    team-id: ${APPLE_TEAM_ID}
-    client-id: ${APPLE_CLIENT_ID}
-    key-id: ${APPLE_KEY_ID}
-    redirect-uri: ${APPLE_REDIRECT_URI_DEV}
-    key-path: ${APPLE_KEY_PATH}
+logging:
+  level:
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

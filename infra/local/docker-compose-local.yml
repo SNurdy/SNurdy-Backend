@@ -3,11 +3,13 @@ services:
     image: mysql:8.0
     container_name: snurdy-db-local
     restart: always
+    env_file:
+      - .env
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: snurdy_dev
-      MYSQL_USER: snurdy
-      MYSQL_PASSWORD: snurdy
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:

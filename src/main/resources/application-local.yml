@@ -4,25 +4,17 @@ spring:
       on-profile: local
   datasource:
     url: jdbc:mysql://localhost:3306/snurdy_dev
-    username: snurdy          # snurdy 대신 root 사용
+    username: snurdy
     password: snurdy
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 
-jwt:
-  secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
-
-oauth:
-  kakao:
-    client-id: ${KAKAO_CLIENT_ID}
-    redirect-uri: ${KAKAO_REDIRECT_URI_LOCAL}
-  apple:
-    team-id: ${APPLE_TEAM_ID}
-    client-id: ${APPLE_CLIENT_ID}
-    key-id: ${APPLE_KEY_ID}
-    redirect-uri: ${APPLE_REDIRECT_URI_LOCAL}
-    key-path: ${APPLE_KEY_PATH}
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

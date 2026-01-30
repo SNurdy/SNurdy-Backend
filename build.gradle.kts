@@ -8,6 +8,7 @@ plugins {
 
 group = "com.snurdy"
 version = "0.0.1-SNAPSHOT"
+description = "snurdy api server"
 
 java {
     toolchain {
@@ -45,6 +46,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+
+    // Swagger
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 }
 
 dependencyManagement {

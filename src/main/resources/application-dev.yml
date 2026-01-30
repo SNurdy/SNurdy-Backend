@@ -3,19 +3,16 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${spring.datasource.url}
-    username: ${spring.datasource.username}
-    password: ${spring.datasource.password}
+    url: jdbc:mysql://snurdy-db-dev:3306/${MYSQL_DATABASE}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
+    show-sql: false
 
-jwt:
-  secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: 3600000 # 1시간
-  refresh-token-expiration: 2592000000 # 30일
-
-oauth:
-  kakao:
-    client-id: ${KAKAO_CLIENT_ID}
-    redirect-uri: https://api-test.snurdy.org/api/v1/auth/kakao/callback
+logging:
+  level:
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

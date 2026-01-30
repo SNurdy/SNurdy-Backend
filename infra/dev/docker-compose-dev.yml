@@ -3,6 +3,8 @@ services:
     image: yo0oni/snurdy-app-dev:latest
     container_name: snurdy-app-dev
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - TZ=Asia/Seoul
@@ -10,6 +12,8 @@ services:
       - "8080:8080"
     depends_on:
       - db-dev
+    volumes:
+      - ${APPLE_KEY_HOST_PATH}:/app/keys/apple-auth-key.p8:ro
     networks:
       - snurdy-network
 

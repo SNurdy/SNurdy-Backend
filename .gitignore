@@ -36,6 +36,13 @@ out/
 ### VS Code ###
 .vscode/
 
-.env*
-build/
+.env
+*.env
+.env.local
+.env.dev
+!.env.example
 *.jar
+
+*.p8
+*.pem
+keys/

@@ -12,11 +12,17 @@ class AuthController(
     private val authService: AuthService
 ) : AuthApi {
 
-    override fun socialLogin(
-        socialType: SocialType,
-        request: AuthDto.LoginRequest
+    override fun kakaoLogin(
+        request: AuthDto.KakaoLoginRequest
     ): ApiResponse<AuthDto.TokenResponse> {
-        val token = authService.socialLogin(socialType, request.authorizationCode)
+        val token = authService.kakaoLogin(request.accessToken)
+        return ApiResponse.success(SuccessCode.LOGIN_SUCCESS, token)
+    }
+
+    override fun appleLogin(
+        request: AuthDto.AppleLoginRequest
+    ): ApiResponse<AuthDto.TokenResponse> {
+        val token = authService.appleLogin(request.identityToken, request.user)
         return ApiResponse.success(SuccessCode.LOGIN_SUCCESS, token)
     }
 

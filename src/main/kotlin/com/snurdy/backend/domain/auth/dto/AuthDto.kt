@@ -5,9 +5,20 @@ import jakarta.validation.constraints.NotBlank
 
 object AuthDto {
 
-    data class LoginRequest(
+    data class KakaoLoginRequest(
         @field:NotBlank
-        val authorizationCode: String
+        val accessToken: String
+    )
+
+    data class AppleLoginRequest(
+        @field:NotBlank
+        val identityToken: String,
+        val user: AppleUser? = null
+    )
+
+    data class AppleUser(
+        val email: String?,
+        val fullName: String?
     )
 
     data class TokenResponse(

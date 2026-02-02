@@ -2,8 +2,8 @@ package com.snurdy.backend.domain.auth.service
 
 import com.snurdy.backend.domain.auth.dto.AuthDto
 import com.snurdy.backend.domain.auth.entity.RefreshTokenEntity
-import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
+import com.snurdy.backend.domain.auth.external.provider.*;
 import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
@@ -62,14 +62,6 @@ class AuthService(
             val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
             refreshTokenRepository.deleteByUserId(userId)
         }
-    }
-
-    private fun fetchSocialUserInfo(socialType: SocialType, code: String): SocialUserInfo {
-        val provider = socialProviders.find { it.socialType == socialType }
-            ?: throw ApiException(ErrorCode.BAD_REQUEST)
-
-        val accessToken = provider.getAccessToken(code)
-        return provider.getSocialUserInfo(accessToken)
     }
 
     private fun validateRefreshToken(userId: UUID, refreshToken: String) {

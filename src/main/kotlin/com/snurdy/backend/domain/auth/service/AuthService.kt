@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.auth.service
 import com.snurdy.backend.domain.auth.dto.AuthDto
 import com.snurdy.backend.domain.auth.entity.RefreshTokenEntity
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
-import com.snurdy.backend.domain.auth.external.provider.SocialProvider
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
@@ -18,18 +17,29 @@ import java.util.*
 
 @Service
 class AuthService(
-    private val socialProviders: List<SocialProvider>,
+    private val kakaoSocialProvider: KakaoSocialProvider,
+    private val appleSocialProvider: AppleSocialProvider,
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
 
     @Transactional
-    fun socialLogin(socialType: SocialType, code: String): AuthDto.TokenResponse {
-        val userInfo = fetchSocialUserInfo(socialType, code)
+    fun kakaoLogin(accessToken: String): AuthDto.TokenResponse {
+        val userInfo = kakaoSocialProvider.getUserInfo(accessToken)
 
-        val user = userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-            ?: userRepository.save(UserEntity.from(userInfo, socialType))
+        val user = userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, userInfo.socialId)
+            ?: userRepository.save(UserEntity.from(userInfo, SocialType.KAKAO))
+
+        return issueTokens(user.id)
+    }
+
+    @Transactional
+    fun appleLogin(identityToken: String, appleUser: AuthDto.AppleUser?): AuthDto.TokenResponse {
+        val userInfo = appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser)
+
+        val user = userRepository.findBySocialTypeAndSocialId(SocialType.APPLE, userInfo.socialId)
+            ?: userRepository.save(UserEntity.from(userInfo, SocialType.APPLE))
 
         return issueTokens(user.id)
     }

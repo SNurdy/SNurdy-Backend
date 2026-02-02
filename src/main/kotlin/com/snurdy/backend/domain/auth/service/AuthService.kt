@@ -13,6 +13,7 @@ import com.snurdy.backend.global.common.constants.ErrorCode
 import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.global.security.jwt.JwtTokenProvider
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -66,8 +67,12 @@ class AuthService(
     }
 
     private fun findOrCreateUser(userInfo: SocialUserInfo, socialType: SocialType): UserEntity {
-        return userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-            ?: userRepository.save(UserEntity.from(userInfo, socialType))
+        return try {
+            userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
+                ?: userRepository.save(UserEntity.from(userInfo, socialType))
+        } catch (e: DataIntegrityViolationException) {
+            userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId) ?: throw e
+        }
     }
 
     private fun validateRefreshToken(userId: UUID, refreshToken: String) {

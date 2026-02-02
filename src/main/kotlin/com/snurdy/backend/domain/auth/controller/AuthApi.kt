@@ -29,7 +29,8 @@ interface AuthApi {
     @Operation(summary = "애플 로그인", description = "Apple identityToken으로 로그인합니다.")
     @ApiResponses(
         SwaggerApiResponse(responseCode = "200", description = "로그인 성공"),
-        SwaggerApiResponse(responseCode = "401", description = "유효하지 않은 identityToken")
+        SwaggerApiResponse(responseCode = "401", description = "유효하지 않은 identityToken"),
+        SwaggerApiResponse(responseCode = "502", description = "애플 API 오류")
     )
     @SecurityRequirements
     @PostMapping("/login/apple")

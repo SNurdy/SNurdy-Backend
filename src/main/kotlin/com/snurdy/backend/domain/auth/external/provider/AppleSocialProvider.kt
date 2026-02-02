@@ -8,12 +8,14 @@ import com.snurdy.backend.global.common.constants.ErrorCode
 import com.snurdy.backend.global.exception.ApiException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.util.Base64
 
 @Component
 class AppleSocialProvider(
-    private val applePublicKeyProvider: ApplePublicKeyProvider
+    private val applePublicKeyProvider: ApplePublicKeyProvider,
+    @Value("\${oauth.apple.client-id}") private val appleClientId: String
 ) {
     private val mapper = ObjectMapper()
 
@@ -43,7 +45,7 @@ class AppleSocialProvider(
         return Jwts.parser()
             .verifyWith(publicKey)
             .requireIssuer("https://appleid.apple.com")
-            .requireAudience("org.snurdy.dev")
+            .requireAudience(appleClientId)
             .build()
             .parseSignedClaims(identityToken)
             .payload

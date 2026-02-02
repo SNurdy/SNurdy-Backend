@@ -15,18 +15,21 @@ import java.util.Base64
 class AppleSocialProvider(
     private val applePublicKeyProvider: ApplePublicKeyProvider
 ) {
+    private val mapper = ObjectMapper()
 
     fun verifyAndGetUserInfo(
         identityToken: String,
         appleUser: AuthDto.AppleUser?
     ): SocialUserInfo {
         val claims = verifyIdentityToken(identityToken)
-        val sub = claims.subject  // Apple user ID
+        val sub = claims.subject
+
+        val nickname = appleUser?.fullName ?: "Apple User"
 
         return SocialUserInfo(
             socialId = sub,
-            email = appleUser?.email ?: claims["email"] as? String,
-            nickname = appleUser?.fullName ?: "Apple User"
+            email = (claims["email"] as? String) ?: appleUser?.email,
+            nickname = nickname
         )
     }
 
@@ -40,6 +43,7 @@ class AppleSocialProvider(
         return Jwts.parser()
             .verifyWith(publicKey)
             .requireIssuer("https://appleid.apple.com")
+            .requireAudience("org.snurdy.dev")
             .build()
             .parseSignedClaims(identityToken)
             .payload
@@ -48,7 +52,11 @@ class AppleSocialProvider(
     private fun extractHeader(token: String): Map<String, Any> {
         val headerPart = token.split(".")[0]
         val decoded = Base64.getUrlDecoder().decode(headerPart)
-        val mapper = ObjectMapper()
-        return mapper.readValue(decoded, object : TypeReference<Map<String, Any>>() {})
+
+        val header: Map<String, Any> = mapper.readValue(
+            decoded,
+            object : TypeReference<Map<String, Any>>() {}
+        )
+        return header
     }
 }

@@ -12,27 +12,33 @@ class RefreshTokenEntity(
     @Column(columnDefinition = "BINARY(16)")
     val id: UUID? = null,
 
-    @Column(nullable = false, columnDefinition = "BINARY(16)")
+    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
     val userId: UUID,
 
     @Column(nullable = false, unique = true, length = 500)
     var token: String,
 
     @Column(nullable = false)
-    val expiryDate: LocalDateTime
+    var expiryDate: LocalDateTime
 ) {
     val isExpired: Boolean
         get() = LocalDateTime.now().isAfter(expiryDate)
+
+    fun updateToken(newToken: String, newExpiryDate: LocalDateTime): RefreshTokenEntity {
+        this.token = newToken
+        this.expiryDate = newExpiryDate
+        return this
+    }
 
     companion object {
         fun create(
             userId: UUID,
             token: String,
-            validityDays: Int
+            validityDays: Long
         ): RefreshTokenEntity = RefreshTokenEntity(
             userId = userId,
             token = token,
-            expiryDate = LocalDateTime.now().plusDays(validityDays.toLong())
+            expiryDate = LocalDateTime.now().plusDays(validityDays)
         )
     }
 }

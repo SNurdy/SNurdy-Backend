@@ -26,10 +26,10 @@ class AuthController(
             .let { authService.reissue(it) }
             .let { ApiResponse.success(SuccessCode.REISSUE_SUCCESS, it) }
 
-    override fun logout(refreshToken: String): ApiResponse<Unit> {
-        authService.logout(refreshToken.extractToken())
-        return ApiResponse.success(SuccessCode.LOGOUT_SUCCESS)
-    }
+    override fun logout(refreshToken: String): ApiResponse<Unit> =
+        refreshToken.extractToken()
+            .also { authService.logout(it) }
+            .let { ApiResponse.success(SuccessCode.LOGOUT_SUCCESS) }
 
     private fun String.extractToken(): String =
         trim().let { token ->

@@ -32,5 +32,8 @@ class AuthController(
     }
 
     private fun String.extractToken(): String =
-        removePrefix("Bearer ").trim()
+        trim().let { token ->
+            if (token.startsWith("Bearer ", ignoreCase = true)) token.substringAfter(' ').trim() else token
+        }
+
 }

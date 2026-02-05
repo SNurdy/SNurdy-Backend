@@ -4,7 +4,7 @@ import com.snurdy.backend.domain.auth.dto.AppleLoginRequest
 import com.snurdy.backend.domain.auth.dto.KakaoLoginRequest
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.service.AuthService
-import com.snurdy.backend.global.common.constants.SuccessCode
+import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 

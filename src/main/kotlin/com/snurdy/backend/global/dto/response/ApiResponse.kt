@@ -3,7 +3,7 @@ package com.snurdy.backend.global.dto.response
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
-import com.snurdy.backend.global.common.constants.SuccessCode
+import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.constants.ErrorCode
 import java.time.LocalDateTime
 

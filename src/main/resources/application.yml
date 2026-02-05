@@ -25,7 +25,7 @@ oauth:
     redirect-uri: ${KAKAO_REDIRECT_URI}
   apple:
     team-id: ${APPLE_TEAM_ID}
-    client-id: ${APPLE_CLIENT_ID:org.snurdy.dev}
+    client-id: ${APPLE_CLIENT_ID}
     key-id: ${APPLE_KEY_ID}
     redirect-uri: ${APPLE_REDIRECT_URI}
     key-path: ${APPLE_KEY_PATH}

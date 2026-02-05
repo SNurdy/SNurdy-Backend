@@ -1,7 +1,7 @@
 package com.snurdy.backend.global.exception
 
-import com.snurdy.backend.global.common.constants.ErrorCode
-import com.snurdy.backend.global.common.dto.response.ApiResponse
+import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.dto.response.ApiResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException

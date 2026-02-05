@@ -1,7 +1,7 @@
 package com.snurdy.backend.global.controller
 
 import com.snurdy.backend.global.common.constants.SuccessCode
-import com.snurdy.backend.global.common.dto.response.ApiResponse
+import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

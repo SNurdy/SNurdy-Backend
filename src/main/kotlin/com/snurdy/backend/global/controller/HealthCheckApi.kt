@@ -1,6 +1,6 @@
 package com.snurdy.backend.global.controller
 
-import com.snurdy.backend.global.common.dto.response.ApiResponse
+import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag

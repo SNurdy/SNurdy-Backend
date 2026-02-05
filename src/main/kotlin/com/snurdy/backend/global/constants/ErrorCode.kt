@@ -1,4 +1,4 @@
-package com.snurdy.backend.global.common.constants
+package com.snurdy.backend.global.constants
 
 import org.springframework.http.HttpStatus
 

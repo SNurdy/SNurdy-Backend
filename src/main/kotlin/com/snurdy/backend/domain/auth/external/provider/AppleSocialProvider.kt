@@ -1,10 +1,10 @@
 package com.snurdy.backend.domain.auth.external.provider
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.snurdy.backend.domain.auth.dto.AuthDto
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
-import com.snurdy.backend.global.common.constants.ErrorCode
+import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.exception.ApiException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -17,48 +17,38 @@ class AppleSocialProvider(
     private val applePublicKeyProvider: ApplePublicKeyProvider,
     @Value("\${oauth.apple.client-id}") private val appleClientId: String
 ) {
-    private val mapper = ObjectMapper()
+    private val mapper = jacksonObjectMapper()
 
-    fun verifyAndGetUserInfo(
-        identityToken: String,
-        appleUser: AuthDto.AppleUser?
-    ): SocialUserInfo {
+    fun verifyAndGetUserInfo(identityToken: String, appleUser: AppleUser?): SocialUserInfo {
         val claims = verifyIdentityToken(identityToken)
-        val sub = claims.subject
-
-        val nickname = appleUser?.fullName ?: "Apple User"
 
         return SocialUserInfo(
-            socialId = sub,
+            socialId = claims.subject,
             email = (claims["email"] as? String) ?: appleUser?.email,
-            nickname = nickname
+            name = appleUser?.fullName,
+            nickname = null
         )
     }
 
     private fun verifyIdentityToken(identityToken: String): Claims {
-        val header = extractHeader(identityToken)
-        val kid = header["kid"] as? String
+        val kid = extractHeader(identityToken)["kid"] as? String
             ?: throw ApiException(ErrorCode.INVALID_TOKEN)
 
-        val publicKey = applePublicKeyProvider.getPublicKey(kid)
-
         return Jwts.parser()
-            .verifyWith(publicKey)
-            .requireIssuer("https://appleid.apple.com")
+            .verifyWith(applePublicKeyProvider.getPublicKey(kid))
+            .requireIssuer(APPLE_ISSUER)
             .requireAudience(appleClientId)
             .build()
             .parseSignedClaims(identityToken)
             .payload
     }
 
-    private fun extractHeader(token: String): Map<String, Any> {
-        val headerPart = token.split(".")[0]
-        val decoded = Base64.getUrlDecoder().decode(headerPart)
+    private fun extractHeader(token: String): Map<String, Any> =
+        token.substringBefore(".")
+            .let { Base64.getUrlDecoder().decode(it) }
+            .let { mapper.readValue(it, object : TypeReference<Map<String, Any>>() {}) }
 
-        val header: Map<String, Any> = mapper.readValue(
-            decoded,
-            object : TypeReference<Map<String, Any>>() {}
-        )
-        return header
+    companion object {
+        private const val APPLE_ISSUER = "https://appleid.apple.com"
     }
 }

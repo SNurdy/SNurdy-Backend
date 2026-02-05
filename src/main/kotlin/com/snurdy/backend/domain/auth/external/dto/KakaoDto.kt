@@ -5,23 +5,23 @@ import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 
 data class KakaoUserInfoResponse(
     val id: Long,
-    @JsonProperty("kakao_account") val kakaoAccount: KakaoAccount?
+    @JsonProperty("kakao_account")
+    val kakaoAccount: KakaoAccount?
 ) {
     data class KakaoAccount(
         val email: String?,
+        val name: String?,
         val profile: Profile?
     )
 
     data class Profile(
-        val nickname: String?,
-        @JsonProperty("profile_image_url") val profileImageUrl: String?,
-        @JsonProperty("thumbnail_image_url") val thumbnailImageUrl: String?
+        val nickname: String?
     )
 
-    fun toSocialUserInfo(): SocialUserInfo = SocialUserInfo(
+    fun toSocialUserInfo() = SocialUserInfo(
         socialId = id.toString(),
         email = kakaoAccount?.email,
-        nickname = kakaoAccount?.profile?.nickname ?: "카카오유저",
-        profileImageUrl = kakaoAccount?.profile?.profileImageUrl
+        name = kakaoAccount?.name,
+        nickname = kakaoAccount?.profile?.nickname
     )
 }

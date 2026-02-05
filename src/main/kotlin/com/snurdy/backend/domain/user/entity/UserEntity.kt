@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.user.entity
 
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
+import com.snurdy.backend.global.entity.BaseEntity
 import jakarta.persistence.*
 import java.util.*
 
@@ -47,14 +48,7 @@ class UserEntity(
 
     @Column(nullable = false)
     var longestStreak: Int = 0
-) {
-    fun recordLearning() = apply {
-        currentStreak++
-        totalLearningTerms++
-        if (currentStreak > longestStreak) {
-            longestStreak = currentStreak
-        }
-    }
+) : BaseEntity() {
 
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20

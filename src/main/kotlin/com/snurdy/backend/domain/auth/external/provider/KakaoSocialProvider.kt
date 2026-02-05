@@ -12,8 +12,6 @@ class KakaoSocialProvider(
     fun getUserInfo(accessToken: String): SocialUserInfo {
         val userInfoResponse = kakaoApiClient.getUserInfo("Bearer $accessToken")
 
-        log.info("카카오 응답: id=${userInfoResponse.id}, email=${userInfoResponse.kakaoAccount?.email}, name=${userInfoResponse.kakaoAccount?.name}, nickname=${userInfoResponse.kakaoAccount?.profile?.nickname}")
-
         return userInfoResponse.toSocialUserInfo()
     }
 

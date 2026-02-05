@@ -62,7 +62,7 @@ class AuthService(
             jwtTokenProvider.getUserIdFromToken(refreshToken)
                 .also { refreshTokenRepository.deleteByUserId(it) }
         }.onFailure { e ->
-            log.error("로그아웃 처리 중 에러 발생 - 토큰: ${refreshToken.take(10)}...", e)
+            log.error("로그아웃 처리 중 에러 발생", e)
         }
     }
 

@@ -44,9 +44,13 @@ class AppleSocialProvider(
     }
 
     private fun extractHeader(token: String): Map<String, Any> =
-        token.substringBefore(".")
-            .let { Base64.getUrlDecoder().decode(it) }
-            .let { mapper.readValue(it, object : TypeReference<Map<String, Any>>() {}) }
+        runCatching {
+            token.substringBefore(".")
+                .let { Base64.getUrlDecoder().decode(it) }
+                .let { mapper.readValue(it, object : TypeReference<Map<String, Any>>() {}) }
+        }.getOrElse {
+            throw ApiException(ErrorCode.INVALID_TOKEN)
+        }
 
     companion object {
         private const val APPLE_ISSUER = "https://appleid.apple.com"

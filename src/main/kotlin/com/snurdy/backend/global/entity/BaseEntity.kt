@@ -1,4 +1,4 @@
-package com.epsilon.nagginggnome.global.entity
+package com.snurdy.backend.global.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.EntityListeners

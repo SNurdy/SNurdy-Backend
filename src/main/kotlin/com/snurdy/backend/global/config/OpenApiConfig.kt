@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration
 
 
 @Configuration
-class SwaggerConfig {
+class OpenApiConfig {
 
     @Bean
     fun openAPI(): OpenAPI =

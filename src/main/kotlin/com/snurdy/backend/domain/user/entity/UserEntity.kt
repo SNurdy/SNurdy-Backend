@@ -7,10 +7,12 @@ import java.util.*
 @Entity
 @Table(
     name = "users",
-    uniqueConstraints = [UniqueConstraint(
-        name = "uk_user_social_id_type",
-        columnNames = ["socialId", "socialType"]
-    )]
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_user_social_id_type",
+            columnNames = ["socialId", "socialType"]
+        )
+    ]
 )
 class UserEntity(
     @Id
@@ -27,8 +29,11 @@ class UserEntity(
     @Column(nullable = true)
     var email: String? = null,
 
+    @Column(nullable = true, length = 50)
+    var name: String? = null,
+
     @Column(nullable = false, length = 20)
-    var nickname: String,
+    var nickname: String = "",
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -43,25 +48,23 @@ class UserEntity(
     @Column(nullable = false)
     var longestStreak: Int = 0
 ) {
-    fun recordLearning() {
-        this.currentStreak++
-        this.totalLearningTerms++
-        if (this.currentStreak > this.longestStreak) {
-            this.longestStreak = this.currentStreak
+    fun recordLearning() = apply {
+        currentStreak++
+        totalLearningTerms++
+        if (currentStreak > longestStreak) {
+            longestStreak = currentStreak
         }
     }
 
     companion object {
-        fun from(info: SocialUserInfo, type: SocialType): UserEntity {
-            val rawNickname = info.nickname ?: "SNurdy_${UUID.randomUUID().toString().substring(0, 5)}"
-            val truncatedNickname = if (rawNickname.length > 20) rawNickname.take(20) else rawNickname
+        private const val MAX_NICKNAME_LENGTH = 20
 
-            return UserEntity(
-                socialId = info.socialId,
-                socialType = type,
-                email = info.email,
-                nickname = truncatedNickname
-            )
-        }
+        fun from(info: SocialUserInfo, type: SocialType) = UserEntity(
+            socialId = info.socialId,
+            socialType = type,
+            email = info.email,
+            name = info.name,
+            nickname = info.nickname?.take(MAX_NICKNAME_LENGTH) ?: ""
+        )
     }
 }

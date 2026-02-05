@@ -1,9 +1,11 @@
 package com.snurdy.backend.domain.auth.controller
 
-import com.snurdy.backend.domain.auth.dto.AuthDto
+import com.snurdy.backend.domain.auth.dto.AppleLoginRequest
+import com.snurdy.backend.domain.auth.dto.KakaoLoginRequest
+import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.service.AuthService
-import com.snurdy.backend.global.common.constants.SuccessCode
-import com.snurdy.backend.global.common.dto.response.ApiResponse
+import com.snurdy.backend.global.constants.SuccessCode
+import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -11,27 +13,27 @@ class AuthController(
     private val authService: AuthService
 ) : AuthApi {
 
-    override fun kakaoLogin(request: AuthDto.KakaoLoginRequest): ApiResponse<AuthDto.TokenResponse> {
-        val token = authService.kakaoLogin(request.accessToken)
-        return ApiResponse.success(SuccessCode.LOGIN_SUCCESS, token)
-    }
+    override fun kakaoLogin(request: KakaoLoginRequest): ApiResponse<TokenResponse> =
+        authService.kakaoLogin(request.accessToken)
+            .let { ApiResponse.success(SuccessCode.LOGIN_SUCCESS, it) }
 
-    override fun appleLogin(request: AuthDto.AppleLoginRequest): ApiResponse<AuthDto.TokenResponse> {
-        val token = authService.appleLogin(request.identityToken, request.user)
-        return ApiResponse.success(SuccessCode.LOGIN_SUCCESS, token)
-    }
+    override fun appleLogin(request: AppleLoginRequest): ApiResponse<TokenResponse> =
+        authService.appleLogin(request.identityToken, request.user)
+            .let { ApiResponse.success(SuccessCode.LOGIN_SUCCESS, it) }
 
-    override fun reissue(refreshToken: String): ApiResponse<AuthDto.TokenResponse> {
-        val token = authService.reissue(extractToken(refreshToken))
-        return ApiResponse.success(SuccessCode.REISSUE_SUCCESS, token)
-    }
+    override fun reissue(refreshToken: String): ApiResponse<TokenResponse> =
+        refreshToken.extractToken()
+            .let { authService.reissue(it) }
+            .let { ApiResponse.success(SuccessCode.REISSUE_SUCCESS, it) }
 
     override fun logout(refreshToken: String): ApiResponse<Unit> {
-        authService.logout(extractToken(refreshToken))
+        authService.logout(refreshToken.extractToken())
         return ApiResponse.success(SuccessCode.LOGOUT_SUCCESS)
     }
 
-    private fun extractToken(token: String): String {
-        return if (token.startsWith("Bearer ")) token.substring(7) else token
-    }
+    private fun String.extractToken(): String =
+        trim().let { token ->
+            if (token.startsWith("Bearer ", ignoreCase = true)) token.substringAfter(' ').trim() else token
+        }
+
 }

@@ -24,18 +24,13 @@ class RefreshTokenEntity(
     val isExpired: Boolean
         get() = LocalDateTime.now().isAfter(expiryDate)
 
-    fun updateToken(newToken: String, newExpiryDate: LocalDateTime): RefreshTokenEntity {
-        this.token = newToken
-        this.expiryDate = newExpiryDate
-        return this
+    fun updateToken(newToken: String, newExpiryDate: LocalDateTime) = apply {
+        token = newToken
+        expiryDate = newExpiryDate
     }
 
     companion object {
-        fun create(
-            userId: UUID,
-            token: String,
-            validityDays: Long
-        ): RefreshTokenEntity = RefreshTokenEntity(
+        fun create(userId: UUID, token: String, validityDays: Long) = RefreshTokenEntity(
             userId = userId,
             token = token,
             expiryDate = LocalDateTime.now().plusDays(validityDays)

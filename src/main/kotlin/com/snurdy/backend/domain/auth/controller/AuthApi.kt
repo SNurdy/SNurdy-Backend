@@ -1,8 +1,9 @@
 package com.snurdy.backend.domain.auth.controller
 
-import com.snurdy.backend.domain.auth.dto.AuthDto
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.global.common.dto.response.ApiResponse
+import com.snurdy.backend.domain.auth.dto.AppleLoginRequest
+import com.snurdy.backend.domain.auth.dto.KakaoLoginRequest
+import com.snurdy.backend.domain.auth.dto.TokenResponse
+import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -15,29 +16,39 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/v1/auth")
 interface AuthApi {
 
-    @Operation(summary = "소셜 로그인", description = "카카오 또는 애플 소셜 로그인을 수행합니다.")
+    @Operation(summary = "카카오 로그인", description = "카카오 SDK에서 받은 accessToken으로 로그인합니다.")
     @ApiResponses(
         SwaggerApiResponse(responseCode = "200", description = "로그인 성공"),
-        SwaggerApiResponse(responseCode = "400", description = "잘못된 요청"),
-        SwaggerApiResponse(responseCode = "502", description = "소셜 API 오류")
+        SwaggerApiResponse(responseCode = "502", description = "카카오 API 오류")
     )
     @SecurityRequirements
-    @PostMapping("/login/{socialType}")
-    fun socialLogin(
-        @PathVariable socialType: SocialType,
-        @RequestBody @Valid request: AuthDto.LoginRequest
-    ): ApiResponse<AuthDto.TokenResponse>
+    @PostMapping("/login/kakao")
+    fun kakaoLogin(
+        @RequestBody @Valid request: KakaoLoginRequest
+    ): ApiResponse<TokenResponse>
+
+    @Operation(summary = "애플 로그인", description = "Apple identityToken으로 로그인합니다.")
+    @ApiResponses(
+        SwaggerApiResponse(responseCode = "200", description = "로그인 성공"),
+        SwaggerApiResponse(responseCode = "401", description = "유효하지 않은 identityToken"),
+        SwaggerApiResponse(responseCode = "502", description = "애플 API 오류")
+    )
+    @SecurityRequirements
+    @PostMapping("/login/apple")
+    fun appleLogin(
+        @RequestBody @Valid request: AppleLoginRequest
+    ): ApiResponse<TokenResponse>
 
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다.")
     @ApiResponses(
         SwaggerApiResponse(responseCode = "200", description = "재발급 성공"),
         SwaggerApiResponse(responseCode = "401", description = "유효하지 않은 토큰")
     )
-    @SecurityRequirements // 재발급 시에도 기존 Access Token 인증은 제외 (Refresh만 사용)
+    @SecurityRequirements
     @PostMapping("/reissue")
     fun reissue(
         @RequestHeader("Authorization-Refresh") refreshToken: String
-    ): ApiResponse<AuthDto.TokenResponse>
+    ): ApiResponse<TokenResponse>
 
     @Operation(summary = "로그아웃", description = "Refresh Token을 무효화하여 로그아웃합니다.")
     @ApiResponses(

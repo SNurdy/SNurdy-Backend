@@ -8,6 +8,10 @@ spring:
   jackson:
     time-zone: Asia/Seoul
     default-property-inclusion: non_null
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 server:
   port: 8080
@@ -16,8 +20,8 @@ server:
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
-  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:3600000}
-  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:2592000000}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
 
 oauth:
   kakao:
@@ -25,7 +29,7 @@ oauth:
     redirect-uri: ${KAKAO_REDIRECT_URI}
   apple:
     team-id: ${APPLE_TEAM_ID}
-    client-id: ${APPLE_CLIENT_ID:org.snurdy.dev}
+    client-id: ${APPLE_CLIENT_ID}
     key-id: ${APPLE_KEY_ID}
     redirect-uri: ${APPLE_REDIRECT_URI}
     key-path: ${APPLE_KEY_PATH}

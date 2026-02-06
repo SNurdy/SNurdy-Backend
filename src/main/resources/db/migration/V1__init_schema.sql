@@ -84,7 +84,7 @@ CREATE TABLE term_morpheme_relationships (
         term_id BIGINT NOT NULL,
         morpheme_id BIGINT NOT NULL,
         position INT NOT NULL COMMENT '형태소 순서',
-        UNIQUE KEY uk_term_morpheme_position (term_id, morpheme_id, position),
+        UNIQUE KEY uk_term_position (term_id, position),
         CONSTRAINT fk_tmr_term FOREIGN KEY (term_id) REFERENCES terms(id) ON DELETE CASCADE,
         CONSTRAINT fk_tmr_morpheme FOREIGN KEY (morpheme_id) REFERENCES morphemes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

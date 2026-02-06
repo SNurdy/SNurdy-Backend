@@ -3,8 +3,6 @@ spring:
     activate:
       on-profile: dev
   jpa:
-    hibernate:
-      ddl-auto: update
     show-sql: false
 
 logging:

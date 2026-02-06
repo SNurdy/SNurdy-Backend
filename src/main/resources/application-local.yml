@@ -2,10 +2,6 @@ spring:
   config:
     activate:
       on-profile: local
-  datasource:
-    url: jdbc:mysql://localhost:3306/snurdy_dev
-    username: snurdy
-    password: snurdy
   jpa:
     hibernate:
       ddl-auto: update

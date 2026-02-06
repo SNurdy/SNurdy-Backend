@@ -8,10 +8,22 @@ spring:
   jackson:
     time-zone: Asia/Seoul
     default-property-inclusion: non_null
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
 
 server:
   port: 8080

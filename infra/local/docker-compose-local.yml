@@ -24,3 +24,4 @@ services:
 
 volumes:
   mysql-local-data:
+  redis-local-data:

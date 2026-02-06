@@ -2,10 +2,10 @@ package com.snurdy.backend.domain.auth.service
 
 import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.dto.TokenResponse
-import com.snurdy.backend.domain.auth.entity.RefreshTokenEntity
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.domain.auth.external.provider.AppleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
+import com.snurdy.backend.domain.auth.model.RefreshToken
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
@@ -83,10 +83,10 @@ class AuthService(
     }
 
     private fun validateRefreshToken(userId: UUID, refreshToken: String) {
-        val savedEntity = refreshTokenRepository.findByUserId(userId)
+        val savedToken = refreshTokenRepository.findByUserId(userId)
             ?: throw ApiException(ErrorCode.EXPIRED_TOKEN)
 
-        if (savedEntity.token != refreshToken) {
+        if (savedToken != refreshToken) {
             refreshTokenRepository.deleteByUserId(userId)
             throw ApiException(ErrorCode.INVALID_TOKEN)
         }
@@ -94,10 +94,11 @@ class AuthService(
 
     private fun issueTokens(user: UserEntity): TokenResponse =
         jwtTokenProvider.createToken(user).also { response ->
-            refreshTokenRepository.findByUserId(user.id)
-                ?.updateToken(response.refreshToken, LocalDateTime.now().plusDays(REFRESH_TOKEN_VALIDITY_DAYS))
-                ?: RefreshTokenEntity.create(user.id, response.refreshToken, REFRESH_TOKEN_VALIDITY_DAYS)
-                    .let { refreshTokenRepository.save(it) }
+            RefreshToken.create(
+                userId = user.id,
+                token = response.refreshToken,
+                ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
+            ).let { refreshTokenRepository.save(it) }
         }
 
     companion object {

@@ -39,9 +39,26 @@ services:
     networks:
       - snurdy-network
 
+  redis-dev:
+    image: redis:7-alpine
+    container_name: snurdy-redis-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - snurdy-network
+
 networks:
   snurdy-network:
     driver: bridge
 
 volumes:
   mysql-data:
+  redis-data:

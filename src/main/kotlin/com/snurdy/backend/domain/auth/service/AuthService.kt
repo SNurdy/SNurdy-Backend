@@ -42,7 +42,6 @@ class AuthService(
             .let { findOrCreateUser(it, SocialType.APPLE) }
             .let(::issueTokens)
 
-    @Transactional
     fun reissue(refreshToken: String): TokenResponse {
         validateTokenOrThrow(refreshToken)
 
@@ -54,7 +53,6 @@ class AuthService(
             ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
     }
 
-    @Transactional
     fun logout(refreshToken: String) {
         runCatching {
             if (!jwtTokenProvider.validateToken(refreshToken)) return

@@ -13,5 +13,15 @@ services:
     volumes:
       - mysql-local-data:/var/lib/mysql
 
+  snurdy-redis-local:
+    image: redis:7-alpine
+    container_name: snurdy-redis-local
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-local-data:/data
+
 volumes:
   mysql-local-data:
+  redis-local-data:

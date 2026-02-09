@@ -90,7 +90,7 @@ CREATE TABLE glossary_progresses (
         CONSTRAINT fk_gp_glossary FOREIGN KEY (glossary_id) REFERENCES glossaries(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 9. 개인 학습 데이터
+-- 9. 개인 학습 데이터 (SRS)
 CREATE TABLE term_study_datas (
         id BINARY(16) PRIMARY KEY,
         user_id BINARY(16) NOT NULL,

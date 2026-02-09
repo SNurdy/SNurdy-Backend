@@ -54,6 +54,7 @@ CREATE TABLE glossary_terms (
         term_id BIGINT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (glossary_id, term_id),
+        INDEX idx_gt_term (term_id),
         CONSTRAINT fk_gt_glossary FOREIGN KEY (glossary_id) REFERENCES glossaries(id) ON DELETE CASCADE,
         CONSTRAINT fk_gt_term FOREIGN KEY (term_id) REFERENCES terms(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -90,7 +91,7 @@ CREATE TABLE glossary_progresses (
         CONSTRAINT fk_gp_glossary FOREIGN KEY (glossary_id) REFERENCES glossaries(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 9. 개인 학습 데이터 (SRS)
+-- 9. 개인 학습 데이터
 CREATE TABLE term_study_datas (
         id BINARY(16) PRIMARY KEY,
         user_id BINARY(16) NOT NULL,

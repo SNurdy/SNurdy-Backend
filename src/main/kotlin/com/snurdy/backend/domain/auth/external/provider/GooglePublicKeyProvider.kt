@@ -22,7 +22,7 @@ class GooglePublicKeyProvider(
         cachedKeys[kid] ?: synchronized(this) {
             cachedKeys[kid] ?: run {
                 refreshKeys()
-                cachedKeys[kid] ?: throw ApiException(ErrorCode.GOOGLE_API_ERROR)
+                cachedKeys[kid] ?: throw ApiException(ErrorCode.INVALID_TOKEN)
             }
         }
 

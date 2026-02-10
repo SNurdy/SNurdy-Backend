@@ -41,6 +41,7 @@ interface AuthApi {
     fun reissue(@RequestHeader("Authorization-Refresh") refreshToken: String): ApiResponse<TokenResponse>
 
     @Operation(summary = "로그아웃")
+    @AuthErrorResponse
     @SwaggerApiResponse(responseCode = "200", description = "로그아웃 성공")
     @PostMapping("/logout")
     fun logout(@RequestHeader("Authorization-Refresh") refreshToken: String): ApiResponse<Unit>

@@ -16,9 +16,11 @@ class ApiErrorController : ErrorController {
         val status = request.getAttribute("jakarta.servlet.error.status_code") as? Int ?: 500
 
         val error = when (status) {
+            400 -> CommonError.BAD_REQUEST
             401 -> CommonError.UNAUTHORIZED
             403 -> CommonError.FORBIDDEN
             404 -> CommonError.NOT_FOUND
+            405 -> CommonError.METHOD_NOT_ALLOWED
             else -> CommonError.INTERNAL_ERROR
         }
 

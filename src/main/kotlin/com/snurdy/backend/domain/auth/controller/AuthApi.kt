@@ -41,6 +41,7 @@ interface AuthApi {
     fun reissue(@RequestHeader("Authorization-Refresh") refreshToken: String): ApiResponse<TokenResponse>
 
     @Operation(summary = "로그아웃")
+    @SecurityRequirements
     @PostMapping("/logout")
     fun logout(@RequestHeader("Authorization-Refresh") refreshToken: String): ApiResponse<Unit>
 }

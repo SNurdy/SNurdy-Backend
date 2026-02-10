@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
-import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.exception.ApiException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -32,7 +32,7 @@ class AppleSocialProvider(
 
     private fun verifyIdentityToken(identityToken: String): Claims {
         val kid = extractHeader(identityToken)["kid"] as? String
-            ?: throw ApiException(ErrorCode.INVALID_TOKEN)
+            ?: throw ApiException(AuthError.INVALID_TOKEN)
 
         return Jwts.parser()
             .verifyWith(applePublicKeyProvider.getPublicKey(kid))
@@ -49,7 +49,7 @@ class AppleSocialProvider(
                 .let { Base64.getUrlDecoder().decode(it) }
                 .let { mapper.readValue(it, object : TypeReference<Map<String, Any>>() {}) }
         }.getOrElse {
-            throw ApiException(ErrorCode.INVALID_TOKEN)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
 
     companion object {

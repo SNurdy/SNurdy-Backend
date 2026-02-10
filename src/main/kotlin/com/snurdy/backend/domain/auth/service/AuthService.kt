@@ -4,13 +4,15 @@ import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.domain.auth.external.provider.AppleSocialProvider
+import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
 import com.snurdy.backend.domain.auth.model.RefreshToken
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.AuthError
+import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.global.security.jwt.JwtTokenProvider
 import org.slf4j.LoggerFactory
@@ -18,13 +20,13 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 import java.util.UUID
 
 @Service
 class AuthService(
     private val kakaoSocialProvider: KakaoSocialProvider,
     private val appleSocialProvider: AppleSocialProvider,
+    private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider
@@ -42,6 +44,12 @@ class AuthService(
             .let { findOrCreateUser(it, SocialType.APPLE) }
             .let(::issueTokens)
 
+    @Transactional
+    fun googleLogin(idToken: String): TokenResponse =
+        googleSocialProvider.verifyAndGetUserInfo(idToken)
+            .let { findOrCreateUser(it, SocialType.GOOGLE) }
+            .let(::issueTokens)
+
     fun reissue(refreshToken: String): TokenResponse {
         validateTokenOrThrow(refreshToken)
 
@@ -50,7 +58,7 @@ class AuthService(
 
         return userRepository.findByIdOrNull(userId)
             ?.let(::issueTokens)
-            ?: throw ApiException(ErrorCode.USER_NOT_FOUND)
+            ?: throw ApiException(UserError.NOT_FOUND)
     }
 
     fun logout(refreshToken: String) {
@@ -78,17 +86,17 @@ class AuthService(
 
     private fun validateTokenOrThrow(token: String) {
         if (!jwtTokenProvider.validateToken(token)) {
-            throw ApiException(ErrorCode.INVALID_TOKEN)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
     }
 
     private fun validateRefreshToken(userId: UUID, refreshToken: String) {
         val savedToken = refreshTokenRepository.findByUserId(userId)
-            ?: throw ApiException(ErrorCode.EXPIRED_TOKEN)
+            ?: throw ApiException(AuthError.EXPIRED_TOKEN)
 
         if (savedToken != refreshToken) {
             refreshTokenRepository.deleteByUserId(userId)
-            throw ApiException(ErrorCode.INVALID_TOKEN)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
     }
 

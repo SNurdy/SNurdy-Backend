@@ -19,6 +19,13 @@ data class AppleLoginRequest(
     val user: AppleUser? = null
 )
 
+@Schema(description = "구글 로그인 요청")
+data class GoogleLoginRequest(
+    @field:NotBlank
+    @Schema(description = "Google id_token", required = true)
+    val idToken: String
+)
+
 @Schema(description = "애플 유저 상세 정보")
 data class AppleUser(
     val email: String?,

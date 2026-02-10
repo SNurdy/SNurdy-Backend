@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.auth.external.provider
 
 import com.snurdy.backend.domain.auth.external.client.AppleAuthClient
 import com.snurdy.backend.domain.auth.external.dto.AppleKeyInfo
-import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 import java.math.BigInteger
@@ -24,7 +24,7 @@ class ApplePublicKeyProvider(
         return synchronized(this) {
             cachedKeys[kid] ?: run {
                 refreshKeys()
-                cachedKeys[kid] ?: throw ApiException(ErrorCode.APPLE_API_ERROR)
+                cachedKeys[kid] ?: throw ApiException(AuthError.APPLE_API_ERROR)
             }
         }
     }
@@ -37,7 +37,7 @@ class ApplePublicKeyProvider(
                 key.kid to generatePublicKey(key)
             }
         }.onFailure {
-            throw ApiException(ErrorCode.APPLE_API_ERROR)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
     }
 

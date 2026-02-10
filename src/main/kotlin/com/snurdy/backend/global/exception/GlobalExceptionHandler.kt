@@ -1,10 +1,9 @@
 package com.snurdy.backend.global.exception
 
-import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.dto.response.ApiResponse
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
@@ -13,29 +12,35 @@ class GlobalExceptionHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
     @ExceptionHandler(ApiException::class)
-    fun handleApiException(e: ApiException): ResponseEntity<ApiResponse<Unit>> {
-        log.warn("Business Error: [${e.errorCode}] ${e.message}")
-        return ResponseEntity
-            .status(e.errorCode.httpStatus)
-            .body(ApiResponse.error(e.errorCode))
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ApiResponse<Map<String, String>>> {
-        val errors = e.bindingResult.fieldErrors.associate {
-            it.field to (it.defaultMessage ?: "유효하지 않은 값입니다")
+    fun handleApiException(
+        e: ApiException,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiResponse<Unit>> {
+        if (e.error.status.is5xxServerError) {
+            log.error("[{}] {} {} - {}", e.error.code, request.method, request.requestURI, e.responseMessage, e)
+        } else {
+            log.warn("[{}] {} {} - {}", e.error.code, request.method, request.requestURI, e.responseMessage)
         }
-        log.warn("Validation Failed: $errors")
         return ResponseEntity
-            .badRequest()
-            .body(ApiResponse.error(ErrorCode.BAD_REQUEST, errors))
+            .status(e.error.status)
+            .body(ApiResponse.fail(e.error, e.responseMessage))  // responseMessage 사용
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleException(e: Exception): ResponseEntity<ApiResponse<Unit>> {
-        log.error("Unexpected System Error: ", e)
+    fun handleException(
+        e: Exception,
+        request: HttpServletRequest
+    ): ResponseEntity<ApiResponse<Unit>> {
+        val apiException = e.toApiException()
+
+        if (apiException.error.status.is5xxServerError) {
+            log.error("[{}] {} {}", apiException.error.code, request.method, request.requestURI, e)
+        } else {
+            log.warn("[{}] {} {} - {}", apiException.error.code, request.method, request.requestURI, apiException.responseMessage)
+        }
+
         return ResponseEntity
-            .status(500)
-            .body(ApiResponse.error(ErrorCode.INTERNAL_SERVER_ERROR))
+            .status(apiException.error.status)
+            .body(ApiResponse.fail(apiException.error, apiException.responseMessage))
     }
 }

@@ -54,6 +54,8 @@ class OpenApiConfig {
                             .`in`(SecurityScheme.In.HEADER)
                             .name("Authorization-Refresh")
                     )
+                    // 에러 응답 스키마 명시적 등록
+                    .addSchemas("ErrorResponse", errorResponseSchema())
             )
             .addSecurityItem(
                 SecurityRequirement()
@@ -78,7 +80,16 @@ class OpenApiConfig {
             .content(
                 Content().addMediaType(
                     "application/json",
-                    MediaType().schema(Schema<Any>().`$ref`("#/components/schemas/ApiResponse"))
+                    MediaType().schema(Schema<Any>().`$ref`("#/components/schemas/ErrorResponse"))
                 )
             )
+
+    private fun errorResponseSchema(): Schema<*> =
+        Schema<Any>()
+            .type("object")
+            .addProperty("success", Schema<Boolean>().type("boolean").example(false))
+            .addProperty("status", Schema<Int>().type("integer").example(400))
+            .addProperty("code", Schema<String>().type("string").example("COMMON_400"))
+            .addProperty("message", Schema<String>().type("string").example("잘못된 요청입니다"))
+            .addProperty("timestamp", Schema<String>().type("string").format("date-time"))
 }

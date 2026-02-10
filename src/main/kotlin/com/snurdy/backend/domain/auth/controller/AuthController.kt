@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.auth.controller
 
 import com.snurdy.backend.domain.auth.dto.AppleLoginRequest
+import com.snurdy.backend.domain.auth.dto.GoogleLoginRequest
 import com.snurdy.backend.domain.auth.dto.KakaoLoginRequest
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.service.AuthService
@@ -20,6 +21,10 @@ class AuthController(
 
     override fun appleLogin(request: AppleLoginRequest): ApiResponse<TokenResponse> =
         authService.appleLogin(request.identityToken, request.user)
+            .let { ApiResponse.success(SuccessCode.LOGIN_SUCCESS, it) }
+
+    override fun googleLogin(request: GoogleLoginRequest): ApiResponse<TokenResponse> =
+        authService.googleLogin(request.idToken)
             .let { ApiResponse.success(SuccessCode.LOGIN_SUCCESS, it) }
 
     override fun reissue(refreshToken: String): ApiResponse<TokenResponse> =

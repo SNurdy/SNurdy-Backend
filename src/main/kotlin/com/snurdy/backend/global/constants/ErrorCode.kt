@@ -19,6 +19,7 @@ enum class ErrorCode(
     // OAuth
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "카카오 API 오류가 발생했습니다"),
     APPLE_API_ERROR(HttpStatus.BAD_GATEWAY, "애플 API 오류가 발생했습니다"),
+    GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "구글 API 오류가 발생했습니다"),
 
     // Common
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류가 발생했습니다"),

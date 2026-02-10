@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.auth.controller
 
 import com.snurdy.backend.domain.auth.dto.AppleLoginRequest
+import com.snurdy.backend.domain.auth.dto.GoogleLoginRequest
 import com.snurdy.backend.domain.auth.dto.KakaoLoginRequest
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -37,6 +38,18 @@ interface AuthApi {
     @PostMapping("/login/apple")
     fun appleLogin(
         @RequestBody @Valid request: AppleLoginRequest
+    ): ApiResponse<TokenResponse>
+
+    @Operation(summary = "구글 로그인", description = "Google id_token으로 로그인합니다.")
+    @ApiResponses(
+        SwaggerApiResponse(responseCode = "200", description = "로그인 성공"),
+        SwaggerApiResponse(responseCode = "401", description = "유효하지 않은 id_token"),
+        SwaggerApiResponse(responseCode = "502", description = "구글 API 오류")
+    )
+    @SecurityRequirements
+    @PostMapping("/login/google")
+    fun googleLogin(
+        @RequestBody @Valid request: GoogleLoginRequest
     ): ApiResponse<TokenResponse>
 
     @Operation(summary = "토큰 재발급", description = "Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다.")

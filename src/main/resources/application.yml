@@ -45,6 +45,8 @@ oauth:
     key-id: ${APPLE_KEY_ID}
     redirect-uri: ${APPLE_REDIRECT_URI}
     key-path: ${APPLE_KEY_PATH}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
 
 springdoc:
   api-docs:

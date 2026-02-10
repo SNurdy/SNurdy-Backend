@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.domain.auth.external.provider.AppleSocialProvider
+import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
 import com.snurdy.backend.domain.auth.model.RefreshToken
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
@@ -25,6 +26,7 @@ import java.util.UUID
 class AuthService(
     private val kakaoSocialProvider: KakaoSocialProvider,
     private val appleSocialProvider: AppleSocialProvider,
+    private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider
@@ -40,6 +42,12 @@ class AuthService(
     fun appleLogin(identityToken: String, appleUser: AppleUser?): TokenResponse =
         appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser)
             .let { findOrCreateUser(it, SocialType.APPLE) }
+            .let(::issueTokens)
+
+    @Transactional
+    fun googleLogin(idToken: String): TokenResponse =
+        googleSocialProvider.verifyAndGetUserInfo(idToken)
+            .let { findOrCreateUser(it, SocialType.GOOGLE) }
             .let(::issueTokens)
 
     fun reissue(refreshToken: String): TokenResponse {

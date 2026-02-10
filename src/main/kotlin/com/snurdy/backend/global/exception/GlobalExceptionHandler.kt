@@ -16,8 +16,11 @@ class GlobalExceptionHandler {
         e: ApiException,
         request: HttpServletRequest
     ): ResponseEntity<ApiResponse<Unit>> {
-        log.warn("[{}] {} {} - {}", e.error.code, request.method, request.requestURI, e.responseMessage)
-
+        if (e.error.status.is5xxServerError) {
+            log.error("[{}] {} {} - {}", e.error.code, request.method, request.requestURI, e.responseMessage, e)
+        } else {
+            log.warn("[{}] {} {} - {}", e.error.code, request.method, request.requestURI, e.responseMessage)
+        }
         return ResponseEntity
             .status(e.error.status)
             .body(ApiResponse.fail(e.error, e.responseMessage))  // responseMessage 사용

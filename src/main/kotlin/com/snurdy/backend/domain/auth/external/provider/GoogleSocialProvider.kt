@@ -4,7 +4,7 @@ package com.snurdy.backend.domain.auth.external.provider
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
-import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.exception.ApiException
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -32,7 +32,7 @@ class GoogleSocialProvider(
 
     private fun verifyIdToken(idToken: String): Claims {
         val kid = extractHeader(idToken)["kid"] as? String
-            ?: throw ApiException(ErrorCode.INVALID_TOKEN)
+            ?: throw ApiException(AuthError.INVALID_TOKEN)
 
         val claims = Jwts.parser()
             .verifyWith(googlePublicKeyProvider.getPublicKey(kid))
@@ -44,7 +44,7 @@ class GoogleSocialProvider(
         // issuer 수동 검증
         val issuer = claims.issuer
         if (issuer != GOOGLE_ISSUER && issuer != GOOGLE_ISSUER_ALT) {
-            throw ApiException(ErrorCode.INVALID_TOKEN)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
 
         return claims
@@ -56,7 +56,7 @@ class GoogleSocialProvider(
                 .let { Base64.getUrlDecoder().decode(it) }
                 .let { mapper.readValue(it, object : TypeReference<Map<String, Any>>() {}) }
         }.getOrElse {
-            throw ApiException(ErrorCode.INVALID_TOKEN)
+            throw ApiException(AuthError.INVALID_TOKEN)
         }
 
     companion object {

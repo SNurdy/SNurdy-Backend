@@ -2,9 +2,8 @@ package com.snurdy.backend.domain.auth.external.provider
 
 import com.snurdy.backend.domain.auth.external.client.GoogleAuthClient
 import com.snurdy.backend.domain.auth.external.dto.GoogleKeyInfo
-import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.exception.ApiException
-import com.snurdy.backend.global.exception.ExternalApiException
 import org.springframework.stereotype.Component
 import java.math.BigInteger
 import java.security.KeyFactory
@@ -23,7 +22,7 @@ class GooglePublicKeyProvider(
         cachedKeys[kid] ?: synchronized(this) {
             cachedKeys[kid] ?: run {
                 refreshKeys()
-                cachedKeys[kid] ?: throw ApiException(ErrorCode.INVALID_TOKEN)
+                cachedKeys[kid] ?: throw ApiException(AuthError.INVALID_TOKEN)
             }
         }
 
@@ -34,8 +33,8 @@ class GooglePublicKeyProvider(
             }
         }.onSuccess { keys ->
             cachedKeys = keys
-        }.onFailure { e ->
-            throw ExternalApiException(ErrorCode.GOOGLE_API_ERROR)
+        }.onFailure {
+            throw ApiException(AuthError.GOOGLE_API_ERROR)
         }
     }
 

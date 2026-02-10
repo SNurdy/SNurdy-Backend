@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.auth.external.provider
 import com.snurdy.backend.domain.auth.external.client.AppleAuthClient
 import com.snurdy.backend.domain.auth.external.dto.AppleKeyInfo
 import com.snurdy.backend.global.constants.AuthError
-import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 import java.math.BigInteger

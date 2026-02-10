@@ -3,7 +3,6 @@ package com.snurdy.backend.global.dto.response
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.constants.SuccessCode
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

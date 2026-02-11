@@ -53,6 +53,9 @@ dependencies {
     // Flyway
     implementation ("org.flywaydb:flyway-core")
     implementation ("org.flywaydb:flyway-mysql")
+
+    // test
+    testImplementation("io.mockk:mockk:1.13.16")
 }
 
 dependencyManagement {

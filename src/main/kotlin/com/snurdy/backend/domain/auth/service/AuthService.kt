@@ -62,6 +62,11 @@ class AuthService(
     }
 
     fun logout(refreshToken: String) {
+        val isValidToken = jwtTokenProvider.validateToken(refreshToken)
+        if (!isValidToken) {
+            throw ApiException(AuthError.INVALID_TOKEN)
+        }
+
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
 

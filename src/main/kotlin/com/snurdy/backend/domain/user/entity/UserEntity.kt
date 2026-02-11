@@ -2,8 +2,14 @@ package com.snurdy.backend.domain.user.entity
 
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.global.entity.BaseTimeEntity
-import jakarta.persistence.*
-import java.util.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
+import java.util.UUID
 
 @Entity
 @Table(
@@ -24,7 +30,7 @@ class UserEntity(
     val socialId: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "social_type", nullable = false)
+    @Column(name = "social_type", nullable = false, length = 20)
     val socialType: SocialType,
 
     @Column(nullable = true)
@@ -37,7 +43,7 @@ class UserEntity(
     var nickname: String = "",
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     val role: Role = Role.USER,
 
     @Column(nullable = false)

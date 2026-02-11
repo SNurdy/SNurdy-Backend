@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.learning.entity
 
-enum class TermLearningStatus {
+enum class TermProgressStatus {
     NEW,
     LEARNING,
     REVIEW,

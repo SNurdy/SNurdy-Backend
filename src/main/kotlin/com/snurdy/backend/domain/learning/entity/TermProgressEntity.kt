@@ -32,7 +32,7 @@ import java.util.UUID
         Index(name = "idx_term_progress_next_review", columnList = "user_id,next_review_at")
     ]
 )
-class TermLearningStateEntity(
+class TermProgressEntity(
     @Id
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false)
     val id: UUID = UUID.randomUUID(),
@@ -51,7 +51,7 @@ class TermLearningStateEntity(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    var status: TermLearningStatus = TermLearningStatus.NEW,
+    var status: TermProgressStatus = TermProgressStatus.NEW,
 
     @Column(name = "ease_factor", nullable = false, precision = 4, scale = 2)
     var easeFactor: BigDecimal = DEFAULT_EASE_FACTOR,
@@ -70,14 +70,14 @@ class TermLearningStateEntity(
 ) : BaseTimeEntity() {
 
     fun markLearned(now: Instant, nextReviewAt: Instant) {
-        status = TermLearningStatus.LEARNING
+        status = TermProgressStatus.LEARNING
         reviewCount += 1
         lastReviewedAt = now
         this.nextReviewAt = nextReviewAt
     }
 
     fun markMastered(now: Instant) {
-        status = TermLearningStatus.MASTERED
+        status = TermProgressStatus.MASTERED
         lastReviewedAt = now
         nextReviewAt = null
     }

@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Embeddable
-data class DailyLearningId(
+data class DailyProgressId(
     @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
     val userId: UUID,
 

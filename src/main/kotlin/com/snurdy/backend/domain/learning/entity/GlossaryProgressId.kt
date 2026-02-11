@@ -6,7 +6,7 @@ import java.io.Serializable
 import java.util.UUID
 
 @Embeddable
-data class GlossaryLearningStateId(
+data class GlossaryProgressId(
     @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
     val userId: UUID,
 

@@ -62,14 +62,10 @@ class AuthService(
     }
 
     fun logout(refreshToken: String) {
-        runCatching {
-            if (!jwtTokenProvider.validateToken(refreshToken)) return
+        val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
+        validateRefreshToken(userId, refreshToken)
 
-            jwtTokenProvider.getUserIdFromToken(refreshToken)
-                .also { refreshTokenRepository.deleteByUserId(it) }
-        }.onFailure { e ->
-            log.error("로그아웃 처리 중 에러 발생", e)
-        }
+        refreshTokenRepository.deleteByUserId(userId)
     }
 
     private fun findOrCreateUser(userInfo: SocialUserInfo, socialType: SocialType): UserEntity =

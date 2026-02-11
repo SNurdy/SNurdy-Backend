@@ -24,5 +24,5 @@ class GlossaryTermEntity(
     @MapsId("termId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "term_id", nullable = false)
-    val term: TermEntity,
+    val term: TermEntity
 ) : BaseTimeEntity()

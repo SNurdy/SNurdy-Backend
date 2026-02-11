@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.term.entity
 
 import com.snurdy.backend.domain.morpheme.entity.MorphemeEntity
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -23,4 +24,4 @@ class TermMorphemeEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "morpheme_id", nullable = false)
     val morpheme: MorphemeEntity
-)
+) : BaseTimeEntity()

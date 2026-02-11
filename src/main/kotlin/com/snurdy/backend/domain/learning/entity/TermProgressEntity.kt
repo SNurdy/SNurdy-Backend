@@ -51,10 +51,10 @@ class TermProgressEntity(
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    var status: LearningStatus = LearningStatus.NEW,
+    var status: TermLearningStatus = TermLearningStatus.NEW,
 
     @Column(name = "ease_factor", nullable = false, precision = 4, scale = 2)
-    var easeFactor: BigDecimal = BigDecimal("2.50"),
+    var easeFactor: BigDecimal = DEFAULT_EASE_FACTOR,
 
     @Column(name = "interval_days", nullable = false)
     var intervalDays: Int = 0,
@@ -67,4 +67,22 @@ class TermProgressEntity(
 
     @Column(name = "next_review_at")
     var nextReviewAt: Instant? = null
-) : BaseTimeEntity()
+) : BaseTimeEntity() {
+
+    fun markLearned(now: Instant, nextReviewAt: Instant) {
+        status = TermLearningStatus.LEARNING
+        reviewCount += 1
+        lastReviewedAt = now
+        this.nextReviewAt = nextReviewAt
+    }
+
+    fun markMastered(now: Instant) {
+        status = TermLearningStatus.MASTERED
+        lastReviewedAt = now
+        nextReviewAt = null
+    }
+
+    companion object {
+        private val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
+    }
+}

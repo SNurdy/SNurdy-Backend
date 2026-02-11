@@ -29,7 +29,7 @@ enum class AuthSuccess(
     MERGE(HttpStatus.OK, "AUTH_005", "데이터 병합에 성공했습니다")
 }
 
-enum class StudySuccess(
+enum class LearningSuccess (
     override val status: HttpStatus,
     override val code: String,
     override val message: String

@@ -13,9 +13,9 @@ import jakarta.persistence.Table
 
 @Entity
 @Table(name = "daily_records")
-class DailyRecordEntity(
+class DailyLearningEntity(
     @EmbeddedId
-    val id: DailyRecordId,
+    val id: DailyLearningId,
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY)

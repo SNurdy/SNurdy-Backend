@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.learning.entity
 
-import com.snurdy.backend.domain.glossary.entity.GlossaryEntity
-import com.snurdy.backend.domain.term.entity.TermEntity
+import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.catalog.term.entity.TermEntity
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
@@ -32,7 +32,7 @@ import java.util.UUID
         Index(name = "idx_term_progress_next_review", columnList = "user_id,next_review_at")
     ]
 )
-class TermProgressEntity(
+class TermLearningStateEntity(
     @Id
     @Column(name = "id", columnDefinition = "BINARY(16)", nullable = false)
     val id: UUID = UUID.randomUUID(),

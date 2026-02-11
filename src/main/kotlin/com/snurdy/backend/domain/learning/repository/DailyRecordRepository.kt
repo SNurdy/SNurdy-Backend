@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.learning.repository
 
-import com.snurdy.backend.domain.learning.entity.DailyRecordEntity
-import com.snurdy.backend.domain.learning.entity.DailyRecordId
+import com.snurdy.backend.domain.learning.entity.DailyLearningEntity
+import com.snurdy.backend.domain.learning.entity.DailyLearningId
 import org.springframework.data.jpa.repository.JpaRepository
 
-interface DailyRecordRepository : JpaRepository<DailyRecordEntity, DailyRecordId>
+interface DailyRecordRepository : JpaRepository<DailyLearningEntity, DailyLearningId>

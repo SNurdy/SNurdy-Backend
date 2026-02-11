@@ -1,6 +1,6 @@
-package com.snurdy.backend.domain.term.entity
+package com.snurdy.backend.domain.catalog.glossary.entity
 
-import com.snurdy.backend.domain.morpheme.entity.MorphemeEntity
+import com.snurdy.backend.domain.catalog.term.entity.TermEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
@@ -11,17 +11,18 @@ import jakarta.persistence.MapsId
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "term_morphemes")
-class TermMorphemeEntity(
+@Table(name = "glossary_terms")
+class GlossaryTermEntity(
     @EmbeddedId
-    val id: TermMorphemeId,
+    val id: GlossaryTermId,
+
+    @MapsId("glossaryId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "glossary_id", nullable = false)
+    val glossary: GlossaryEntity,
 
     @MapsId("termId")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "term_id", nullable = false)
-    val term: TermEntity,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "morpheme_id", nullable = false)
-    val morpheme: MorphemeEntity
+    val term: TermEntity
 ) : BaseTimeEntity()

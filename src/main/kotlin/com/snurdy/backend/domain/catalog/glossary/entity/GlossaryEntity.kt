@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.morpheme.entity
+package com.snurdy.backend.domain.catalog.glossary.entity
 
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
@@ -9,16 +9,16 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 
 @Entity
-@Table(name = "morphemes")
-class MorphemeEntity(
+@Table(name = "glossaries")
+class GlossaryEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     val id: Long? = null,
 
-    @Column(name = "spelling", nullable = false, length = 50)
-    var spelling: String,
+    @Column(name = "category", nullable = false, length = 50)
+    var category: String,
 
-    @Column(name = "meaning", nullable = false, length = 100)
-    var meaning: String
+    @Column(name = "title", nullable = false, length = 100)
+    var title: String
 ) : BaseTimeEntity()

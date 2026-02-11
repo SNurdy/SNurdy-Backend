@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.glossary.entity
+package com.snurdy.backend.domain.catalog.glossary.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

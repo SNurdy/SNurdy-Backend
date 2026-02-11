@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.term.entity
+package com.snurdy.backend.domain.catalog.term.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

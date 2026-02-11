@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.learning.entity
 
-import com.snurdy.backend.domain.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
@@ -15,9 +15,9 @@ import java.time.Instant
 
 @Entity
 @Table(name = "glossary_progresses")
-class GlossaryProgressEntity(
+class GlossaryLearningStateEntity(
     @EmbeddedId
-    val id: GlossaryProgressId,
+    val id: GlossaryLearningStateId,
 
     @MapsId("userId")
     @ManyToOne(fetch = FetchType.LAZY)

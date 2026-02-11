@@ -20,11 +20,11 @@ class UserEntity(
     @Column(columnDefinition = "BINARY(16)")
     val id: UUID = UUID.randomUUID(),
 
-    @Column(nullable = false)
+    @Column(name = "social_id", nullable = false)
     val socialId: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "social_type", nullable = false)
     val socialType: SocialType,
 
     @Column(nullable = true)

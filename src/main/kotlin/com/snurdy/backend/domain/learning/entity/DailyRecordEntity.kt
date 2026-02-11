@@ -25,9 +25,6 @@ class DailyRecordEntity(
     @Column(name = "learned_count", nullable = false)
     var learnedCount: Int = 0,
 
-    @Column(name = "review_count", nullable = false)
-    var reviewCount: Int = 0,
-
     @Column(name = "reviewed_count", nullable = false)
     var reviewedCount: Int = 0
 ) : BaseTimeEntity()

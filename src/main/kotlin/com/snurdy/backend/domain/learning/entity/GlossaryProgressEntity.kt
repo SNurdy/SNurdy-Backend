@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.learning.entity
 
 import com.snurdy.backend.domain.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
@@ -28,15 +29,9 @@ class GlossaryProgressEntity(
     @JoinColumn(name = "glossary_id", nullable = false)
     val glossary: GlossaryEntity,
 
-    @Column(name = "studied_count", nullable = false)
-    var studiedCount: Int = 0,
+    @Column(name = "learned_count", nullable = false)
+    var learnedCount: Int = 0,
 
-    @Column(name = "last_studied_at")
-    var lastStudiedAt: Instant? = null,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant? = null,
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant? = null
-)
+    @Column(name = "last_learned_at")
+    var lastLearnedAt: Instant? = null
+) : BaseTimeEntity()

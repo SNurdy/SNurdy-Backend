@@ -11,7 +11,7 @@ import java.util.*
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_user_social_id_type",
-            columnNames = ["socialId", "socialType"]
+            columnNames = ["social_id", "social_type"]
         )
     ]
 )

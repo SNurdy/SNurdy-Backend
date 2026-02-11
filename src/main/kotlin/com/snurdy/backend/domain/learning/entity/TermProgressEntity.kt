@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.learning.entity
 import com.snurdy.backend.domain.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.term.entity.TermEntity
 import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -20,15 +21,15 @@ import java.util.UUID
 
 @Entity
 @Table(
-    name = "term_study_datas",
+    name = "term_progresses",
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_study_user_glossary_term",
+            name = "uk_term_progress_user_glossary_term",
             columnNames = ["user_id", "glossary_id", "term_id"]
         )
     ],
     indexes = [
-        Index(name = "idx_study_next_review", columnList = "user_id,next_review_at")
+        Index(name = "idx_term_progress_next_review", columnList = "user_id,next_review_at")
     ]
 )
 class TermProgressEntity(
@@ -65,11 +66,5 @@ class TermProgressEntity(
     var lastReviewedAt: Instant? = null,
 
     @Column(name = "next_review_at")
-    var nextReviewAt: Instant? = null,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant? = null,
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant? = null
-)
+    var nextReviewAt: Instant? = null
+) : BaseTimeEntity()

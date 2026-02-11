@@ -1,12 +1,12 @@
 package com.snurdy.backend.domain.term.entity
 
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.Instant
 
 @Entity
 @Table(name = "terms")
@@ -26,11 +26,5 @@ class TermEntity(
     var abbreviation: String? = null,
 
     @Column(name = "explanation", columnDefinition = "TEXT")
-    var explanation: String? = null,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant? = null,
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant? = null
-)
+    var explanation: String? = null
+) : BaseTimeEntity()

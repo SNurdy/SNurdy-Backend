@@ -14,7 +14,7 @@ import jakarta.persistence.Table
 import java.time.Instant
 
 @Entity
-@Table(name = "user_bookmarks")
+@Table(name = "bookmarks")
 class BookmarkEntity(
     @EmbeddedId
     val id: BookmarkId,

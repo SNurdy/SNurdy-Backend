@@ -34,5 +34,5 @@ enum class LearningSuccess (
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    SEARCH(HttpStatus.OK, "STUDY_001", "조회에 성공했습니다")
+    SEARCH(HttpStatus.OK, "LEARNING_001", "조회에 성공했습니다")
 }

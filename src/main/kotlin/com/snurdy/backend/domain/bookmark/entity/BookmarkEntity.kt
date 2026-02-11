@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.bookmark.entity
 import com.snurdy.backend.domain.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.term.entity.TermEntity
 import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
@@ -34,6 +35,4 @@ class BookmarkEntity(
     @JoinColumn(name = "term_id", nullable = false)
     val term: TermEntity,
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant? = null
-)
+): BaseTimeEntity()

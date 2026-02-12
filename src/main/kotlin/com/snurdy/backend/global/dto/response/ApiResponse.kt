@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.constants.SuccessCode
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 data class ApiResponse<T>(
@@ -15,7 +17,8 @@ data class ApiResponse<T>(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val data: T? = null,
 
-    val timestamp: String = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    val timestamp: String = OffsetDateTime.now(ZoneOffset.UTC)
+        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 ) {
     companion object {
         fun <T> success(successCode: SuccessCode, data: T): ApiResponse<T> =

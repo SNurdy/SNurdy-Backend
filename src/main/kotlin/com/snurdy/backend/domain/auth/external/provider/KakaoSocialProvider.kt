@@ -14,8 +14,4 @@ class KakaoSocialProvider(
 
         return userInfoResponse.toSocialUserInfo()
     }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(KakaoSocialProvider::class.java)
-    }
 }

@@ -29,10 +29,10 @@ enum class AuthSuccess(
     MERGE(HttpStatus.OK, "AUTH_005", "데이터 병합에 성공했습니다")
 }
 
-enum class StudySuccess(
+enum class LearningSuccess (
     override val status: HttpStatus,
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    SEARCH(HttpStatus.OK, "STUDY_001", "조회에 성공했습니다")
+    SEARCH(HttpStatus.OK, "LEARNING_001", "조회에 성공했습니다")
 }

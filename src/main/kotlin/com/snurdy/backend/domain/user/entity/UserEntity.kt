@@ -1,9 +1,15 @@
 package com.snurdy.backend.domain.user.entity
 
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
-import com.snurdy.backend.global.entity.BaseEntity
-import jakarta.persistence.*
-import java.util.*
+import com.snurdy.backend.global.entity.BaseTimeEntity
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
+import jakarta.persistence.UniqueConstraint
+import java.util.UUID
 
 @Entity
 @Table(
@@ -11,7 +17,7 @@ import java.util.*
     uniqueConstraints = [
         UniqueConstraint(
             name = "uk_user_social_id_type",
-            columnNames = ["socialId", "socialType"]
+            columnNames = ["social_id", "social_type"]
         )
     ]
 )
@@ -20,11 +26,11 @@ class UserEntity(
     @Column(columnDefinition = "BINARY(16)")
     val id: UUID = UUID.randomUUID(),
 
-    @Column(nullable = false)
+    @Column(name = "social_id", nullable = false)
     val socialId: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "social_type", nullable = false, length = 20)
     val socialType: SocialType,
 
     @Column(nullable = true)
@@ -37,7 +43,7 @@ class UserEntity(
     var nickname: String = "",
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     val role: Role = Role.USER,
 
     @Column(nullable = false)
@@ -48,7 +54,7 @@ class UserEntity(
 
     @Column(nullable = false)
     var longestStreak: Int = 0
-) : BaseEntity() {
+) : BaseTimeEntity() {
 
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20

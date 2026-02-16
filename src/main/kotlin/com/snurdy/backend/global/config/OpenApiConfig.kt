@@ -64,6 +64,10 @@ class OpenApiConfig {
 
     @Bean
     fun globalErrorResponseCustomizer(): OpenApiCustomizer = OpenApiCustomizer { openApi ->
+        val components = openApi.components ?: Components().also { openApi.components = it }
+        if (components.schemas?.containsKey("ErrorResponse") != true) {
+            components.addSchemas("ErrorResponse", errorResponseSchema())
+        }
         openApi.paths?.values?.forEach { pathItem ->
             pathItem.readOperations().forEach { operation ->
                 val responses = operation.responses

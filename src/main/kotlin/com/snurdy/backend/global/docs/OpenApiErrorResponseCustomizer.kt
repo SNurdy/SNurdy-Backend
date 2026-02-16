@@ -1,9 +1,10 @@
-package com.snurdy.backend.global.config
+package com.snurdy.backend.global.docs
 
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.ErrorCode
 import io.swagger.v3.oas.models.Components
+import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.media.Content
 import io.swagger.v3.oas.models.media.MediaType
 import io.swagger.v3.oas.models.media.Schema
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component
 @Component
 class OpenApiErrorResponseCustomizer : OpenApiCustomizer {
 
-    override fun customise(openApi: io.swagger.v3.oas.models.OpenAPI) {
+    override fun customise(openApi: OpenAPI) {
         val components = openApi.components ?: Components().also { openApi.components = it }
 
         registerErrorSchemas(components)
@@ -29,7 +30,7 @@ class OpenApiErrorResponseCustomizer : OpenApiCustomizer {
         }
     }
 
-    private fun addErrorResponsesToAllOperations(openApi: io.swagger.v3.oas.models.OpenAPI) {
+    private fun addErrorResponsesToAllOperations(openApi: OpenAPI) {
         openApi.paths?.values?.forEach { pathItem ->
             pathItem.readOperations().forEach { operation ->
                 val responses = operation.responses
@@ -58,7 +59,7 @@ class OpenApiErrorResponseCustomizer : OpenApiCustomizer {
             ErrorResponseSpec("ErrorResponse400", "잘못된 요청", CommonError.BAD_REQUEST),
             ErrorResponseSpec("ErrorResponse401", "인증 실패", AuthError.INVALID_TOKEN),
             ErrorResponseSpec("ErrorResponse500", "서버 오류", CommonError.INTERNAL_ERROR),
-            ErrorResponseSpec("ErrorResponse502", "외부 API 오류", AuthError.KAKAO_API_ERROR),
+            ErrorResponseSpec("ErrorResponse502", "외부 API 오류", CommonError.BAD_GATEWAY),
         )
     }
 

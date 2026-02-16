@@ -1,4 +1,4 @@
-package com.snurdy.backend.global.config
+package com.snurdy.backend.global.docs
 
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI

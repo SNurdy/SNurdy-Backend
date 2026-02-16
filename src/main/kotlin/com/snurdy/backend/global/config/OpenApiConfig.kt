@@ -74,6 +74,7 @@ class OpenApiConfig {
                 responses.putIfAbsent("400", createErrorResponse("잘못된 요청"))
                 responses.putIfAbsent("401", createErrorResponse("인증 실패"))
                 responses.putIfAbsent("500", createErrorResponse("서버 오류"))
+                responses.putIfAbsent("502", createErrorResponse("외부 API 오류"))
             }
         }
     }

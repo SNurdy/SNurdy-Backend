@@ -55,7 +55,7 @@ data class UserInfo(
     @Schema(description = "닉네임")
     val nickname: String,
 
-    @Schema(description = "소셜 로그인 제공자", example = "KAKAO")
+    @Schema(description = "소셜 로그인 제공자")
     val provider: SocialType
 )
 

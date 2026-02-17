@@ -3,6 +3,7 @@ package com.snurdy.backend.global.security.config
 import com.snurdy.backend.global.security.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -22,6 +23,7 @@ class SecurityConfig(
 ) {
 
     @Bean
+    @Order(2)
     fun filterChain(http: HttpSecurity): SecurityFilterChain {
         http {
             cors { configurationSource = corsConfigurationSource() }
@@ -44,6 +46,7 @@ class SecurityConfig(
                 authorize("/swagger-resources/**", permitAll)
                 authorize("/v3/api-docs/**", permitAll)
                 authorize("/webjars/**", permitAll)
+                authorize("/internal/**", denyAll)
 
                 // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)

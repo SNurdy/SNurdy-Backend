@@ -16,7 +16,7 @@ class MorphemeEntity(
     @Column(name = "id", nullable = false)
     val id: Long? = null,
 
-    @Column(name = "spelling", nullable = false, length = 50)
+    @Column(name = "spelling", nullable = false, length = 100)
     var spelling: String,
 
     @Column(name = "meaning", nullable = false, length = 100)

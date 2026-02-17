@@ -46,7 +46,7 @@ class SecurityConfig(
                 authorize("/swagger-resources/**", permitAll)
                 authorize("/v3/api-docs/**", permitAll)
                 authorize("/webjars/**", permitAll)
-                authorize("/internal/**", permitAll)
+                authorize("/internal/**", denyAll)
 
                 // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)

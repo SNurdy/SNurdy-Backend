@@ -2,6 +2,8 @@ package com.snurdy.backend.domain.catalog.glossary.repository
 
 import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryTermEntity
 import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryTermId
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -43,6 +45,38 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         nativeQuery = true
     )
     fun findTermSummariesByGlossaryId(@Param("glossaryId") glossaryId: Long): List<TermSummaryProjection>
+
+    @Query(
+        value = """
+        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning, t.abbreviation AS abbreviation
+        FROM glossary_terms gt
+        JOIN terms t ON t.id = gt.term_id
+        WHERE gt.glossary_id = :glossaryId
+        ORDER BY t.id
+        """,
+        countQuery = """
+        SELECT COUNT(*)
+        FROM glossary_terms gt
+        WHERE gt.glossary_id = :glossaryId
+        """,
+        nativeQuery = true
+    )
+    fun findPagedTermSummariesByGlossaryId(
+        @Param("glossaryId") glossaryId: Long,
+        pageable: Pageable
+    ): Page<GlossaryTermPageProjection>
+
+    @Query(
+        value = """
+        SELECT g.id AS glossaryId, g.category AS category, g.title AS title
+        FROM glossary_terms gt
+        JOIN glossaries g ON g.id = gt.glossary_id
+        WHERE gt.term_id = :termId
+        ORDER BY g.id
+        """,
+        nativeQuery = true
+    )
+    fun findGlossariesByTermId(@Param("termId") termId: Long): List<TermGlossaryProjection>
 }
 
 interface GlossaryIdDistributionProjection {
@@ -54,4 +88,17 @@ interface TermSummaryProjection {
     val termId: Long
     val spelling: String
     val meaning: String
+}
+
+interface GlossaryTermPageProjection {
+    val termId: Long
+    val spelling: String
+    val meaning: String
+    val abbreviation: String?
+}
+
+interface TermGlossaryProjection {
+    val glossaryId: Long
+    val category: String
+    val title: String
 }

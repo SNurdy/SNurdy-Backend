@@ -7,10 +7,12 @@ import com.snurdy.backend.global.constants.CommonError
 import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
+import jakarta.validation.ConstraintViolationException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
+import org.springframework.web.method.annotation.HandlerMethodValidationException
 
 fun Throwable.toApiException(): ApiException = when (this) {
     is ApiException -> this
@@ -25,6 +27,8 @@ fun Throwable.toApiException(): ApiException = when (this) {
     // 요청 파싱 - 상세 정보 필요
     is HttpMessageNotReadableException -> this.toParseApiException()
     is MethodArgumentNotValidException -> this.toValidationApiException()
+    is HandlerMethodValidationException -> this.toMethodValidationApiException()
+    is ConstraintViolationException -> this.toConstraintViolationApiException()
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->
@@ -71,6 +75,28 @@ private fun MethodArgumentNotValidException.toValidationApiException(): ApiExcep
     // 상세 정보 필요 - 어떤 필드가 검증 실패인지
     val firstError = bindingResult.fieldErrors.firstOrNull()
     val detailMessage = firstError?.let { "${it.field}: ${it.defaultMessage}" }
+
+    return ApiException(CommonError.BAD_REQUEST, detailMessage)
+}
+
+private fun HandlerMethodValidationException.toMethodValidationApiException(): ApiException {
+    val detailMessage = parameterValidationResults
+        .asSequence()
+        .flatMap { it.resolvableErrors.asSequence() }
+        .mapNotNull { it.defaultMessage }
+        .firstOrNull()
+
+    return ApiException(CommonError.BAD_REQUEST, detailMessage)
+}
+
+private fun ConstraintViolationException.toConstraintViolationApiException(): ApiException {
+    val detailMessage = constraintViolations
+        .asSequence()
+        .map { violation ->
+            val path = violation.propertyPath?.toString()?.substringAfterLast(".")
+            if (path.isNullOrBlank()) violation.message else "$path: ${violation.message}"
+        }
+        .firstOrNull()
 
     return ApiException(CommonError.BAD_REQUEST, detailMessage)
 }

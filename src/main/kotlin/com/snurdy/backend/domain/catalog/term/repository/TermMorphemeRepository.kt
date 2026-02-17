@@ -61,6 +61,18 @@ interface TermMorphemeRepository : JpaRepository<TermMorphemeEntity, TermMorphem
         nativeQuery = true
     )
     fun countMissingMorphemeReferences(): Long
+
+    @Query(
+        value = """
+        SELECT m.id AS morphemeId, m.spelling AS spelling, m.meaning AS meaning, tm.position AS position
+        FROM term_morphemes tm
+        JOIN morphemes m ON m.id = tm.morpheme_id
+        WHERE tm.term_id = :termId
+        ORDER BY tm.position
+        """,
+        nativeQuery = true
+    )
+    fun findOrderedMorphemesByTermId(@Param("termId") termId: Long): List<OrderedMorphemeProjection>
 }
 
 interface TermMorphemePositionAnomalyProjection {
@@ -79,4 +91,11 @@ interface TermMorphemeGapProjection {
 interface TermMorphemeCountProjection {
     val termId: Long
     val morphemeCount: Long
+}
+
+interface OrderedMorphemeProjection {
+    val morphemeId: Long
+    val spelling: String
+    val meaning: String
+    val position: Int
 }

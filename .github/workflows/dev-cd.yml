@@ -23,8 +23,8 @@ jobs:
           distribution: 'corretto'
           cache: gradle
 
-      - name: Gradle 빌드
-        run: chmod +x gradlew && ./gradlew clean build -x test
+      - name: Gradle 아티팩트 빌드
+        run: chmod +x gradlew && ./gradlew clean bootJar -x test
 
       - name: 배포 파일 준비
         run: |

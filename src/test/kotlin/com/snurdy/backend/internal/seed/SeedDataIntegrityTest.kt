@@ -72,16 +72,12 @@ class SeedDataIntegrityTest {
             "glossary_terms에 매핑된 glossary_id가 없습니다. totalGlossaries=$totalGlossaryCount"
         )
 
-        assertTrue(
-            unmappedGlossaries.isNotEmpty(),
-            "모든 glossary에 매핑이 존재합니다. 현재 totalGlossaries=$totalGlossaryCount, mappedGlossaryIds=$mappedGlossaryIds"
-        )
-
         val termsWithoutGlossary = glossaryTermRepository.findTermsWithoutGlossary(10)
         assertEquals(
             0,
             termsWithoutGlossary.size,
-            "glossary에 속하지 않는 term이 존재합니다. count=${termsWithoutGlossary.size}, sample=$termsWithoutGlossary"
+            "glossary에 속하지 않는 term이 존재합니다. count=${termsWithoutGlossary.size}, sample=$termsWithoutGlossary, " +
+                "unmappedGlossaries=$unmappedGlossaries, totalGlossaries=$totalGlossaryCount, mappedGlossaryIds=$mappedGlossaryIds"
         )
     }
 

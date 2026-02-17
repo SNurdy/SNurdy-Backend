@@ -15,7 +15,7 @@ import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
 @ActiveProfiles("test")
 class SeedDataIntegrityTest {
@@ -78,9 +78,10 @@ class SeedDataIntegrityTest {
         )
 
         val termsWithoutGlossary = glossaryTermRepository.findTermsWithoutGlossary(10)
-        assertTrue(
-            termsWithoutGlossary.size <= 1,
-            "glossary에 속하지 않는 term이 예상보다 많습니다. count=${termsWithoutGlossary.size}, sample=$termsWithoutGlossary"
+        assertEquals(
+            0,
+            termsWithoutGlossary.size,
+            "glossary에 속하지 않는 term이 존재합니다. count=${termsWithoutGlossary.size}, sample=$termsWithoutGlossary"
         )
     }
 

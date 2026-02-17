@@ -47,3 +47,12 @@ enum class UserError(
     NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "사용자를 찾을 수 없습니다"),
     DUPLICATED(HttpStatus.CONFLICT, "USER_002", "이미 존재하는 사용자입니다")
 }
+
+enum class CatalogError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_001", "단어장을 찾을 수 없습니다"),
+    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_002", "단어를 찾을 수 없습니다")
+}

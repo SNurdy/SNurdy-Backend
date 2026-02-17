@@ -41,7 +41,7 @@ class CatalogQueryService(
 
     fun getGlossaryTerms(glossaryId: Long, page: Int, size: Int): GlossaryTermsResponse {
         val glossary = glossaryRepository.findById(glossaryId)
-            .orElseThrow { ApiException(CatalogError.GLOSSARY_NOT_FOUND, "단어장을 찾을 수 없습니다. glossaryId=$glossaryId") }
+            .orElseThrow { ApiException(CatalogError.GLOSSARY_NOT_FOUND) }
 
         val pageable = PageRequest.of(page, size)
         val termPage = glossaryTermRepository.findPagedTermSummariesByGlossaryId(glossaryId, pageable)
@@ -68,7 +68,7 @@ class CatalogQueryService(
 
     fun getTermDetail(termId: Long): TermDetailResponse {
         val term = termRepository.findById(termId)
-            .orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND, "단어를 찾을 수 없습니다. termId=$termId") }
+            .orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
         val glossaries = glossaryTermRepository.findGlossariesByTermId(termId)
             .map {
                 TermGlossaryTag(

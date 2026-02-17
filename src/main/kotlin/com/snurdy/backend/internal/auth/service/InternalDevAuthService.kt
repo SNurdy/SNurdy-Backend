@@ -39,7 +39,7 @@ class InternalDevAuthService(
     private fun findOrCreateDevUser(): UserEntity =
         runCatching {
             userRepository.findBySocialTypeAndSocialId(DEV_SOCIAL_TYPE, DEV_SOCIAL_ID)
-                ?: userRepository.save(
+                ?: userRepository.saveAndFlush(
                     UserEntity(
                         socialId = DEV_SOCIAL_ID,
                         socialType = DEV_SOCIAL_TYPE,

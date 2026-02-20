@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.catalog.service
 import com.snurdy.backend.domain.catalog.dto.GlossaryListResponse
 import com.snurdy.backend.domain.catalog.dto.GlossarySummary
 import com.snurdy.backend.domain.catalog.dto.GlossaryTermsResponse
+import com.snurdy.backend.domain.catalog.dto.MorphemeHighlight
 import com.snurdy.backend.domain.catalog.dto.OrderedMorpheme
 import com.snurdy.backend.domain.catalog.dto.TermDetail
 import com.snurdy.backend.domain.catalog.dto.TermDetailResponse
@@ -10,6 +11,8 @@ import com.snurdy.backend.domain.catalog.dto.TermGlossaryTag
 import com.snurdy.backend.domain.catalog.dto.TermSummary
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
+import com.snurdy.backend.domain.catalog.morpheme.service.HighlightCalculator
 import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
 import com.snurdy.backend.global.constants.CatalogError
@@ -22,7 +25,10 @@ class CatalogQueryService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
-    private val termMorphemeRepository: TermMorphemeRepository
+    private val termMorphemeRepository: TermMorphemeRepository,
+    private val morphemeVariantRepository: MorphemeVariantRepository,
+    private val highlightCalculator: HighlightCalculator
+
 ) {
 
     fun getGlossaries(): GlossaryListResponse {
@@ -79,14 +85,29 @@ class CatalogQueryService(
             }
 
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId)
-            .map {
-                OrderedMorpheme(
-                    id = it.morphemeId,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    order = it.position
-                )
-            }
+
+        // 형태소 ID 목록으로 variants 일괄 조회
+        val morphemeIds = morphemes.map { it.morphemeId }
+        val variantsByMorphemeId = if (morphemeIds.isNotEmpty()) {
+            morphemeVariantRepository.findByMorphemeIds(morphemeIds)
+                .groupBy { it.morphemeId }
+        } else {
+            emptyMap()
+        }
+
+        // Fallback 매칭으로 highlight 범위 계산
+        val orderedMorphemes = morphemes.map { m ->
+            val variants = variantsByMorphemeId[m.morphemeId] ?: emptyList()
+            val range = highlightCalculator.calculate(term.spelling, variants)
+
+            OrderedMorpheme(
+                id = m.morphemeId,
+                spelling = m.spelling,
+                meaning = m.meaning,
+                order = m.position,
+                highlight = range?.let { MorphemeHighlight(start = it.start, length = it.length) }
+            )
+        }
 
         return TermDetailResponse(
             term = TermDetail(
@@ -97,7 +118,8 @@ class CatalogQueryService(
                 explanation = term.explanation
             ),
             glossaries = glossaries,
-            morphemes = morphemes
+            morphemes = orderedMorphemes
         )
     }
+
 }

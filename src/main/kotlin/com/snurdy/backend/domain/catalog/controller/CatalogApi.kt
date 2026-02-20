@@ -3,12 +3,14 @@ package com.snurdy.backend.domain.catalog.controller
 import com.snurdy.backend.domain.catalog.dto.GlossaryListResponse
 import com.snurdy.backend.domain.catalog.dto.GlossaryTermsResponse
 import com.snurdy.backend.domain.catalog.dto.TermDetailResponse
+import com.snurdy.backend.domain.catalog.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.Size
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -39,4 +41,11 @@ interface CatalogApi {
     fun getTermDetail(
         @PathVariable termId: Long
     ): ApiResponse<TermDetailResponse>
+
+    @Operation(summary = "형태소 키워드로 단어 검색")
+    @GetMapping("/terms/search/morpheme")
+    fun searchTermsByMorpheme(
+        @Parameter(description = "형태소 키워드 (최소 2자)", example = "hepat")
+        @RequestParam @Size(min = 2, max = 50, message = "키워드는 2자 이상 50자 이하여야 합니다") keyword: String
+    ): ApiResponse<MorphemeSearchResponse>
 }

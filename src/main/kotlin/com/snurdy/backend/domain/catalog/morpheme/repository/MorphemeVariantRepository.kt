@@ -20,6 +20,24 @@ interface MorphemeVariantRepository : JpaRepository<MorphemeVariantEntity, Long>
         nativeQuery = true
     )
     fun findByMorphemeIds(@Param("morphemeIds") morphemeIds: List<Long>): List<MorphemeVariantProjection>
+
+    @Query(
+        value = """
+    SELECT DISTINCT tm.term_id AS termId, tm.morpheme_id AS morphemeId
+    FROM morpheme_variants mv
+    JOIN term_morphemes tm ON tm.morpheme_id = mv.morpheme_id
+    WHERE mv.variant LIKE CONCAT(:keyword, '%')
+    ORDER BY tm.term_id
+    """,
+        nativeQuery = true
+    )
+    fun findTermIdsByVariantPrefix(@Param("keyword") keyword: String): List<MorphemeSearchHitProjection>
+
+}
+
+interface MorphemeSearchHitProjection {
+    val termId: Long
+    val morphemeId: Long
 }
 
 interface MorphemeVariantProjection {

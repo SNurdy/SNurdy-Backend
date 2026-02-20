@@ -77,6 +77,26 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         nativeQuery = true
     )
     fun findGlossariesByTermId(@Param("termId") termId: Long): List<TermGlossaryProjection>
+
+    @Query(
+        value = """
+    SELECT gt.term_id AS termId, g.id AS glossaryId, g.category AS category, g.title AS title
+    FROM glossary_terms gt
+    JOIN glossaries g ON g.id = gt.glossary_id
+    WHERE gt.term_id IN :termIds
+    ORDER BY gt.term_id, g.id
+    """,
+        nativeQuery = true
+    )
+    fun findGlossariesByTermIds(@Param("termIds") termIds: List<Long>): List<BulkTermGlossaryProjection>
+
+}
+
+interface BulkTermGlossaryProjection {
+    val termId: Long
+    val glossaryId: Long
+    val category: String
+    val title: String
 }
 
 interface GlossaryIdDistributionProjection {

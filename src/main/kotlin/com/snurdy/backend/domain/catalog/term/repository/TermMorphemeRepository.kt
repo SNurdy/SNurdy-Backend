@@ -73,6 +73,28 @@ interface TermMorphemeRepository : JpaRepository<TermMorphemeEntity, TermMorphem
         nativeQuery = true
     )
     fun findOrderedMorphemesByTermId(@Param("termId") termId: Long): List<OrderedMorphemeProjection>
+
+    @Query(
+        value = """
+    SELECT m.id AS morphemeId, m.spelling AS spelling, m.meaning AS meaning, 
+           tm.position AS position, tm.term_id AS termId
+    FROM term_morphemes tm
+    JOIN morphemes m ON m.id = tm.morpheme_id
+    WHERE tm.term_id IN :termIds
+    ORDER BY tm.term_id, tm.position
+    """,
+        nativeQuery = true
+    )
+    fun findOrderedMorphemesByTermIds(@Param("termIds") termIds: List<Long>): List<BulkOrderedMorphemeProjection>
+
+}
+
+interface BulkOrderedMorphemeProjection {
+    val morphemeId: Long
+    val spelling: String
+    val meaning: String
+    val position: Int
+    val termId: Long
 }
 
 interface TermMorphemePositionAnomalyProjection {

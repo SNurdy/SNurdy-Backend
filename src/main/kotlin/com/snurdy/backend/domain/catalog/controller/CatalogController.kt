@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.catalog.controller
 import com.snurdy.backend.domain.catalog.dto.GlossaryListResponse
 import com.snurdy.backend.domain.catalog.dto.GlossaryTermsResponse
 import com.snurdy.backend.domain.catalog.dto.TermDetailResponse
+import com.snurdy.backend.domain.catalog.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.domain.catalog.service.CatalogQueryService
 import com.snurdy.backend.global.constants.CatalogSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -21,4 +22,7 @@ class CatalogController(
 
     override fun getTermDetail(termId: Long): ApiResponse<TermDetailResponse> =
         ApiResponse.success(CatalogSuccess.SEARCH, catalogQueryService.getTermDetail(termId))
+
+    override fun searchTermsByMorpheme(keyword: String): ApiResponse<MorphemeSearchResponse> =
+        ApiResponse.success(CatalogSuccess.SEARCH, catalogQueryService.searchTermsByMorpheme(keyword))
 }

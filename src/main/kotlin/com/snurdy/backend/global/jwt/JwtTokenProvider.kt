@@ -1,4 +1,4 @@
-package com.snurdy.backend.global.security.jwt
+package com.snurdy.backend.global.jwt
 
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.dto.toUserInfo

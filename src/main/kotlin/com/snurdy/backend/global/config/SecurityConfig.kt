@@ -1,5 +1,6 @@
 package com.snurdy.backend.global.config
 
+import com.snurdy.backend.global.exception.SecurityExceptionHandler
 import com.snurdy.backend.global.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,7 +25,7 @@ class SecurityConfig(
 
     @Bean
     @Order(2)
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, securityExceptionHandler: SecurityExceptionHandler): SecurityFilterChain {
         http {
             cors { configurationSource = corsConfigurationSource() }
             csrf { disable() }
@@ -50,6 +51,11 @@ class SecurityConfig(
 
                 // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)
+            }
+
+            exceptionHandling {
+                authenticationEntryPoint = securityExceptionHandler
+                accessDeniedHandler = securityExceptionHandler
             }
 
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)

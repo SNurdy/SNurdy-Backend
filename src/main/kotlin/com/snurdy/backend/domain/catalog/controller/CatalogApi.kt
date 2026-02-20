@@ -46,6 +46,9 @@ interface CatalogApi {
     @GetMapping("/terms/search/morpheme")
     fun searchTermsByMorpheme(
         @Parameter(description = "형태소 키워드 (최소 2자)", example = "hepat")
-        @RequestParam @Size(min = 2, max = 50, message = "키워드는 2자 이상 50자 이하여야 합니다") keyword: String
+        @RequestParam @Size(
+            min = 2, max = 50,
+            message = "{com.snurdy.backend.global.constants.CatalogError.INVALID_SEARCH_KEYWORD}"
+        ) keyword: String
     ): ApiResponse<MorphemeSearchResponse>
 }

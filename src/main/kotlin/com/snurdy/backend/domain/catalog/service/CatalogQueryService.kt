@@ -126,7 +126,10 @@ class CatalogQueryService(
     }
 
     fun searchTermsByMorpheme(keyword: String): MorphemeSearchResponse {
-        val normalizedKeyword = keyword.lowercase().trim().replace("-", "")
+        val normalizedKeyword = keyword.lowercase().trim()
+            .replace("-", "")
+            .replace("%", "")
+            .replace("_", "")
         if (normalizedKeyword.length < 2) {
             return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
         }

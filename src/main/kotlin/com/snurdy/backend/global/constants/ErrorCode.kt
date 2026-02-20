@@ -54,5 +54,6 @@ enum class CatalogError(
     override val message: String
 ) : ErrorCode {
     GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_001", "단어장을 찾을 수 없습니다"),
-    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_002", "단어를 찾을 수 없습니다")
+    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_002", "단어를 찾을 수 없습니다"),
+    INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "CATALOG_003", "키워드는 2자 이상 50자 이하여야 합니다")
 }

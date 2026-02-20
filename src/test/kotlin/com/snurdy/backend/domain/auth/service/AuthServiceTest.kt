@@ -14,7 +14,7 @@ import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
-import com.snurdy.backend.global.security.jwt.JwtTokenProvider
+import com.snurdy.backend.global.jwt.JwtTokenProvider
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk

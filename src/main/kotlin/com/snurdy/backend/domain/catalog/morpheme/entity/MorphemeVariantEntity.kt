@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.catalog.morpheme.entity
 
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -25,11 +26,5 @@ class MorphemeVariantEntity(
     val variant: String,
 
     @Column(nullable = false, length = 50)
-    val base: String,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-
-    @Column(name = "updated_at", nullable = false)
-    val updatedAt: LocalDateTime = LocalDateTime.now()
-)
+    val base: String
+) : BaseTimeEntity()

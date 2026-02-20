@@ -1,4 +1,4 @@
-package com.snurdy.backend.global.security.jwt
+package com.snurdy.backend.global.jwt
 
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest

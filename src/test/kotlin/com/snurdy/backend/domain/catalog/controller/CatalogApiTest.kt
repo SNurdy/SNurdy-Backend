@@ -28,7 +28,7 @@ class CatalogApiTest {
     fun `단어장 목록 조회는 인증이 필요하다`() {
         mockMvc.get("/v1/catalog/glossaries")
             .andExpect {
-                status { isForbidden() }
+                status { isUnauthorized () }
             }
     }
 

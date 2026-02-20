@@ -1,11 +1,13 @@
-package com.snurdy.backend.global.security.config
+package com.snurdy.backend.global.config
 
-import com.snurdy.backend.global.security.jwt.JwtAuthenticationFilter
+import com.snurdy.backend.global.exception.SecurityExceptionHandler
+import com.snurdy.backend.global.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.annotation.web.invoke
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -14,7 +16,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
-import org.springframework.security.config.annotation.web.invoke
 
 @Configuration
 @EnableWebSecurity
@@ -24,7 +25,7 @@ class SecurityConfig(
 
     @Bean
     @Order(2)
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    fun filterChain(http: HttpSecurity, securityExceptionHandler: SecurityExceptionHandler): SecurityFilterChain {
         http {
             cors { configurationSource = corsConfigurationSource() }
             csrf { disable() }
@@ -50,6 +51,11 @@ class SecurityConfig(
 
                 // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)
+            }
+
+            exceptionHandling {
+                authenticationEntryPoint = securityExceptionHandler
+                accessDeniedHandler = securityExceptionHandler
             }
 
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)

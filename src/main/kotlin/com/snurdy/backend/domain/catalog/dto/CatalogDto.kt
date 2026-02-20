@@ -88,6 +88,7 @@ data class TermDetail(
     val explanation: String?
 )
 
+
 @Schema(description = "순서 포함 형태소")
 data class OrderedMorpheme(
     @field:Schema(description = "형태소 ID", example = "361")
@@ -97,5 +98,15 @@ data class OrderedMorpheme(
     @field:Schema(description = "형태소 의미", example = "간")
     val meaning: String,
     @field:Schema(description = "단어 내 순서", example = "0")
-    val order: Int
+    val order: Int,
+    @field:Schema(description = "하이라이팅 범위 (null이면 매칭 실패)")
+    val highlight: MorphemeHighlight? = null
+)
+
+@Schema(description = "형태소 하이라이팅 범위")
+data class MorphemeHighlight(
+    @field:Schema(description = "하이라이팅 시작 인덱스 (0-based)", example = "0")
+    val start: Int,
+    @field:Schema(description = "하이라이팅 길이", example = "6")
+    val length: Int
 )

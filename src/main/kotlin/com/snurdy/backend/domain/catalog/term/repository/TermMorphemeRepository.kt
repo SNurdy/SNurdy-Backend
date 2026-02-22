@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface TermMorphemeRepository : JpaRepository<TermMorphemeEntity, TermMorphemeId> {
+    fun deleteByIdTermId(termId: Long)
 
     @Query(
         value = """

@@ -63,18 +63,19 @@ enum class AdminError(
     override val code: String,
     override val message: String
 ) : ErrorCode {
-    CHANGE_SET_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_001", "변경 요청을 찾을 수 없습니다"),
-    INVALID_CHANGE_SET_STATUS(HttpStatus.CONFLICT, "ADMIN_002", "현재 상태에서는 요청을 처리할 수 없습니다"),
-    MISSING_CHANGE_SET_ITEMS(HttpStatus.BAD_REQUEST, "ADMIN_003", "변경 요청에 처리할 항목이 없습니다"),
-    CHANGE_SET_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_004", "변경 항목을 찾을 수 없습니다"),
-    IMMUTABLE_CHANGE_SET(HttpStatus.CONFLICT, "ADMIN_005", "현재 상태에서는 변경 항목을 수정할 수 없습니다"),
-    INVALID_CHANGE_SET_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "ADMIN_006", "변경 항목 요청 값이 유효하지 않습니다"),
-    CHANGE_SET_NOT_VALIDATABLE(HttpStatus.CONFLICT, "ADMIN_007", "검증 가능한 상태가 아닙니다"),
-    CHANGE_SET_NOT_APPROVABLE(HttpStatus.CONFLICT, "ADMIN_008", "승인 가능한 상태가 아닙니다"),
-    CHANGE_SET_NOT_APPLICABLE(HttpStatus.CONFLICT, "ADMIN_009", "적용 가능한 상태가 아닙니다"),
-    TERM_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_010", "termId가 필요합니다"),
     TERM_REQUIRED_FIELDS_MISSING(HttpStatus.BAD_REQUEST, "ADMIN_011", "spelling과 meaning은 필수입니다"),
-    INVALID_CHANGE_SET_ENV(HttpStatus.BAD_REQUEST, "ADMIN_012", "sourceEnv/targetEnv 값이 유효하지 않습니다"),
-    INVALID_CHANGE_SET_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_013", "operation 값이 유효하지 않습니다"),
-    UNSUPPORTED_TERM_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_014", "TERM 항목은 CREATE/UPDATE/DELETE만 허용됩니다")
+    INVALID_TERM_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_012", "용어 필드 길이가 유효하지 않습니다"),
+    INVALID_WORKFLOW_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_013", "지원하지 않는 작업 유형입니다"),
+    WORKFLOW_TERM_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_014", "수정/삭제 요청에는 termId가 필요합니다"),
+    WORKFLOW_INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "ADMIN_015", "요청 상태 전이가 올바르지 않습니다"),
+    WORKFLOW_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "ADMIN_016", "검증에 실패했습니다"),
+    WORKFLOW_ONLY_APPROVER_CAN_APPLY(HttpStatus.FORBIDDEN, "ADMIN_017", "반영은 승인 권한이 있는 관리자만 가능합니다"),
+    DUPLICATE_TERM_SPELLING(HttpStatus.CONFLICT, "ADMIN_018", "이미 존재하는 용어입니다"),
+    GLOSSARY_REQUIRED_FOR_TERM_CREATE(HttpStatus.BAD_REQUEST, "ADMIN_021", "용어 생성 시 단어장 선택은 필수입니다"),
+    INVALID_MORPHEME_MAPPING(HttpStatus.BAD_REQUEST, "ADMIN_019", "형태소 매핑 값이 유효하지 않습니다"),
+    MORPHEME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ADMIN_020", "존재하지 않는 형태소가 포함되어 있습니다"),
+    MORPHEME_REQUIRED_FIELDS_MISSING(HttpStatus.BAD_REQUEST, "ADMIN_022", "형태소 spelling과 meaning은 필수입니다"),
+    INVALID_MORPHEME_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_023", "형태소 필드 길이가 유효하지 않습니다"),
+    DUPLICATE_MORPHEME_SPELLING(HttpStatus.CONFLICT, "ADMIN_024", "이미 존재하는 형태소입니다"),
+    INVALID_WORKFLOW_ENTITY_TYPE(HttpStatus.BAD_REQUEST, "ADMIN_027", "지원하지 않는 요청 엔티티 유형입니다")
 }

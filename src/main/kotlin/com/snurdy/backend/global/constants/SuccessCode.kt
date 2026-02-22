@@ -50,10 +50,8 @@ enum class AdminSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    VALIDATE(HttpStatus.OK, "ADMIN_001", "검증에 성공했습니다"),
-    APPROVE(HttpStatus.OK, "ADMIN_002", "승인에 성공했습니다"),
-    APPLY(HttpStatus.OK, "ADMIN_003", "적용에 성공했습니다"),
-    CREATE_CHANGE_SET(HttpStatus.CREATED, "ADMIN_004", "변경 요청 생성에 성공했습니다"),
-    UPSERT_CHANGE_SET_ITEM(HttpStatus.OK, "ADMIN_005", "변경 항목 저장에 성공했습니다"),
-    DELETE_CHANGE_SET_ITEM(HttpStatus.OK, "ADMIN_006", "변경 항목 삭제에 성공했습니다")
+    CREATE_CHANGE_REQUEST(HttpStatus.CREATED, "ADMIN_010", "변경 요청 생성에 성공했습니다"),
+    VALIDATE_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_011", "변경 요청 검증에 성공했습니다"),
+    APPLY_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_012", "변경 요청 반영에 성공했습니다"),
+    CANCEL_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_013", "변경 요청 취소에 성공했습니다")
 }

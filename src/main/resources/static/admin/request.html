@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS 요청 관리</title>
+    <style>
+        :root {
+            --bg: #f3f6fb;
+            --card: #ffffff;
+            --line: #d7dfeb;
+            --text: #1f2a36;
+            --muted: #5f7086;
+            --brand: #1362ff;
+            --danger: #b42318;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+            color: var(--text);
+            font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+        }
+        .wrap { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .page-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .page-link {
+            display: inline-flex;
+            align-items: center;
+            height: 34px;
+            padding: 0 12px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--text);
+            background: #fff;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .page-link.active {
+            color: #fff;
+            background: var(--brand);
+            border-color: var(--brand);
+            font-weight: 700;
+        }
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .top {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 8px;
+            padding: 12px;
+        }
+        .tabs {
+            display: flex;
+            gap: 6px;
+            padding: 0 12px 12px;
+            border-bottom: 1px solid var(--line);
+        }
+        .tab {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            height: 32px;
+            padding: 0 12px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tab.active {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            font-weight: 700;
+        }
+        input, textarea, button {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        input, textarea { padding: 8px 10px; width: 100%; }
+        textarea { min-height: 90px; resize: vertical; }
+        button {
+            height: 36px;
+            padding: 0 12px;
+            background: #fff;
+            cursor: pointer;
+        }
+        button.primary {
+            background: var(--brand);
+            color: #fff;
+            border-color: var(--brand);
+        }
+        button.danger {
+            color: var(--danger);
+            border-color: #f2b8b5;
+            background: #fff7f7;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 56% 44%;
+            gap: 12px;
+            padding: 12px;
+        }
+        .section {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .section h3 {
+            margin: 0;
+            font-size: 14px;
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--line);
+            background: #f8fbff;
+        }
+        .section .body { padding: 10px 12px; }
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr 100px auto;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            padding: 8px 6px;
+            border-bottom: 1px solid #edf2f8;
+            text-align: left;
+            vertical-align: top;
+        }
+        th { color: var(--muted); font-weight: 600; }
+        tr:hover { background: #f8fbff; }
+        tr.selected { background: #ecf3ff; }
+        .pager {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        .full { grid-column: 1 / -1; }
+        .actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .morpheme-box {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px;
+        }
+        .morpheme-search {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .morpheme-results, .morpheme-selected {
+            max-height: 130px;
+            overflow: auto;
+            border-top: 1px dashed var(--line);
+            padding-top: 6px;
+            margin-top: 6px;
+            font-size: 12px;
+        }
+        .m-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 6px;
+            align-items: center;
+            padding: 4px 0;
+        }
+        .m-row button {
+            height: 26px;
+            padding: 0 8px;
+            font-size: 12px;
+        }
+        .log {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #111928;
+            color: #dbe8ff;
+            min-height: 74px;
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+        .muted { color: var(--muted); }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <nav class="page-nav">
+        <a class="page-link active" href="/api/admin/request.html">요청</a>
+        <a class="page-link" href="/api/admin/validate-waiting.html">검증/반영대기</a>
+        <a class="page-link" href="/api/admin/apply.html">반영</a>
+    </nav>
+    <section class="panel">
+        <div class="top">
+            <input id="token" type="password" placeholder="접근 토큰 입력 (JWT 액세스 토큰)" />
+            <button id="saveTokenBtn">토큰 저장</button>
+            <button id="refreshBtn" class="primary">새로고침</button>
+        </div>
+        <div class="tabs" id="tabs">
+            <button class="tab active" data-type="terms">용어</button>
+            <button class="tab" data-type="glossaries">단어장</button>
+            <button class="tab" data-type="morphemes">형태소</button>
+            <button class="tab" data-type="morpheme-variants">변형어</button>
+        </div>
+
+        <div class="grid">
+            <section class="section">
+                <h3 id="listTitle">용어 목록</h3>
+                <div class="body">
+                    <div class="toolbar">
+                        <input id="keyword" placeholder="검색어 입력" />
+                        <input id="size" value="20" />
+                        <button id="searchBtn" class="primary">조회</button>
+                    </div>
+                    <table>
+                        <thead id="listHead"></thead>
+                        <tbody id="listBody"></tbody>
+                    </table>
+                    <div class="pager">
+                        <button id="prevBtn">이전</button>
+                        <span id="pageInfo">페이지 1 / 1</span>
+                        <button id="nextBtn">다음</button>
+                        <span id="countInfo">총 0건</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h3>용어 편집</h3>
+                <div class="body">
+                    <div class="form-grid">
+                        <input id="spelling" class="full" placeholder="영문 용어/형태소 (필수)" />
+                        <input id="meaning" class="full" placeholder="뜻 (필수)" />
+                        <select id="glossarySelect" class="full" style="display:none;">
+                            <option value="">단어장 선택</option>
+                        </select>
+                        <input id="abbreviation" placeholder="약어" />
+                        <input id="selectedId" placeholder="선택된 ID (읽기전용)" disabled />
+                        <textarea id="explanation" class="full" placeholder="설명"></textarea>
+                        <div id="morphemeBox" class="morpheme-box full">
+                            <div class="morpheme-search">
+                                <input id="morphemeKeyword" placeholder="형태소 검색어" />
+                                <button id="searchMorphemeBtn">형태소 검색</button>
+                            </div>
+                            <div class="muted">검색 결과</div>
+                            <div id="morphemeResults" class="morpheme-results"></div>
+                            <div class="muted">선택된 형태소 (위/아래로 순서 조정)</div>
+                            <div id="selectedMorphemes" class="morpheme-selected"></div>
+                        </div>
+                    </div>
+                    <div class="actions">
+                        <button id="newBtn">새 항목</button>
+                        <button id="createBtn" class="primary">생성 요청</button>
+                        <button id="updateBtn">수정 요청</button>
+                        <button id="deleteBtn" class="danger">삭제 요청</button>
+                    </div>
+                    <p id="formHint" class="muted">생성 시 ID 입력이 필요 없습니다. 수정/삭제는 목록에서 선택 후 진행하세요.</p>
+                    <div id="log" class="log">준비되었습니다.</div>
+                </div>
+            </section>
+        </div>
+    </section>
+</div>
+
+<script>
+    const tokenInput = document.getElementById("token");
+    const listTitle = document.getElementById("listTitle");
+    const keyword = document.getElementById("keyword");
+    const sizeInput = document.getElementById("size");
+    const listHead = document.getElementById("listHead");
+    const listBody = document.getElementById("listBody");
+    const pageInfo = document.getElementById("pageInfo");
+    const countInfo = document.getElementById("countInfo");
+    const logBox = document.getElementById("log");
+    const spelling = document.getElementById("spelling");
+    const meaning = document.getElementById("meaning");
+    const glossarySelect = document.getElementById("glossarySelect");
+    const abbreviation = document.getElementById("abbreviation");
+    const explanation = document.getElementById("explanation");
+    const selectedIdInput = document.getElementById("selectedId");
+    const morphemeBox = document.getElementById("morphemeBox");
+    const formHint = document.getElementById("formHint");
+    const morphemeKeyword = document.getElementById("morphemeKeyword");
+    const morphemeResults = document.getElementById("morphemeResults");
+    const selectedMorphemesEl = document.getElementById("selectedMorphemes");
+
+    let type = "terms";
+    let page = 0;
+    let totalPages = 1;
+    let selectedTermId = null;
+    let rows = [];
+    let selectedMorphemes = [];
+    let glossaryOptions = [];
+
+    function token() {
+        return tokenInput.value.trim();
+    }
+
+    function writeLog(message) {
+        logBox.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logBox.textContent;
+    }
+
+    function callApi(path, method = "GET", body = null) {
+        const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
+        if (token()) headers.Authorization = `Bearer ${token()}`;
+        const option = { method, headers };
+        if (body !== null) option.body = JSON.stringify(body);
+        return fetch(path, option).then(async (res) => {
+            const payload = await res.json();
+            if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
+            return payload.data;
+        });
+    }
+
+    function parsePositiveInt(raw, fallback = 20) {
+        const v = String(raw || "").trim();
+        if (!/^\d+$/.test(v)) return fallback;
+        return Number(v);
+    }
+
+    function escapeHtml(v) {
+        if (v === null || v === undefined) return "";
+        return String(v)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#39;");
+    }
+
+    function queryString(params) {
+        const q = new URLSearchParams();
+        Object.entries(params).forEach(([k, v]) => {
+            if (v !== null && v !== undefined && String(v) !== "") q.set(k, String(v));
+        });
+        return q.toString();
+    }
+
+    function clearForm() {
+        selectedTermId = null;
+        selectedIdInput.value = "";
+        spelling.value = "";
+        meaning.value = "";
+        glossarySelect.value = "";
+        abbreviation.value = "";
+        explanation.value = "";
+        selectedMorphemes = [];
+        renderSelectedMorphemes();
+    }
+
+    function isTermType() {
+        return type === "terms";
+    }
+
+    function isMorphemeType() {
+        return type === "morphemes";
+    }
+
+    function updateFormMode() {
+        const createBtn = document.getElementById("createBtn");
+        const updateBtn = document.getElementById("updateBtn");
+        const deleteBtn = document.getElementById("deleteBtn");
+
+        if (isTermType()) {
+            createBtn.style.display = "";
+            createBtn.textContent = "생성 요청";
+            updateBtn.style.display = "";
+            deleteBtn.style.display = "";
+            spelling.style.display = "";
+            meaning.style.display = "";
+            glossarySelect.style.display = "";
+            abbreviation.style.display = "";
+            explanation.style.display = "";
+            selectedIdInput.style.display = "";
+            morphemeBox.style.display = "";
+            formHint.textContent = "생성 시 ID 입력이 필요 없습니다. 수정/삭제는 목록에서 선택 후 진행하세요.";
+            return;
+        }
+
+        if (isMorphemeType()) {
+            createBtn.style.display = "";
+            createBtn.textContent = "형태소 추가 요청";
+            updateBtn.style.display = "none";
+            deleteBtn.style.display = "none";
+            spelling.style.display = "";
+            meaning.style.display = "";
+            glossarySelect.style.display = "none";
+            abbreviation.style.display = "none";
+            explanation.style.display = "none";
+            selectedIdInput.style.display = "none";
+            morphemeBox.style.display = "none";
+            formHint.textContent = "형태소는 추가 요청만 지원합니다. 반영 시 변형어가 자동 생성됩니다.";
+            return;
+        }
+
+        createBtn.textContent = "요청 생성";
+        createBtn.style.display = "none";
+        updateBtn.style.display = "none";
+        deleteBtn.style.display = "none";
+        spelling.style.display = "none";
+        meaning.style.display = "none";
+        glossarySelect.style.display = "none";
+        abbreviation.style.display = "none";
+        explanation.style.display = "none";
+        selectedIdInput.style.display = "none";
+        morphemeBox.style.display = "none";
+        formHint.textContent = "현재 탭은 요청 생성 대상이 아닙니다.";
+    }
+
+    function renderSelectedMorphemes() {
+        if (selectedMorphemes.length === 0) {
+            selectedMorphemesEl.innerHTML = `<div class="muted">선택된 형태소가 없습니다.</div>`;
+            return;
+        }
+        selectedMorphemesEl.innerHTML = selectedMorphemes.map((m, idx) => `
+            <div class="m-row">
+                <div>${idx + 1}. ${escapeHtml(m.spelling)} (${escapeHtml(m.meaning)})</div>
+                <button data-action="up" data-id="${m.id}">위</button>
+                <button data-action="down" data-id="${m.id}">아래</button>
+                <button data-action="remove" data-id="${m.id}">제거</button>
+            </div>
+        `).join("");
+
+        selectedMorphemesEl.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = Number(btn.dataset.id);
+                const action = btn.dataset.action;
+                const idx = selectedMorphemes.findIndex(m => m.id === id);
+                if (idx < 0) return;
+                if (action === "remove") selectedMorphemes.splice(idx, 1);
+                if (action === "up" && idx > 0) {
+                    const temp = selectedMorphemes[idx - 1];
+                    selectedMorphemes[idx - 1] = selectedMorphemes[idx];
+                    selectedMorphemes[idx] = temp;
+                }
+                if (action === "down" && idx < selectedMorphemes.length - 1) {
+                    const temp = selectedMorphemes[idx + 1];
+                    selectedMorphemes[idx + 1] = selectedMorphemes[idx];
+                    selectedMorphemes[idx] = temp;
+                }
+                renderSelectedMorphemes();
+            });
+        });
+    }
+
+    function renderMorphemeResults(items) {
+        if (!items || items.length === 0) {
+            morphemeResults.innerHTML = `<div class="muted">검색 결과가 없습니다.</div>`;
+            return;
+        }
+        morphemeResults.innerHTML = items.map(m => `
+            <div class="m-row">
+                <div>${escapeHtml(m.spelling)} (${escapeHtml(m.meaning)})</div>
+                <button data-id="${m.id}">추가</button>
+                <span></span><span></span>
+            </div>
+        `).join("");
+
+        morphemeResults.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const id = Number(btn.dataset.id);
+                const found = items.find(i => i.id === id);
+                if (!found) return;
+                if (selectedMorphemes.some(m => m.id === id)) {
+                    writeLog("이미 추가된 형태소입니다.");
+                    return;
+                }
+                selectedMorphemes.push({ id: found.id, spelling: found.spelling, meaning: found.meaning });
+                renderSelectedMorphemes();
+            });
+        });
+    }
+
+    async function loadList() {
+        const size = parsePositiveInt(sizeInput.value, 20);
+        const q = queryString({ keyword: keyword.value.trim() || null, page, size });
+
+        const data = await callApi(`/api/v1/admin/dictionary/${type}?${q}`);
+        rows = data.items || [];
+        totalPages = Math.max(data.totalPages || 1, 1);
+        pageInfo.textContent = `페이지 ${(data.page || 0) + 1} / ${totalPages}`;
+        countInfo.textContent = `총 ${data.totalElements || 0}건`;
+
+        if (type === "terms") {
+            listTitle.textContent = "용어 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>영문 용어</th><th>약어</th><th>뜻</th></tr>";
+            listBody.innerHTML = rows.map(r => `
+                <tr data-id="${r.id}">
+                    <td>${r.id}</td>
+                    <td>${escapeHtml(r.spelling)}</td>
+                    <td>${escapeHtml(r.abbreviation || "-")}</td>
+                    <td>${escapeHtml(r.meaning)}</td>
+                </tr>
+            `).join("");
+
+            listBody.querySelectorAll("tr").forEach(tr => {
+                tr.addEventListener("click", async () => {
+                    listBody.querySelectorAll("tr").forEach(r => r.classList.remove("selected"));
+                    tr.classList.add("selected");
+                    selectedTermId = Number(tr.dataset.id);
+                    selectedIdInput.value = String(selectedTermId);
+                    try {
+                        const detail = await callApi(`/api/v1/admin/dictionary/terms/${selectedTermId}`);
+                        spelling.value = detail.spelling || "";
+                        meaning.value = detail.meaning || "";
+                        abbreviation.value = detail.abbreviation || "";
+                        explanation.value = detail.explanation || "";
+                        selectedMorphemes = (detail.morphemes || []).map(m => ({
+                            id: m.morphemeId,
+                            spelling: m.spelling,
+                            meaning: m.meaning
+                        }));
+                        renderSelectedMorphemes();
+                    } catch (e) {
+                        writeLog(`상세 조회 실패: ${e.message}`);
+                    }
+                });
+            });
+            return;
+        }
+
+        if (type === "glossaries") {
+            listTitle.textContent = "단어장 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>카테고리</th><th>단어장</th></tr>";
+            listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${escapeHtml(r.category)}</td><td>${escapeHtml(r.title)}</td></tr>`).join("");
+            return;
+        }
+
+        if (type === "morphemes") {
+            listTitle.textContent = "형태소 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>형태소</th><th>뜻</th></tr>";
+            listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${escapeHtml(r.spelling)}</td><td>${escapeHtml(r.meaning)}</td></tr>`).join("");
+            return;
+        }
+
+        if (type === "morpheme-variants") {
+            listTitle.textContent = "변형어 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>morphemeId</th><th>variant</th><th>base</th></tr>";
+            listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${r.morphemeId}</td><td>${escapeHtml(r.variant)}</td><td>${escapeHtml(r.base)}</td></tr>`).join("");
+        }
+    }
+
+    function buildRequestTitle(prefix) {
+        return `${prefix}: ${spelling.value.trim() || "데이터"}`;
+    }
+
+    async function createTerm() {
+        try {
+            let body = null;
+            if (isTermType()) {
+                if (!spelling.value.trim() || !meaning.value.trim()) {
+                    writeLog("영문 용어와 뜻은 필수입니다.");
+                    return;
+                }
+                if (!glossarySelect.value) {
+                    writeLog("단어장을 선택하세요.");
+                    return;
+                }
+                body = {
+                    title: buildRequestTitle("생성"),
+                    description: "CMS 요청 페이지에서 용어 생성",
+                    entityType: "TERM",
+                    operation: "CREATE",
+                    spelling: spelling.value.trim(),
+                    meaning: meaning.value.trim(),
+                    glossaryId: Number(glossarySelect.value),
+                    abbreviation: abbreviation.value.trim() || null,
+                    explanation: explanation.value.trim() || null,
+                    morphemes: selectedMorphemes.map(m => m.id)
+                };
+            } else if (isMorphemeType()) {
+                if (!spelling.value.trim() || !meaning.value.trim()) {
+                    writeLog("형태소와 뜻은 필수입니다.");
+                    return;
+                }
+                body = {
+                    title: buildRequestTitle("형태소 추가"),
+                    description: "CMS 요청 페이지에서 형태소 추가",
+                    entityType: "MORPHEME",
+                    operation: "CREATE",
+                    spelling: spelling.value.trim(),
+                    meaning: meaning.value.trim()
+                };
+            } else {
+                writeLog("현재 탭에서는 요청 생성을 지원하지 않습니다.");
+                return;
+            }
+
+            const created = await callApi("/api/v1/admin/workflows/requests", "POST", body);
+            writeLog(`생성 요청 등록 성공: 요청ID=${created.id}, 상태=${created.status}`);
+            clearForm();
+        } catch (e) {
+            writeLog(`생성 요청 실패: ${e.message}`);
+        }
+    }
+
+    async function updateTerm() {
+        if (!selectedTermId) {
+            writeLog("수정할 용어를 목록에서 선택하세요.");
+            return;
+        }
+        if (!spelling.value.trim() || !meaning.value.trim()) {
+            writeLog("영문 용어와 뜻은 필수입니다.");
+            return;
+        }
+        try {
+            const body = {
+                title: buildRequestTitle("수정"),
+                description: `기존 용어(ID=${selectedTermId}) 수정 요청`,
+                operation: "UPDATE",
+                termId: selectedTermId,
+                spelling: spelling.value.trim(),
+                meaning: meaning.value.trim(),
+                abbreviation: abbreviation.value.trim() || null,
+                explanation: explanation.value.trim() || null,
+                morphemes: selectedMorphemes.map(m => m.id)
+            };
+            const updated = await callApi("/api/v1/admin/workflows/requests", "POST", {
+                ...body,
+                entityType: "TERM"
+            });
+            writeLog(`수정 요청 등록 성공: 요청ID=${updated.id}, 상태=${updated.status}`);
+        } catch (e) {
+            writeLog(`수정 요청 실패: ${e.message}`);
+        }
+    }
+
+    async function deleteTerm() {
+        if (!selectedTermId) {
+            writeLog("삭제할 용어를 목록에서 선택하세요.");
+            return;
+        }
+        if (!confirm(`ID ${selectedTermId} 용어를 삭제하시겠습니까?`)) return;
+        try {
+            const body = {
+                title: `삭제: ID=${selectedTermId}`,
+                description: `기존 용어(ID=${selectedTermId}) 삭제 요청`,
+                operation: "DELETE",
+                termId: selectedTermId
+            };
+            const deleted = await callApi("/api/v1/admin/workflows/requests", "POST", {
+                ...body,
+                entityType: "TERM"
+            });
+            writeLog(`삭제 요청 등록 성공: 요청ID=${deleted.id}, 상태=${deleted.status}`);
+        } catch (e) {
+            writeLog(`삭제 요청 실패: ${e.message}`);
+        }
+    }
+
+    document.getElementById("saveTokenBtn").addEventListener("click", () => {
+        localStorage.setItem("cms_admin_token", token());
+        writeLog("토큰을 저장했습니다.");
+    });
+    document.getElementById("refreshBtn").addEventListener("click", async () => {
+        page = 0;
+        await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+    });
+    document.getElementById("searchBtn").addEventListener("click", async () => {
+        page = 0;
+        await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+    });
+    document.getElementById("prevBtn").addEventListener("click", async () => {
+        if (page <= 0) return;
+        page -= 1;
+        await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+    });
+    document.getElementById("nextBtn").addEventListener("click", async () => {
+        if (page + 1 >= totalPages) return;
+        page += 1;
+        await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+    });
+
+    document.getElementById("newBtn").addEventListener("click", clearForm);
+    document.getElementById("createBtn").addEventListener("click", createTerm);
+    document.getElementById("updateBtn").addEventListener("click", updateTerm);
+    document.getElementById("deleteBtn").addEventListener("click", deleteTerm);
+    document.getElementById("searchMorphemeBtn").addEventListener("click", async () => {
+        const q = morphemeKeyword.value.trim();
+        if (!q) {
+            writeLog("형태소 검색어를 입력하세요.");
+            return;
+        }
+        try {
+            const qs = queryString({ keyword: q, page: 0, size: 20 });
+            const data = await callApi(`/api/v1/admin/dictionary/morphemes?${qs}`);
+            renderMorphemeResults(data.items || []);
+            writeLog(`형태소 검색 성공: ${data.totalElements || 0}건`);
+        } catch (e) {
+            writeLog(`형태소 검색 실패: ${e.message}`);
+        }
+    });
+
+    document.getElementById("tabs").querySelectorAll(".tab").forEach(tab => {
+        tab.addEventListener("click", async () => {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            type = tab.dataset.type;
+            page = 0;
+            clearForm();
+            updateFormMode();
+            await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+        });
+    });
+
+    const savedToken = localStorage.getItem("cms_admin_token");
+    if (savedToken) tokenInput.value = savedToken;
+
+    async function loadGlossaryOptions() {
+        try {
+            const data = await callApi("/api/v1/admin/dictionary/glossaries?page=0&size=100");
+            glossaryOptions = data.items || [];
+            glossarySelect.innerHTML = `<option value="">단어장 선택</option>` +
+                glossaryOptions.map(g => `<option value="${g.id}">${escapeHtml(g.category)} / ${escapeHtml(g.title)}</option>`).join("");
+        } catch (e) {
+            writeLog(`단어장 목록 로드 실패: ${e.message}`);
+        }
+    }
+
+    renderSelectedMorphemes();
+    updateFormMode();
+    loadGlossaryOptions().then(() => loadList()).catch(e => writeLog(`초기 조회 실패: ${e.message}`));
+</script>
+</body>
+</html>

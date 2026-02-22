@@ -41,6 +41,7 @@ class SecurityConfig(
 
                 // 인증 관련
                 authorize("/v1/auth/**", permitAll)
+                authorize("/admin/**", permitAll)
                 authorize("/v1/admin/**", hasAnyRole("ADMIN", "ADMIN_EDITOR", "ADMIN_APPROVER"))
 
                 // Swagger 및 API Docs

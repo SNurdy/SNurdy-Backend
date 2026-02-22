@@ -68,5 +68,13 @@ enum class AdminError(
     MISSING_CHANGE_SET_ITEMS(HttpStatus.BAD_REQUEST, "ADMIN_003", "변경 요청에 처리할 항목이 없습니다"),
     CHANGE_SET_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_004", "변경 항목을 찾을 수 없습니다"),
     IMMUTABLE_CHANGE_SET(HttpStatus.CONFLICT, "ADMIN_005", "현재 상태에서는 변경 항목을 수정할 수 없습니다"),
-    INVALID_CHANGE_SET_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "ADMIN_006", "변경 항목 요청 값이 유효하지 않습니다")
+    INVALID_CHANGE_SET_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "ADMIN_006", "변경 항목 요청 값이 유효하지 않습니다"),
+    CHANGE_SET_NOT_VALIDATABLE(HttpStatus.CONFLICT, "ADMIN_007", "검증 가능한 상태가 아닙니다"),
+    CHANGE_SET_NOT_APPROVABLE(HttpStatus.CONFLICT, "ADMIN_008", "승인 가능한 상태가 아닙니다"),
+    CHANGE_SET_NOT_APPLICABLE(HttpStatus.CONFLICT, "ADMIN_009", "적용 가능한 상태가 아닙니다"),
+    TERM_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_010", "termId가 필요합니다"),
+    TERM_REQUIRED_FIELDS_MISSING(HttpStatus.BAD_REQUEST, "ADMIN_011", "spelling과 meaning은 필수입니다"),
+    INVALID_CHANGE_SET_ENV(HttpStatus.BAD_REQUEST, "ADMIN_012", "sourceEnv/targetEnv 값이 유효하지 않습니다"),
+    INVALID_CHANGE_SET_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_013", "operation 값이 유효하지 않습니다"),
+    UNSUPPORTED_TERM_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_014", "TERM 항목은 CREATE/UPDATE/DELETE만 허용됩니다")
 }

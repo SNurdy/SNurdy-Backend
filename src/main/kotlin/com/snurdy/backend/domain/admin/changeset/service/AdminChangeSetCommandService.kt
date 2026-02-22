@@ -3,7 +3,7 @@ package com.snurdy.backend.domain.admin.changeset.service
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
 import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
-import com.snurdy.backend.domain.admin.changeset.controller.AdminActor
+import com.snurdy.backend.domain.admin.changeset.model.AdminActor
 import com.snurdy.backend.domain.admin.changeset.dto.ChangeSetItemCommandResponse
 import com.snurdy.backend.domain.admin.changeset.dto.CreateChangeSetRequest
 import com.snurdy.backend.domain.admin.changeset.dto.CreateChangeSetResponse
@@ -120,7 +120,7 @@ class AdminChangeSetCommandService(
 
     private fun buildBeforeJson(operation: ChangeSetOperation, termId: Long?): String? {
         if (operation == ChangeSetOperation.CREATE) return null
-        val id = termId ?: throw ApiException(AdminError.INVALID_CHANGE_SET_ITEM_REQUEST, "termId가 필요합니다")
+        val id = termId ?: throw ApiException(AdminError.TERM_ID_REQUIRED)
         val term = termRepository.findById(id).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
         return objectMapper.writeValueAsString(
             mapOf(
@@ -137,7 +137,7 @@ class AdminChangeSetCommandService(
         if (operation == ChangeSetOperation.DELETE) return null
 
         if (request.spelling.isNullOrBlank() || request.meaning.isNullOrBlank()) {
-            throw ApiException(AdminError.INVALID_CHANGE_SET_ITEM_REQUEST, "spelling과 meaning은 필수입니다")
+            throw ApiException(AdminError.TERM_REQUIRED_FIELDS_MISSING)
         }
 
         val payload = linkedMapOf<String, Any?>(
@@ -154,16 +154,16 @@ class AdminChangeSetCommandService(
     private fun parseEnv(raw: String): ChangeSetEnvironment = runCatching {
         ChangeSetEnvironment.valueOf(raw.trim().uppercase())
     }.getOrElse {
-        throw ApiException(AdminError.INVALID_CHANGE_SET_ITEM_REQUEST, "sourceEnv/targetEnv 값이 유효하지 않습니다")
+        throw ApiException(AdminError.INVALID_CHANGE_SET_ENV)
     }
 
     private fun parseOperation(raw: String): ChangeSetOperation {
         val op = runCatching { ChangeSetOperation.valueOf(raw.trim().uppercase()) }
             .getOrElse {
-                throw ApiException(AdminError.INVALID_CHANGE_SET_ITEM_REQUEST, "operation 값이 유효하지 않습니다")
+                throw ApiException(AdminError.INVALID_CHANGE_SET_OPERATION)
             }
         if (op !in setOf(ChangeSetOperation.CREATE, ChangeSetOperation.UPDATE, ChangeSetOperation.DELETE)) {
-            throw ApiException(AdminError.INVALID_CHANGE_SET_ITEM_REQUEST, "TERM 항목은 CREATE/UPDATE/DELETE만 허용됩니다")
+            throw ApiException(AdminError.UNSUPPORTED_TERM_OPERATION)
         }
         return op
     }
@@ -172,7 +172,7 @@ class AdminChangeSetCommandService(
         val changeSet = changeSetRepository.findById(changeSetId)
             .orElseThrow { ApiException(AdminError.CHANGE_SET_NOT_FOUND) }
         if (changeSet.status !in setOf(ChangeSetStatus.DRAFT, ChangeSetStatus.FAILED)) {
-            throw ApiException(AdminError.IMMUTABLE_CHANGE_SET, "현재 상태(${changeSet.status})에서는 변경 항목을 수정할 수 없습니다")
+            throw ApiException(AdminError.IMMUTABLE_CHANGE_SET)
         }
         return changeSet
     }

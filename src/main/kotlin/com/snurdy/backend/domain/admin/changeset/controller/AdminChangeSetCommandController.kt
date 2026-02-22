@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.admin.changeset.controller
 
+import com.snurdy.backend.domain.admin.changeset.model.AdminActor
 import com.snurdy.backend.domain.admin.changeset.dto.ChangeSetItemCommandResponse
 import com.snurdy.backend.domain.admin.changeset.dto.CreateChangeSetRequest
 import com.snurdy.backend.domain.admin.changeset.dto.CreateChangeSetResponse

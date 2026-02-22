@@ -3,8 +3,8 @@ package com.snurdy.backend.domain.admin.changeset.service
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
 import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
-import com.snurdy.backend.domain.admin.changeset.controller.AdminActor
-import com.snurdy.backend.domain.admin.changeset.controller.RequestMetadata
+import com.snurdy.backend.domain.admin.changeset.model.AdminActor
+import com.snurdy.backend.domain.admin.changeset.model.RequestMetadata
 import com.snurdy.backend.domain.admin.changeset.dto.ChangeSetWorkflowResponse
 import com.snurdy.backend.domain.admin.changeset.entity.*
 import com.snurdy.backend.domain.admin.changeset.repository.ChangeSetItemRepository
@@ -34,7 +34,7 @@ class AdminChangeSetWorkflowService(
 
         val changeSet = getChangeSet(changeSetId)
         if (changeSet.status !in setOf(ChangeSetStatus.DRAFT, ChangeSetStatus.FAILED)) {
-            throw ApiException(AdminError.INVALID_CHANGE_SET_STATUS, "검증 가능한 상태가 아닙니다: ${changeSet.status}")
+            throw ApiException(AdminError.CHANGE_SET_NOT_VALIDATABLE)
         }
 
         val items = changeSetItemRepository.findByChangeSetIdOrderBySortOrderAscIdAsc(changeSetId)
@@ -100,7 +100,7 @@ class AdminChangeSetWorkflowService(
 
         val changeSet = getChangeSet(changeSetId)
         if (changeSet.status != ChangeSetStatus.VALIDATED) {
-            throw ApiException(AdminError.INVALID_CHANGE_SET_STATUS, "승인 가능한 상태가 아닙니다: ${changeSet.status}")
+            throw ApiException(AdminError.CHANGE_SET_NOT_APPROVABLE)
         }
 
         val totalItems = changeSetItemRepository.countByChangeSetId(changeSetId).toInt()
@@ -135,7 +135,7 @@ class AdminChangeSetWorkflowService(
 
         val changeSet = getChangeSet(changeSetId)
         if (changeSet.status != ChangeSetStatus.APPROVED) {
-            throw ApiException(AdminError.INVALID_CHANGE_SET_STATUS, "적용 가능한 상태가 아닙니다: ${changeSet.status}")
+            throw ApiException(AdminError.CHANGE_SET_NOT_APPLICABLE)
         }
 
         val items = changeSetItemRepository.findByChangeSetIdOrderBySortOrderAscIdAsc(changeSetId)

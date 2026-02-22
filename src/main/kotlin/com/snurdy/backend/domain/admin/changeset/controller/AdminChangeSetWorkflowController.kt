@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.admin.changeset.controller
 
+import com.snurdy.backend.domain.admin.changeset.model.AdminActor
+import com.snurdy.backend.domain.admin.changeset.model.RequestMetadata
 import com.snurdy.backend.domain.admin.changeset.dto.ChangeSetWorkflowResponse
 import com.snurdy.backend.domain.admin.changeset.service.AdminChangeSetWorkflowService
 import com.snurdy.backend.global.constants.AdminSuccess
@@ -72,14 +74,3 @@ class AdminChangeSetWorkflowController(
         )
     }
 }
-
-data class AdminActor(
-    val userId: UUID,
-    val roles: Set<String>
-)
-
-data class RequestMetadata(
-    val requestId: String? = null,
-    val ipAddress: String? = null,
-    val userAgent: String? = null
-)

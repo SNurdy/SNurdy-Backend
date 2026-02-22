@@ -44,3 +44,13 @@ enum class CatalogSuccess(
 ) : SuccessCode {
     SEARCH(HttpStatus.OK, "CATALOG_001", "조회에 성공했습니다")
 }
+
+enum class AdminSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    VALIDATE(HttpStatus.OK, "ADMIN_001", "검증에 성공했습니다"),
+    APPROVE(HttpStatus.OK, "ADMIN_002", "승인에 성공했습니다"),
+    APPLY(HttpStatus.OK, "ADMIN_003", "적용에 성공했습니다")
+}

@@ -57,3 +57,13 @@ enum class CatalogError(
     TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_002", "단어를 찾을 수 없습니다"),
     INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "CATALOG_003", "키워드는 2자 이상 50자 이하여야 합니다")
 }
+
+enum class AdminError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    CHANGE_SET_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_001", "변경 요청을 찾을 수 없습니다"),
+    INVALID_CHANGE_SET_STATUS(HttpStatus.CONFLICT, "ADMIN_002", "현재 상태에서는 요청을 처리할 수 없습니다"),
+    MISSING_CHANGE_SET_ITEMS(HttpStatus.BAD_REQUEST, "ADMIN_003", "변경 요청에 처리할 항목이 없습니다")
+}

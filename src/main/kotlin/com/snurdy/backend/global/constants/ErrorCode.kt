@@ -65,5 +65,8 @@ enum class AdminError(
 ) : ErrorCode {
     CHANGE_SET_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_001", "변경 요청을 찾을 수 없습니다"),
     INVALID_CHANGE_SET_STATUS(HttpStatus.CONFLICT, "ADMIN_002", "현재 상태에서는 요청을 처리할 수 없습니다"),
-    MISSING_CHANGE_SET_ITEMS(HttpStatus.BAD_REQUEST, "ADMIN_003", "변경 요청에 처리할 항목이 없습니다")
+    MISSING_CHANGE_SET_ITEMS(HttpStatus.BAD_REQUEST, "ADMIN_003", "변경 요청에 처리할 항목이 없습니다"),
+    CHANGE_SET_ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_004", "변경 항목을 찾을 수 없습니다"),
+    IMMUTABLE_CHANGE_SET(HttpStatus.CONFLICT, "ADMIN_005", "현재 상태에서는 변경 항목을 수정할 수 없습니다"),
+    INVALID_CHANGE_SET_ITEM_REQUEST(HttpStatus.BAD_REQUEST, "ADMIN_006", "변경 항목 요청 값이 유효하지 않습니다")
 }

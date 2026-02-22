@@ -1,11 +1,20 @@
 package com.snurdy.backend.domain.catalog.morpheme.repository
 
 import com.snurdy.backend.domain.catalog.morpheme.entity.MorphemeEntity
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface MorphemeRepository : JpaRepository<MorphemeEntity, Long> {
+    fun findBySpellingIgnoreCase(spelling: String): MorphemeEntity?
+
+    fun findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCase(
+        spelling: String,
+        meaning: String,
+        pageable: Pageable
+    ): Page<MorphemeEntity>
 
     @Query(
         value = """

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS</title>
+    <style>
+        :root {
+            --bg: #f3f6fb;
+            --card: #ffffff;
+            --line: #d7dfeb;
+            --text: #1f2a36;
+            --muted: #5f7086;
+            --brand: #1362ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+            color: var(--text);
+            font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+        }
+        .card {
+            width: min(520px, calc(100% - 32px));
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--card);
+            padding: 18px;
+        }
+        h1 { margin: 0 0 8px; font-size: 20px; }
+        p { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+        .links { display: grid; gap: 8px; }
+        a {
+            display: block;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px 12px;
+            color: var(--text);
+            text-decoration: none;
+            background: #fff;
+        }
+        a.primary {
+            background: var(--brand);
+            border-color: var(--brand);
+            color: #fff;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+<section class="card">
+    <h1>관리자 CMS</h1>
+    <p>요청/검증대기/반영 단계별 페이지로 분리했습니다.</p>
+    <div class="links">
+        <a class="primary" href="/api/admin/request.html">요청 페이지로 이동</a>
+        <a href="/api/admin/validate-waiting.html">검증/반영대기 페이지</a>
+        <a href="/api/admin/apply.html">반영 페이지</a>
+    </div>
+</section>
+</body>
+</html>

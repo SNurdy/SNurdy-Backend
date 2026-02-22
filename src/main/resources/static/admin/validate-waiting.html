@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CMS 검증/반영대기</title>
+    <style>
+        :root { --bg:#f3f6fb; --card:#fff; --line:#d7dfeb; --text:#1f2a36; --muted:#5f7086; --brand:#1362ff; }
+        * { box-sizing:border-box; }
+        body { margin:0; background:linear-gradient(180deg,#f9fbff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
+        .wrap { max-width:1100px; margin:0 auto; padding:20px; }
+        .page-nav { display:flex; gap:8px; margin-bottom:10px; }
+        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--text); background:#fff; text-decoration:none; font-size:13px; }
+        .page-link.active { color:#fff; background:var(--brand); border-color:var(--brand); font-weight:700; }
+        .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+        .body { padding:16px; }
+        .toolbar { display:grid; grid-template-columns: 1fr 170px 90px auto; gap:8px; margin-bottom:10px; }
+        input, select, button { border:1px solid var(--line); border-radius:8px; font-size:14px; height:36px; padding:0 10px; }
+        button { background:#fff; cursor:pointer; }
+        button.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #edf2f8; vertical-align:top; }
+        th { color:var(--muted); font-weight:600; }
+        .log { margin-top:10px; padding:10px; border-radius:8px; background:#111928; color:#dbe8ff; min-height:74px; white-space:pre-wrap; font-size:12px; }
+        .muted { color:var(--muted); }
+        .detail-card { margin-top:10px; border:1px solid var(--line); border-radius:8px; padding:10px; background:#fbfdff; }
+        .detail-title { font-size:13px; font-weight:700; margin-bottom:8px; }
+        .detail-list { display:grid; gap:4px; font-size:12px; color:#364152; }
+        .item-box { border:1px dashed var(--line); border-radius:8px; padding:8px; margin-top:8px; font-size:12px; }
+        .item-head { font-weight:700; margin-bottom:6px; }
+        .kv { display:grid; grid-template-columns: 88px 1fr; gap:6px; margin:2px 0; }
+        .kv b { color:#5f7086; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <nav class="page-nav">
+        <a class="page-link" href="/api/admin/request.html">요청</a>
+        <a class="page-link active" href="/api/admin/validate-waiting.html">검증/반영대기</a>
+        <a class="page-link" href="/api/admin/apply.html">반영</a>
+    </nav>
+
+    <section class="panel">
+        <div class="head">
+            <strong>검증/반영대기 목록</strong>
+            <span class="muted">요청 건 검증 실행 및 결과 확인</span>
+        </div>
+        <div class="body">
+            <div class="toolbar">
+                <input id="token" type="password" placeholder="접근 토큰 입력" />
+                <select id="status">
+                    <option value="">전체</option>
+                    <option value="REQUESTED">요청됨</option>
+                    <option value="FAILED">검증실패</option>
+                    <option value="VALIDATED_WAITING">검증통과/반영대기</option>
+                    <option value="CANCELED">취소됨</option>
+                </select>
+                <input id="size" value="20" />
+                <button id="searchBtn" class="primary">조회</button>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>제목</th>
+                    <th>상태</th>
+                    <th>요약</th>
+                    <th>작업</th>
+                </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+            </table>
+
+            <div id="detail" class="detail-card muted">상세를 선택하면 항목 정보가 표시됩니다.</div>
+            <div id="log" class="log">준비되었습니다.</div>
+        </div>
+    </section>
+</div>
+
+<script>
+    const tokenInput = document.getElementById("token");
+    const statusInput = document.getElementById("status");
+    const sizeInput = document.getElementById("size");
+    const rowsEl = document.getElementById("rows");
+    const detailEl = document.getElementById("detail");
+    const logEl = document.getElementById("log");
+
+    function token() { return tokenInput.value.trim(); }
+    function writeLog(message) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logEl.textContent; }
+    function statusLabel(status) {
+        if (status === "REQUESTED") return "요청됨";
+        if (status === "FAILED") return "검증실패";
+        if (status === "VALIDATED_WAITING") return "검증통과/반영대기";
+        if (status === "APPLIED_DEV") return "반영완료(DEV)";
+        if (status === "CANCELED") return "취소됨";
+        return status;
+    }
+    function safeParseJson(v) {
+        if (!v) return null;
+        try { return JSON.parse(v); } catch { return null; }
+    }
+    function formatValue(v) {
+        if (v === null || v === undefined || v === "") return "-";
+        if (Array.isArray(v)) return v.join(", ");
+        if (typeof v === "object") return JSON.stringify(v);
+        return String(v);
+    }
+    function renderPayload(title, payload) {
+        if (!payload) return `<div class="kv"><b>${title}</b><span>-</span></div>`;
+        const keys = Object.keys(payload);
+        if (keys.length === 0) return `<div class="kv"><b>${title}</b><span>-</span></div>`;
+        return `
+            <div><b>${title}</b></div>
+            ${keys.map(k => `<div class="kv"><b>${k}</b><span>${formatValue(payload[k])}</span></div>`).join("")}
+        `;
+    }
+    function renderDetail(detail) {
+        const items = detail.items || [];
+        const itemHtml = items.map(item => {
+            const before = safeParseJson(item.beforeJson);
+            const after = safeParseJson(item.afterJson);
+            return `
+                <div class="item-box">
+                    <div class="item-head">항목 #${item.id} (${item.entityType}/${item.operation})</div>
+                    <div class="kv"><b>대상 PK</b><span>${item.entityPk || "-"}</span></div>
+                    <div class="kv"><b>상태</b><span>${statusLabel(item.status)}</span></div>
+                    ${renderPayload("변경 전", before)}
+                    ${renderPayload("변경 후", after)}
+                    <div class="kv"><b>오류코드</b><span>${item.errorCode || "-"}</span></div>
+                    <div class="kv"><b>오류메시지</b><span>${item.errorMessage || "-"}</span></div>
+                </div>
+            `;
+        }).join("");
+
+        return `
+            <div class="detail-title">요청 상세 (ID=${detail.id})</div>
+            <div class="detail-list">
+                <div class="kv"><b>제목</b><span>${detail.title || "-"}</span></div>
+                <div class="kv"><b>상태</b><span>${statusLabel(detail.status)}</span></div>
+                <div class="kv"><b>요청자</b><span>${detail.requestedBy || "-"}</span></div>
+                <div class="kv"><b>생성시각</b><span>${detail.createdAt || "-"}</span></div>
+            </div>
+            ${itemHtml || "<div class='item-box'>항목이 없습니다.</div>"}
+        `;
+    }
+
+    function callApi(path, method = "GET") {
+        const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
+        if (token()) headers.Authorization = `Bearer ${token()}`;
+        return fetch(path, { method, headers }).then(async res => {
+            const payload = await res.json();
+            if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
+            return payload.data;
+        });
+    }
+
+    async function loadList() {
+        localStorage.setItem("cms_admin_token", token());
+        const size = Number(sizeInput.value || 20);
+        const status = statusInput.value;
+        const qs = new URLSearchParams({ page: "0", size: String(size), status });
+        const data = await callApi(`/api/v1/admin/workflows/change-sets?${qs.toString()}`);
+        const items = data.items || [];
+
+        if (items.length === 0) {
+            rowsEl.innerHTML = `<tr><td colspan="5" class="muted">데이터가 없습니다.</td></tr>`;
+            return;
+        }
+
+        rowsEl.innerHTML = items.map(it => `
+            <tr>
+                <td>${it.id}</td>
+                <td>${it.title}</td>
+                <td>${statusLabel(it.status)}</td>
+                <td>${it.validationSummary || "-"}</td>
+                <td>
+                    <button type="button" data-action="detail" data-id="${it.id}">상세</button>
+                    <button type="button" data-action="validate" data-id="${it.id}">검증</button>
+                    <button type="button" data-action="cancel" data-id="${it.id}">취소</button>
+                </td>
+            </tr>
+        `).join("");
+
+        rowsEl.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = Number(btn.dataset.id);
+                const action = btn.dataset.action;
+                if (action === "detail") {
+                    try {
+                        const detail = await callApi(`/api/v1/admin/workflows/change-sets/${id}`);
+                        detailEl.classList.remove("muted");
+                        detailEl.innerHTML = renderDetail(detail);
+                        writeLog(`상세 조회 성공: 요청ID=${id}`);
+                    } catch (e) {
+                        writeLog(`상세 조회 실패: ${e.message}`);
+                    }
+                    return;
+                }
+                if (action === "validate") {
+                    try {
+                        const result = await callApi(`/api/v1/admin/workflows/change-sets/${id}/validate`, "POST");
+                        writeLog(`검증 완료: 요청ID=${id}, 상태=${result.status}, 성공=${result.successCount}, 실패=${result.failedCount}`);
+                        if (result.status === "VALIDATED_WAITING") {
+                            statusInput.value = "VALIDATED_WAITING";
+                            writeLog("검증통과/반영대기 필터로 자동 전환했습니다.");
+                        } else if (result.status === "FAILED") {
+                            statusInput.value = "FAILED";
+                        }
+                        await loadList();
+                    } catch (e) {
+                        writeLog(`검증 실패: ${e.message}`);
+                    }
+                }
+                if (action === "cancel") {
+                    if (!confirm(`요청ID ${id}를 취소하시겠습니까?`)) return;
+                    try {
+                        const result = await callApi(`/api/v1/admin/workflows/change-sets/${id}/cancel`, "POST");
+                        writeLog(`취소 완료: 요청ID=${id}, 상태=${result.status}`);
+                        statusInput.value = "CANCELED";
+                        await loadList();
+                    } catch (e) {
+                        writeLog(`취소 실패: ${e.message}`);
+                    }
+                }
+            });
+        });
+    }
+
+    document.getElementById("searchBtn").addEventListener("click", () => {
+        loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
+    });
+
+    const saved = localStorage.getItem("cms_admin_token");
+    if (saved) tokenInput.value = saved;
+    loadList().catch(e => writeLog(`초기 조회 실패: ${e.message}`));
+</script>
+</body>
+</html>

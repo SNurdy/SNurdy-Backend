@@ -52,8 +52,8 @@
             overflow: hidden;
         }
         .top {
-            display: grid;
-            grid-template-columns: 1fr auto auto;
+            display: flex;
+            justify-content: flex-end;
             gap: 8px;
             padding: 12px;
         }
@@ -213,8 +213,6 @@
     </nav>
     <section class="panel">
         <div class="top">
-            <input id="token" type="password" placeholder="접근 토큰 입력 (JWT 액세스 토큰)" />
-            <button id="saveTokenBtn">토큰 저장</button>
             <button id="refreshBtn" class="primary">새로고침</button>
         </div>
         <div class="tabs" id="tabs">
@@ -284,7 +282,6 @@
 </div>
 
 <script>
-    const tokenInput = document.getElementById("token");
     const listTitle = document.getElementById("listTitle");
     const keyword = document.getElementById("keyword");
     const sizeInput = document.getElementById("size");
@@ -313,17 +310,12 @@
     let selectedMorphemes = [];
     let glossaryOptions = [];
 
-    function token() {
-        return tokenInput.value.trim();
-    }
-
     function writeLog(message) {
         logBox.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logBox.textContent;
     }
 
     function callApi(path, method = "GET", body = null) {
         const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
-        if (token()) headers.Authorization = `Bearer ${token()}`;
         const option = { method, headers };
         if (body !== null) option.body = JSON.stringify(body);
         return fetch(path, option).then(async (res) => {
@@ -669,10 +661,6 @@
         }
     }
 
-    document.getElementById("saveTokenBtn").addEventListener("click", () => {
-        localStorage.setItem("cms_admin_token", token());
-        writeLog("토큰을 저장했습니다.");
-    });
     document.getElementById("refreshBtn").addEventListener("click", async () => {
         page = 0;
         await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
@@ -723,9 +711,6 @@
             await loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
         });
     });
-
-    const savedToken = localStorage.getItem("cms_admin_token");
-    if (savedToken) tokenInput.value = savedToken;
 
     async function loadGlossaryOptions() {
         try {

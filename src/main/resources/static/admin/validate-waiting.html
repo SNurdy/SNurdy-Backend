@@ -15,7 +15,7 @@
         .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
         .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
         .body { padding:16px; }
-        .toolbar { display:grid; grid-template-columns: 1fr 170px 90px auto; gap:8px; margin-bottom:10px; }
+        .toolbar { display:grid; grid-template-columns: 170px 90px auto; gap:8px; margin-bottom:10px; }
         input, select, button { border:1px solid var(--line); border-radius:8px; font-size:14px; height:36px; padding:0 10px; }
         button { background:#fff; cursor:pointer; }
         button.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
@@ -48,7 +48,6 @@
         </div>
         <div class="body">
             <div class="toolbar">
-                <input id="token" type="password" placeholder="접근 토큰 입력" />
                 <select id="status">
                     <option value="">전체</option>
                     <option value="REQUESTED">요청됨</option>
@@ -80,14 +79,12 @@
 </div>
 
 <script>
-    const tokenInput = document.getElementById("token");
     const statusInput = document.getElementById("status");
     const sizeInput = document.getElementById("size");
     const rowsEl = document.getElementById("rows");
     const detailEl = document.getElementById("detail");
     const logEl = document.getElementById("log");
 
-    function token() { return tokenInput.value.trim(); }
     function writeLog(message) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logEl.textContent; }
     function statusLabel(status) {
         if (status === "REQUESTED") return "요청됨";
@@ -148,7 +145,6 @@
 
     function callApi(path, method = "GET") {
         const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
-        if (token()) headers.Authorization = `Bearer ${token()}`;
         return fetch(path, { method, headers }).then(async res => {
             const payload = await res.json();
             if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
@@ -157,7 +153,6 @@
     }
 
     async function loadList() {
-        localStorage.setItem("cms_admin_token", token());
         const size = Number(sizeInput.value || 20);
         const status = statusInput.value;
         const qs = new URLSearchParams({ page: "0", size: String(size), status });
@@ -232,8 +227,6 @@
         loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
     });
 
-    const saved = localStorage.getItem("cms_admin_token");
-    if (saved) tokenInput.value = saved;
     loadList().catch(e => writeLog(`초기 조회 실패: ${e.message}`));
 </script>
 </body>

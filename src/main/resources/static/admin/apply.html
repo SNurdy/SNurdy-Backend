@@ -15,7 +15,7 @@
         .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
         .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
         .body { padding:16px; }
-        .toolbar { display:grid; grid-template-columns: 1fr 90px auto; gap:8px; margin-bottom:10px; }
+        .toolbar { display:grid; grid-template-columns: 90px auto; gap:8px; margin-bottom:10px; }
         input, button { border:1px solid var(--line); border-radius:8px; font-size:14px; height:36px; padding:0 10px; }
         button { background:#fff; cursor:pointer; }
         button.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
@@ -42,7 +42,6 @@
         </div>
         <div class="body">
             <div class="toolbar">
-                <input id="token" type="password" placeholder="접근 토큰 입력" />
                 <input id="size" value="20" />
                 <button id="searchBtn" class="primary">조회</button>
             </div>
@@ -66,12 +65,10 @@
 </div>
 
 <script>
-    const tokenInput = document.getElementById("token");
     const sizeInput = document.getElementById("size");
     const rowsEl = document.getElementById("rows");
     const logEl = document.getElementById("log");
 
-    function token() { return tokenInput.value.trim(); }
     function writeLog(message) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logEl.textContent; }
     function statusLabel(status) {
         if (status === "VALIDATED_WAITING") return "검증통과/반영대기";
@@ -81,7 +78,6 @@
 
     function callApi(path, method = "GET") {
         const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
-        if (token()) headers.Authorization = `Bearer ${token()}`;
         return fetch(path, { method, headers }).then(async res => {
             const payload = await res.json();
             if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
@@ -90,7 +86,6 @@
     }
 
     async function loadList() {
-        localStorage.setItem("cms_admin_token", token());
         const size = Number(sizeInput.value || 20);
         const qs = new URLSearchParams({ page: "0", size: String(size), status: "VALIDATED_WAITING" });
         const data = await callApi(`/api/v1/admin/workflows/change-sets?${qs.toString()}`);
@@ -130,8 +125,6 @@
         loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
     });
 
-    const saved = localStorage.getItem("cms_admin_token");
-    if (saved) tokenInput.value = saved;
     loadList().catch(e => writeLog(`초기 조회 실패: ${e.message}`));
 </script>
 </body>

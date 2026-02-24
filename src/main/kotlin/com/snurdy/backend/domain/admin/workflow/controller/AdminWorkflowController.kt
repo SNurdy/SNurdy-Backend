@@ -14,28 +14,30 @@ class AdminWorkflowController(
     private val adminWorkflowService: AdminWorkflowService
 ) : AdminWorkflowApi {
 
-    override fun createRequest(request: CreateChangeRequest): ApiResponse<ChangeSetDetailResponse> =
-        ApiResponse.success(AdminSuccess.CREATE_CHANGE_REQUEST, adminWorkflowService.createChangeRequest(request, currentUserId()))
+    override fun create(request: CreateChangeRequest): ApiResponse<ChangeRequestDetailResponse> =
+        ApiResponse.success(AdminSuccess.CREATE_CHANGE_REQUEST, adminWorkflowService.create(request, currentUserId()))
 
-    override fun getChangeSets(status: String?, page: Int, size: Int): ApiResponse<ChangeSetPageResponse> =
-        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.listChangeSets(status, page, size))
+    override fun list(status: String?, page: Int, size: Int): ApiResponse<ChangeRequestPageResponse> =
+        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.list(status, page, size))
 
-    override fun getChangeSet(changeSetId: Long): ApiResponse<ChangeSetDetailResponse> =
-        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.getChangeSet(changeSetId))
+    override fun get(id: Long): ApiResponse<ChangeRequestDetailResponse> =
+        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.get(id))
 
-    override fun validate(changeSetId: Long): ApiResponse<WorkflowActionResponse> =
-        ApiResponse.success(AdminSuccess.VALIDATE_CHANGE_REQUEST, adminWorkflowService.validate(changeSetId, currentUserId()))
+    override fun update(id: Long, request: UpdateChangeRequest): ApiResponse<ChangeRequestDetailResponse> =
+        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.update(id, request, currentUserId()))
 
-    override fun apply(changeSetId: Long): ApiResponse<WorkflowActionResponse> =
-        ApiResponse.success(AdminSuccess.APPLY_CHANGE_REQUEST, adminWorkflowService.apply(changeSetId, currentUserId()))
+    override fun validate(id: Long): ApiResponse<ChangeRequestActionResponse> =
+        ApiResponse.success(AdminSuccess.VALIDATE_CHANGE_REQUEST, adminWorkflowService.validate(id, currentUserId()))
 
-    override fun cancel(changeSetId: Long): ApiResponse<WorkflowActionResponse> =
-        ApiResponse.success(AdminSuccess.CANCEL_CHANGE_REQUEST, adminWorkflowService.cancel(changeSetId, currentUserId()))
+    override fun apply(id: Long): ApiResponse<ChangeRequestActionResponse> =
+        ApiResponse.success(AdminSuccess.APPLY_CHANGE_REQUEST, adminWorkflowService.apply(id, currentUserId()))
+
+    override fun cancel(id: Long): ApiResponse<ChangeRequestActionResponse> =
+        ApiResponse.success(AdminSuccess.CANCEL_CHANGE_REQUEST, adminWorkflowService.cancel(id, currentUserId()))
 
     private fun currentUserId(): UUID {
         val authentication = SecurityContextHolder.getContext().authentication
-        val userId = authentication?.principal as? UUID
-        return userId ?: FALLBACK_ADMIN_USER_ID
+        return authentication?.principal as? UUID ?: FALLBACK_ADMIN_USER_ID
     }
 
     companion object {

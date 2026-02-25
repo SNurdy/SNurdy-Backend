@@ -12,6 +12,7 @@ data class CreateChangeRequest(
     val explanation: String? = null,
     val morphemes: List<Long> = emptyList(),
     val glossaryId: Long? = null,
+    val glossaryIds: List<Long>? = null,
 )
 
 data class UpdateChangeRequest(
@@ -20,7 +21,8 @@ data class UpdateChangeRequest(
     val abbreviation: String? = null,
     val explanation: String? = null,
     val morphemes: List<Long>? = null,
-    val glossaryId: Long? = null
+    val glossaryId: Long? = null,
+    val glossaryIds: List<Long>? = null
 )
 
 data class ChangeRequestPageResponse(

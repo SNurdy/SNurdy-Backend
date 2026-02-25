@@ -256,6 +256,7 @@
                 ?`<button class="btn-sm warn-btn" data-action="detail" data-id="${it.id}">수정</button>`
                 :`<button class="btn-sm" data-action="detail" data-id="${it.id}">상세</button>`;
             if(it.status==="REQUESTED") actions+=`<button class="btn-sm primary" data-action="validate" data-id="${it.id}">검증</button>`;
+            if(it.status==="APPLIED") actions+=`<button class="btn-sm warn-btn" data-action="rollback" data-id="${it.id}">롤백</button>`;
             if(["REQUESTED","FAILED","VALIDATED"].includes(it.status)) actions+=`<button class="btn-sm danger" data-action="cancel" data-id="${it.id}">취소</button>`;
             return `<tr data-row-id="${it.id}"><td>${it.id}</td><td>${highlightTitle(it.title,it.entityType)}</td><td>${it.entityType}</td><td>${it.operation}</td><td>${statusBadge(it.status)}</td><td style="max-width:320px;word-break:break-word;">${esc(summaryText(it))}</td><td>${actions}</td></tr>`;
         }).join("");
@@ -264,6 +265,7 @@
             const id=Number(btn.dataset.id),act=btn.dataset.action,parentTr=btn.closest("tr");
             if(act==="detail"){await toggleDetail(id,parentTr);return;}
             if(act==="validate"){try{const r=await callApi(`${API_BASE}/${id}/validate`,"POST");writeLog(`검증 완료: 요청ID=${id}, 상태=${r.status}${r.warningMessage?", 경고="+r.warningMessage:""}`);await loadList();}catch(e){writeLog(`검증 실패: ${e.message}`);}return;}
+            if(act==="rollback"){if(!confirm(`요청ID ${id}를 롤백하시겠습니까?`))return;try{const r=await callApi(`${API_BASE}/${id}/rollback`,"POST");writeLog(`롤백 완료: 요청ID=${id}, 상태=${r.status}`);await loadList();}catch(e){writeLog(`롤백 실패: ${e.message}`);}return;}
             if(act==="cancel"){if(!confirm(`요청ID ${id}를 취소하시겠습니까?`))return;try{const r=await callApi(`${API_BASE}/${id}/cancel`,"POST");writeLog(`취소 완료: 요청ID=${id}, 상태=${r.status}`);await loadList();}catch(e){writeLog(`취소 실패: ${e.message}`);}}
         });});
     }

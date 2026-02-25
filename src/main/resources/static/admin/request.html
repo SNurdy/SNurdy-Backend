@@ -152,8 +152,8 @@
                     <div class="form-grid">
                         <input id="spelling" class="full" placeholder="영문 단어/어근어미 (필수)" />
                         <input id="meaning" class="full" placeholder="뜻 (필수)" />
-                        <select id="glossarySelect" class="full" style="display:none;">
-                            <option value="">단어장 선택</option>
+                        <select id="glossarySelect" class="full" style="display:none;" multiple size="6">
+                            <option value="" disabled>단어장 선택(다중 선택 가능)</option>
                         </select>
                         <input id="abbreviation" placeholder="약어" />
                         <input id="selectedId" placeholder="선택된 ID (읽기전용)" disabled />
@@ -268,6 +268,12 @@
         const q = new URLSearchParams();
         Object.entries(params).forEach(([k, v]) => { if (v != null && String(v) !== "") q.set(k, String(v)); });
         return q.toString();
+    }
+
+    function getSelectedGlossaryIds() {
+        return Array.from(glossarySelect.selectedOptions)
+            .map(opt => Number(opt.value))
+            .filter(Number.isFinite);
     }
 
     /* ================================================================
@@ -447,7 +453,8 @@
 
             if (isTermTab()) {
                 if (!spelling.value.trim() || !meaning.value.trim()) { writeLog("영문 단어와 뜻은 필수입니다."); return; }
-                if (!glossarySelect.value)                           { writeLog("단어장을 선택하세요."); return; }
+                const glossaryIds = getSelectedGlossaryIds();
+                if (glossaryIds.length === 0)                        { writeLog("단어장을 1개 이상 선택하세요."); return; }
                 body = {
                     title: buildTitle("생성"),
                     description: "CMS 요청 페이지에서 단어 생성",
@@ -455,7 +462,7 @@
                     operation: "CREATE",
                     spelling:     spelling.value.trim(),
                     meaning:      meaning.value.trim(),
-                    glossaryId:   Number(glossarySelect.value),
+                    glossaryIds:  glossaryIds,
                     abbreviation: abbreviation.value.trim() || null,
                     explanation:  explanation.value.trim() || null,
                     morphemes:    selectedMorphemes.map(m => m.id),
@@ -485,6 +492,7 @@
         if (!selectedTermId)                                     { writeLog("수정할 단어를 목록에서 선택하세요."); return; }
         if (!spelling.value.trim() || !meaning.value.trim())     { writeLog("영문 단어와 뜻은 필수입니다."); return; }
         try {
+            const glossaryIds = getSelectedGlossaryIds();
             const body = {
                 title: buildTitle("수정"),
                 description: `기존 단어(ID=${selectedTermId}) 수정 요청`,
@@ -496,6 +504,7 @@
                 abbreviation: abbreviation.value.trim() || null,
                 explanation:  explanation.value.trim() || null,
                 morphemes:    selectedMorphemes.map(m => m.id),
+                ...(glossaryIds.length > 0 ? { glossaryIds } : {}),
             };
             const res = await callApi(API.changeRequests, "POST", body);
             writeLog(`수정 요청 등록: 요청ID=${res.id}, 상태=${res.status}`);
@@ -571,7 +580,7 @@
         try {
             const data = await callApi(`${API.dictionary("glossaries")}?page=0&size=100`);
             const items = data.items || [];
-            glossarySelect.innerHTML = `<option value="">단어장 선택</option>` +
+            glossarySelect.innerHTML = `<option value="" disabled>단어장 선택(다중 선택 가능)</option>` +
                 items.map(g => `<option value="${g.id}">${esc(g.category)} / ${esc(g.title)}</option>`).join("");
         } catch (e) { writeLog(`단어장 목록 로드 실패: ${e.message}`); }
 

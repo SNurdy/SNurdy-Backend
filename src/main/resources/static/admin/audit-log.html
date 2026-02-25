@@ -109,7 +109,7 @@
 
             <table>
                 <thead>
-                <tr><th>ID</th><th>액션</th><th>테이블</th><th>PK</th><th>시각</th><th>상세</th></tr>
+                <tr><th>ID</th><th>액션</th><th>시각</th><th>상세</th></tr>
                 </thead>
                 <tbody id="rows"></tbody>
             </table>
@@ -178,7 +178,6 @@
         let h=`<div class="inline-detail-inner">`;
         h+=`<div class="detail-meta">`;
         h+=`<div class="meta-item"><div class="meta-label">액션</div><div class="meta-value">${actionBadge(item.action)}</div></div>`;
-        h+=`<div class="meta-item"><div class="meta-label">대상</div><div class="meta-value">${esc(item.targetTable)} / ${esc(item.targetPk)}</div></div>`;
         h+=`<div class="meta-item"><div class="meta-label">시각</div><div class="meta-value">${formatTime(item.createdAt)}</div></div>`;
         if(item.ipAddress) h+=`<div class="meta-item"><div class="meta-label">IP</div><div class="meta-value">${esc(item.ipAddress)}</div></div>`;
         h+=`</div>`;
@@ -202,7 +201,7 @@
         closeOpenDetail();
         const item=allItems.find(i=>i.id===id);if(!item)return;
         const tr=document.createElement("tr");tr.className="inline-detail";
-        tr.innerHTML=`<td colspan="6">${renderDetail(item)}</td>`;
+        tr.innerHTML=`<td colspan="4">${renderDetail(item)}</td>`;
         afterTr.after(tr);openDetailId=id;
         writeLog(`상세 조회: 로그ID=${id}`);
     }
@@ -218,12 +217,12 @@
         pageInfoEl.textContent=`페이지 ${(data.page||0)+1} / ${totalPages}`;
         countInfoEl.textContent=`총 ${data.totalElements||0}건`;
 
-        if(!allItems.length){rowsEl.innerHTML=`<tr><td colspan="6" class="muted">데이터가 없습니다.</td></tr>`;return;}
+        if(!allItems.length){rowsEl.innerHTML=`<tr><td colspan="4" class="muted">데이터가 없습니다.</td></tr>`;return;}
 
         rowsEl.innerHTML=allItems.map(it=>`
             <tr data-row-id="${it.id}">
-                <td>${it.id}</td><td>${actionBadge(it.action)}</td><td>${esc(it.targetTable)}</td>
-                <td>${esc(it.targetPk)}</td><td>${formatTime(it.createdAt)}</td>
+                <td>${it.id}</td><td>${actionBadge(it.action)}</td>
+                <td>${formatTime(it.createdAt)}</td>
                 <td><button class="btn-sm" data-id="${it.id}">상세</button></td>
             </tr>
         `).join("");

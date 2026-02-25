@@ -80,7 +80,13 @@ class AdminWorkflowService(
         request.abbreviation?.let { currentPayload["abbreviation"] = it.trim().takeIf { v -> v.isNotBlank() } }
         request.explanation?.let { currentPayload["explanation"] = it.trim().takeIf { v -> v.isNotBlank() } }
         request.morphemes?.let { currentPayload["morphemes"] = it }
-        request.glossaryId?.let { currentPayload["glossaryId"] = it }
+        request.glossaryIds?.let {
+            currentPayload["glossaryIds"] = it
+            currentPayload["glossaryId"] = it.firstOrNull()
+        } ?: request.glossaryId?.let {
+            currentPayload["glossaryId"] = it
+            currentPayload["glossaryIds"] = listOf(it)
+        }
 
         cr.afterJson = objectMapper.writeValueAsString(currentPayload)
         cr.resetForRetry()

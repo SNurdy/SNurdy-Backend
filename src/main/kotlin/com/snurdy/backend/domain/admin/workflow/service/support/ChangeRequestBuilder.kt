@@ -119,8 +119,8 @@ class ChangeRequestBuilder(
         abbreviation = this.abbreviation?.trim()?.takeIf { it.isNotBlank() },
         explanation = this.explanation?.trim()?.takeIf { it.isNotBlank() },
         morphemes = this.morphemes,
-        glossaryId = this.glossaryId,
-        glossaryIds = this.glossaryId?.let { listOf(it) }
+        glossaryId = this.glossaryIds?.firstOrNull() ?: this.glossaryId,
+        glossaryIds = this.glossaryIds ?: this.glossaryId?.let { listOf(it) }
     )
 
     private fun CreateChangeRequest.toMorphemePayload() = MorphemePayload(

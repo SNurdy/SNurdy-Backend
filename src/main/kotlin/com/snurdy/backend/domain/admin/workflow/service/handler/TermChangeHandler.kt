@@ -249,7 +249,6 @@ class TermChangeHandler(
         return payload.glossaryId?.let { listOf(it) }
     }
 
-
     internal fun parsePayload(json: String?): TermPayload? =
         json?.takeIf { it.isNotBlank() }?.let { objectMapper.readValue(it) }
 }

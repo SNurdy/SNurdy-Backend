@@ -56,6 +56,7 @@ class TermChangeHandler(
                 if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "단어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
                 validateFields(payload, v)
+                payload.glossaryId?.let { validateGlossary(it, v) }
                 validateMorphemeIds(payload.morphemes, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = termId, v)
             }
@@ -125,6 +126,7 @@ class TermChangeHandler(
         term.explanation = payload.explanation?.trim()?.takeIf { it.isNotBlank() }
         termRepository.save(term)
         replaceMorphemeMappings(termId, payload.morphemes)
+        payload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
         return null
     }
 
@@ -158,22 +160,27 @@ class TermChangeHandler(
         term.explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
         termRepository.save(term)
         replaceMorphemeMappings(termId, beforePayload.morphemes)
+        beforePayload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
     }
 
     private fun rollbackDelete(cr: ChangeRequestEntity) {
-        // DELETE 롤백 = beforeJson으로 재생성
+        // DELETE 롤백 = beforeJson으로 기존 id 복원
+        val termId = cr.entityPk.toLongOrNull()
+            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
         val beforePayload = parsePayload(cr.beforeJson)
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
 
-        val term = termRepository.save(
+        termRepository.save(
             TermEntity(
+                id = termId,
                 spelling = beforePayload.spelling.trim(),
                 meaning = beforePayload.meaning.trim(),
                 abbreviation = beforePayload.abbreviation?.trim()?.takeIf { it.isNotBlank() },
                 explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
             )
         )
-        replaceMorphemeMappings(term.id!!, beforePayload.morphemes)
+        replaceMorphemeMappings(termId, beforePayload.morphemes)
+        beforePayload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
     }
 
     private fun validateFields(payload: TermPayload, v: ValidationCollector) {
@@ -215,6 +222,21 @@ class TermChangeHandler(
             TermMorphemeEntity(id = TermMorphemeId(termId = termId, position = index), term = term, morpheme = morpheme)
         }
         termMorphemeRepository.saveAll(mappings)
+    }
+
+    private fun replaceGlossaryMapping(termId: Long, glossaryId: Long) {
+        val glossary = glossaryRepository.findById(glossaryId)
+            .orElseThrow { ApiException(CatalogError.GLOSSARY_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+
+        glossaryTermRepository.deleteByIdTermId(termId)
+        glossaryTermRepository.save(
+            GlossaryTermEntity(
+                id = GlossaryTermId(glossaryId = glossaryId, termId = termId),
+                glossary = glossary,
+                term = term
+            )
+        )
     }
 
     internal fun parsePayload(json: String?): TermPayload? =

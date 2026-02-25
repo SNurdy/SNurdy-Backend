@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTermId> {
+    fun deleteByIdTermId(termId: Long)
 
     @Query(
         value = """

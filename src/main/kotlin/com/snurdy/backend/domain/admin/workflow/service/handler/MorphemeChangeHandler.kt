@@ -8,6 +8,7 @@ import com.snurdy.backend.domain.admin.workflow.service.model.*
 import com.snurdy.backend.domain.admin.workflow.service.support.MorphemeVariantGenerator
 import com.snurdy.backend.domain.catalog.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component
 @Component
 class MorphemeChangeHandler(
     private val morphemeRepository: MorphemeRepository,
+    private val morphemeVariantRepository: MorphemeVariantRepository,
     private val variantGenerator: MorphemeVariantGenerator,
     private val objectMapper: ObjectMapper
 ) {
@@ -72,6 +74,34 @@ class MorphemeChangeHandler(
                 morphemeRepository.save(morpheme)
                 variantGenerator.regenerate(morpheme)
                 null
+            }
+
+            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+        }
+    }
+
+    fun rollback(cr: ChangeRequestEntity) {
+        when (cr.operation) {
+            ChangeRequestOperation.CREATE -> {
+                val morphemeId = cr.entityPk.toLongOrNull()
+                    ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+                morphemeVariantRepository.deleteByMorphemeId(morphemeId)
+                val morpheme = morphemeRepository.findById(morphemeId)
+                    .orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
+                morphemeRepository.delete(morpheme)
+            }
+
+            ChangeRequestOperation.UPDATE -> {
+                // UPDATE 롤백 = beforeJson으로 복원
+                val morphemeId = cr.entityPk.toLong()
+                val beforePayload = parsePayload(cr.beforeJson)
+                    ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+                val morpheme = morphemeRepository.findById(morphemeId)
+                    .orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
+                morpheme.spelling = beforePayload.spelling.trim()
+                morpheme.meaning = beforePayload.meaning.trim()
+                morphemeRepository.save(morpheme)
+                variantGenerator.regenerate(morpheme)
             }
 
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)

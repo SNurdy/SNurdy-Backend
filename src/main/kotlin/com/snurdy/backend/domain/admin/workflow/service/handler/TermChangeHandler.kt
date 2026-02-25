@@ -81,6 +81,15 @@ class TermChangeHandler(
         }
     }
 
+    fun rollback(cr: ChangeRequestEntity) {
+        when (cr.operation) {
+            ChangeRequestOperation.CREATE -> rollbackCreate(cr)
+            ChangeRequestOperation.UPDATE -> rollbackUpdate(cr)
+            ChangeRequestOperation.DELETE -> rollbackDelete(cr)
+            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+        }
+    }
+
     private fun applyCreate(cr: ChangeRequestEntity): String {
         val payload = parsePayload(cr.afterJson)!!
         val glossary = glossaryRepository.findById(payload.glossaryId!!)
@@ -125,6 +134,46 @@ class TermChangeHandler(
         val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
         termRepository.delete(term)
         return null
+    }
+
+    private fun rollbackCreate(cr: ChangeRequestEntity) {
+        val termId = cr.entityPk.toLongOrNull()
+            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+        termMorphemeRepository.deleteByIdTermId(termId)
+        glossaryTermRepository.deleteByIdTermId(termId)
+        val term = termRepository.findById(termId).orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
+        termRepository.delete(term)
+    }
+
+    private fun rollbackUpdate(cr: ChangeRequestEntity) {
+        // UPDATE 롤백 = beforeJson으로 복원
+        val termId = cr.entityPk.toLong()
+        val beforePayload = parsePayload(cr.beforeJson)
+            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+        val term = termRepository.findById(termId).orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
+
+        term.spelling = beforePayload.spelling.trim()
+        term.meaning = beforePayload.meaning.trim()
+        term.abbreviation = beforePayload.abbreviation?.trim()?.takeIf { it.isNotBlank() }
+        term.explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
+        termRepository.save(term)
+        replaceMorphemeMappings(termId, beforePayload.morphemes)
+    }
+
+    private fun rollbackDelete(cr: ChangeRequestEntity) {
+        // DELETE 롤백 = beforeJson으로 재생성
+        val beforePayload = parsePayload(cr.beforeJson)
+            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+
+        val term = termRepository.save(
+            TermEntity(
+                spelling = beforePayload.spelling.trim(),
+                meaning = beforePayload.meaning.trim(),
+                abbreviation = beforePayload.abbreviation?.trim()?.takeIf { it.isNotBlank() },
+                explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
+            )
+        )
+        replaceMorphemeMappings(term.id!!, beforePayload.morphemes)
     }
 
     private fun validateFields(payload: TermPayload, v: ValidationCollector) {

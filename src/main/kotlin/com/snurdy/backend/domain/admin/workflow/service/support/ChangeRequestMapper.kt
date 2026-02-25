@@ -38,6 +38,8 @@ class ChangeRequestMapper {
         requestedBy = entity.requestedBy.toString(),
         appliedBy = entity.appliedBy?.toString(),
         appliedAt = entity.appliedAt?.toString(),
+        rolledBackBy = entity.rolledBackBy?.toString(),
+        rolledBackAt = entity.rolledBackAt?.toString(),
         createdAt = entity.createdAt.toString()
     )
 

@@ -35,6 +35,9 @@ class AdminWorkflowController(
     override fun cancel(id: Long): ApiResponse<ChangeRequestActionResponse> =
         ApiResponse.success(AdminSuccess.CANCEL_CHANGE_REQUEST, adminWorkflowService.cancel(id, currentUserId()))
 
+    override fun rollback(id: Long): ApiResponse<ChangeRequestActionResponse> =
+        ApiResponse.success(AdminSuccess.ROLLBACK_CHANGE_REQUEST, adminWorkflowService.rollback(id, currentUserId()))
+
     private fun currentUserId(): UUID {
         val authentication = SecurityContextHolder.getContext().authentication
         return authentication?.principal as? UUID ?: FALLBACK_ADMIN_USER_ID

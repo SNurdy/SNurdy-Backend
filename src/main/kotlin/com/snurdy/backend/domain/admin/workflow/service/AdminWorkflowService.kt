@@ -147,6 +147,25 @@ class AdminWorkflowService(
         return mapper.toAction(cr)
     }
 
+    @Transactional
+    fun rollback(id: Long, actorUserId: UUID): ChangeRequestActionResponse {
+        val cr = changeRequestRepository.findByIdForUpdate(id)
+            ?: throw ApiException(CommonError.NOT_FOUND)
+        if (!cr.isRollbackable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+
+        when (cr.entityType) {
+            ChangeRequestEntityType.TERM -> termHandler.rollback(cr)
+            ChangeRequestEntityType.MORPHEME -> morphemeHandler.rollback(cr)
+            else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
+        }
+
+        cr.markRolledBack(actorUserId)
+        changeRequestRepository.save(cr)
+        audit(actorUserId, "ROLLBACK", "change_requests", id.toString(), null, cr)
+
+        return mapper.toAction(cr)
+    }
+
     private fun findRequest(id: Long): ChangeRequestEntity =
         changeRequestRepository.findById(id).orElseThrow { ApiException(CommonError.NOT_FOUND) }
 

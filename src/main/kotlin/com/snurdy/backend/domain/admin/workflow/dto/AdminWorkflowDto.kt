@@ -60,6 +60,8 @@ data class ChangeRequestDetailResponse(
     val requestedBy: String,
     val appliedBy: String?,
     val appliedAt: String?,
+    val rolledBackBy: String?,
+    val rolledBackAt: String?,
     val createdAt: String
 )
 

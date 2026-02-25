@@ -45,4 +45,8 @@ interface AdminWorkflowApi {
     @Operation(summary = "취소")
     @PostMapping("/change-requests/{id}/cancel")
     fun cancel(@PathVariable id: Long): ApiResponse<ChangeRequestActionResponse>
+
+    @Operation(summary = "롤백 (APPLIED 상태만)")
+    @PostMapping("/change-requests/{id}/rollback")
+    fun rollback(@PathVariable id: Long): ApiResponse<ChangeRequestActionResponse>
 }

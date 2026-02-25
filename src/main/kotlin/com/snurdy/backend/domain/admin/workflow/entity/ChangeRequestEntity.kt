@@ -59,6 +59,12 @@ class ChangeRequestEntity(
     @Column(name = "applied_at")
     var appliedAt: Instant? = null,
 
+    @Column(name = "rolled_back_by", columnDefinition = "BINARY(16)")
+    var rolledBackBy: UUID? = null,
+
+    @Column(name = "rolled_back_at")
+    var rolledBackAt: Instant? = null,
+
     @Column(name = "created_at", nullable = false, updatable = false)
     var createdAt: Instant = Instant.now(),
 
@@ -98,6 +104,14 @@ class ChangeRequestEntity(
         this.updatedAt = Instant.now()
     }
 
+    fun markRolledBack(actorUserId: UUID) {
+        val now = Instant.now()
+        this.status = ChangeRequestStatus.ROLLED_BACK
+        this.rolledBackBy = actorUserId
+        this.rolledBackAt = now
+        this.updatedAt = now
+    }
+
     fun resetForRetry() {
         this.status = ChangeRequestStatus.REQUESTED
         this.errorCode = null
@@ -121,4 +135,7 @@ class ChangeRequestEntity(
             ChangeRequestStatus.FAILED,
             ChangeRequestStatus.VALIDATED
         )
+
+    fun isRollbackable(): Boolean =
+        status == ChangeRequestStatus.APPLIED
 }

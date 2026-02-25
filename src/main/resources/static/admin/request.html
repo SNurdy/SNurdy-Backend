@@ -522,10 +522,15 @@
     }
 
     /* ================================================================
+     *  검색 실행 함수
+     * ================================================================ */
+    function doSearch() { page = 0; loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); }
+
+    /* ================================================================
      *  이벤트 바인딩
      * ================================================================ */
-    $("refreshBtn").addEventListener("click",  () => { page = 0; loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); });
-    $("searchBtn").addEventListener("click",   () => { page = 0; loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); });
+    $("refreshBtn").addEventListener("click",  doSearch);
+    $("searchBtn").addEventListener("click",   doSearch);
     $("prevBtn").addEventListener("click",     () => { if (page > 0)              { page--; loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); } });
     $("nextBtn").addEventListener("click",     () => { if (page + 1 < totalPages) { page++; loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); } });
     $("newBtn").addEventListener("click",      clearForm);
@@ -533,7 +538,14 @@
     $("updateBtn").addEventListener("click",   updateRequest);
     $("deleteBtn").addEventListener("click",   deleteRequest);
 
-    $("searchMorphemeBtn").addEventListener("click", async () => {
+    // Enter 키로 검색
+    keyword.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+    sizeInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
+
+    $("searchMorphemeBtn").addEventListener("click", searchMorphemes);
+    morphemeKeyword.addEventListener("keydown", (e) => { if (e.key === "Enter") searchMorphemes(); });
+
+    async function searchMorphemes() {
         const q = morphemeKeyword.value.trim();
         if (!q) { writeLog("형태소 검색어를 입력하세요."); return; }
         try {
@@ -541,7 +553,7 @@
             renderMorphemeResults(data.items || []);
             writeLog(`형태소 검색: ${data.totalElements || 0}건`);
         } catch (e) { writeLog(`형태소 검색 실패: ${e.message}`); }
-    });
+    }
 
     $("tabs").querySelectorAll(".tab").forEach(tab => {
         tab.addEventListener("click", async () => {

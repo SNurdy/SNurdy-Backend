@@ -7,6 +7,7 @@ import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntityType
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.MorphemePayload
 import com.snurdy.backend.domain.admin.workflow.service.model.TermPayload
+import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
@@ -21,6 +22,7 @@ class ChangeRequestBuilder(
     private val termRepository: TermRepository,
     private val termMorphemeRepository: TermMorphemeRepository,
     private val morphemeRepository: MorphemeRepository,
+    private val glossaryTermRepository: GlossaryTermRepository,
     private val objectMapper: ObjectMapper
 ) {
 
@@ -84,13 +86,15 @@ class ChangeRequestBuilder(
     private fun snapshotTerm(termId: Long): String {
         val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
         val morphemeIds = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map { it.morphemeId }
+        val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
         val payload = TermPayload(
             spelling = term.spelling,
             meaning = term.meaning,
             abbreviation = term.abbreviation,
             explanation = term.explanation,
             morphemes = morphemeIds,
-            glossaryId = null
+            glossaryId = glossaryIds.firstOrNull(),
+            glossaryIds = glossaryIds
         )
         return objectMapper.writeValueAsString(payload)
     }
@@ -115,7 +119,8 @@ class ChangeRequestBuilder(
         abbreviation = this.abbreviation?.trim()?.takeIf { it.isNotBlank() },
         explanation = this.explanation?.trim()?.takeIf { it.isNotBlank() },
         morphemes = this.morphemes,
-        glossaryId = this.glossaryId
+        glossaryId = this.glossaryId,
+        glossaryIds = this.glossaryId?.let { listOf(it) }
     )
 
     private fun CreateChangeRequest.toMorphemePayload() = MorphemePayload(

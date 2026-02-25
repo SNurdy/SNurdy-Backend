@@ -6,5 +6,6 @@ data class TermPayload(
     val abbreviation: String?,
     val explanation: String?,
     val morphemes: List<Long>,
-    val glossaryId: Long?
+    val glossaryId: Long?,
+    val glossaryIds: List<Long>? = null
 )

@@ -44,7 +44,12 @@ class TermChangeHandler(
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
                 validateFields(payload, v)
-                validateGlossary(payload.glossaryId, v)
+                val glossaryIds = resolveGlossaryIds(payload)
+                if (glossaryIds == null) {
+                    v.error(ValidationCode.GLOSSARY_REQUIRED)
+                    return v.build()
+                }
+                validateGlossaryIds(glossaryIds, v)
                 validateMorphemeIds(payload.morphemes, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = null, v)
             }
@@ -56,7 +61,7 @@ class TermChangeHandler(
                 if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "단어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
                 validateFields(payload, v)
-                payload.glossaryId?.let { validateGlossary(it, v) }
+                resolveGlossaryIds(payload)?.let { validateGlossaryIds(it, v) }
                 validateMorphemeIds(payload.morphemes, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = termId, v)
             }
@@ -93,8 +98,6 @@ class TermChangeHandler(
 
     private fun applyCreate(cr: ChangeRequestEntity): String {
         val payload = parsePayload(cr.afterJson)!!
-        val glossary = glossaryRepository.findById(payload.glossaryId!!)
-            .orElseThrow { ApiException(CatalogError.GLOSSARY_NOT_FOUND) }
 
         val term = termRepository.save(
             TermEntity(
@@ -105,13 +108,8 @@ class TermChangeHandler(
             )
         )
         replaceMorphemeMappings(term.id!!, payload.morphemes)
-        glossaryTermRepository.save(
-            GlossaryTermEntity(
-                id = GlossaryTermId(glossaryId = glossary.id!!, termId = term.id),
-                glossary = glossary,
-                term = term
-            )
-        )
+        val glossaryIds = resolveGlossaryIds(payload) ?: throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
+        replaceGlossaryMappings(term.id, glossaryIds)
         return term.id.toString()
     }
 
@@ -126,7 +124,7 @@ class TermChangeHandler(
         term.explanation = payload.explanation?.trim()?.takeIf { it.isNotBlank() }
         termRepository.save(term)
         replaceMorphemeMappings(termId, payload.morphemes)
-        payload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
+        resolveGlossaryIds(payload)?.let { replaceGlossaryMappings(termId, it) }
         return null
     }
 
@@ -160,11 +158,10 @@ class TermChangeHandler(
         term.explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
         termRepository.save(term)
         replaceMorphemeMappings(termId, beforePayload.morphemes)
-        beforePayload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
+        resolveGlossaryIds(beforePayload)?.let { replaceGlossaryMappings(termId, it) }
     }
 
     private fun rollbackDelete(cr: ChangeRequestEntity) {
-        // DELETE 롤백 = beforeJson으로 기존 id 복원
         val termId = cr.entityPk.toLongOrNull()
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
         val beforePayload = parsePayload(cr.beforeJson)
@@ -180,7 +177,7 @@ class TermChangeHandler(
             )
         )
         replaceMorphemeMappings(termId, beforePayload.morphemes)
-        beforePayload.glossaryId?.let { replaceGlossaryMapping(termId, it) }
+        resolveGlossaryIds(beforePayload)?.let { replaceGlossaryMappings(termId, it) }
     }
 
     private fun validateFields(payload: TermPayload, v: ValidationCollector) {
@@ -191,9 +188,12 @@ class TermChangeHandler(
         if ((payload.abbreviation ?: "").length > ABBREVIATION_MAX) v.error(ValidationCode.ABBREVIATION_TOO_LONG, ABBREVIATION_MAX)
     }
 
-    private fun validateGlossary(glossaryId: Long?, v: ValidationCollector) {
-        if (glossaryId == null) { v.error(ValidationCode.GLOSSARY_REQUIRED); return }
-        if (!glossaryRepository.existsById(glossaryId)) v.error(ValidationCode.GLOSSARY_NOT_FOUND, glossaryId)
+    private fun validateGlossaryIds(glossaryIds: List<Long>, v: ValidationCollector) {
+        if (glossaryIds.any { it <= 0 }) { v.error(ValidationCode.GLOSSARY_NOT_FOUND, glossaryIds); return }
+        if (glossaryIds.distinct().size != glossaryIds.size) { v.error(ValidationCode.GLOSSARY_NOT_FOUND, glossaryIds); return }
+        val found = glossaryRepository.findAllById(glossaryIds).mapNotNull { it.id }.toSet()
+        val missing = glossaryIds.filter { it !in found }
+        if (missing.isNotEmpty()) v.error(ValidationCode.GLOSSARY_NOT_FOUND, missing)
     }
 
     private fun validateMorphemeIds(ids: List<Long>, v: ValidationCollector) {
@@ -224,20 +224,31 @@ class TermChangeHandler(
         termMorphemeRepository.saveAll(mappings)
     }
 
-    private fun replaceGlossaryMapping(termId: Long, glossaryId: Long) {
-        val glossary = glossaryRepository.findById(glossaryId)
-            .orElseThrow { ApiException(CatalogError.GLOSSARY_NOT_FOUND) }
+    private fun replaceGlossaryMappings(termId: Long, glossaryIds: List<Long>) {
+        val normalizedGlossaryIds = glossaryIds.distinct()
+        val glossaries = glossaryRepository.findAllById(normalizedGlossaryIds).associateBy { it.id!! }
+        if (glossaries.size != normalizedGlossaryIds.size) throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
         val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
 
         glossaryTermRepository.deleteByIdTermId(termId)
-        glossaryTermRepository.save(
+        if (normalizedGlossaryIds.isEmpty()) return
+
+        val mappings = normalizedGlossaryIds.map { glossaryId ->
+            val glossary = glossaries[glossaryId] ?: throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
             GlossaryTermEntity(
                 id = GlossaryTermId(glossaryId = glossaryId, termId = termId),
                 glossary = glossary,
                 term = term
             )
-        )
+        }
+        glossaryTermRepository.saveAll(mappings)
     }
+
+    private fun resolveGlossaryIds(payload: TermPayload): List<Long>? {
+        payload.glossaryIds?.let { return it }
+        return payload.glossaryId?.let { listOf(it) }
+    }
+
 
     internal fun parsePayload(json: String?): TermPayload? =
         json?.takeIf { it.isNotBlank() }?.let { objectMapper.readValue(it) }

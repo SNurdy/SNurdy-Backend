@@ -32,7 +32,7 @@
 
         /* ── 패널 ── */
         .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
-        .top { display: flex; justify-content: flex-end; gap: 8px; padding: 12px; }
+        .top { display: flex; justify-content: flex-start; gap: 8px; padding: 12px; }
 
         /* ── 탭 ── */
         .tabs { display: flex; gap: 6px; padding: 0 12px 12px; border-bottom: 1px solid var(--line); }
@@ -113,11 +113,11 @@
     </nav>
 
     <section class="panel">
-        <div class="top">
+        <div class="top" style="justify-content:flex-start;">
             <button id="refreshBtn" class="primary">새로고침</button>
         </div>
         <div class="tabs" id="tabs">
-            <button class="tab active" data-type="terms">용어</button>
+            <button class="tab active" data-type="terms">단어</button>
             <button class="tab" data-type="glossaries">단어장</button>
             <button class="tab" data-type="morphemes">어근어미</button>
         </div>
@@ -125,12 +125,12 @@
         <div class="grid">
             <!-- ── 좌: 목록 ── -->
             <section class="section">
-                <h3 id="listTitle">용어 목록</h3>
+                <h3 id="listTitle">단어 목록</h3>
                 <div class="body">
                     <div class="toolbar">
                         <input id="keyword" placeholder="검색어 입력" />
                         <input id="size" value="20" />
-                        <button id="searchBtn" class="primary">조회</button>
+                        <button id="searchBtn" class="primary" style="width: 100px">조회</button>
                     </div>
                     <table>
                         <thead id="listHead"></thead>
@@ -150,7 +150,7 @@
                 <h3>편집</h3>
                 <div class="body">
                     <div class="form-grid">
-                        <input id="spelling" class="full" placeholder="영문 용어/어근어미 (필수)" />
+                        <input id="spelling" class="full" placeholder="영문 단어/어근어미 (필수)" />
                         <input id="meaning" class="full" placeholder="뜻 (필수)" />
                         <select id="glossarySelect" class="full" style="display:none;">
                             <option value="">단어장 선택</option>
@@ -293,7 +293,7 @@
         const updateBtn = $("updateBtn");
         const deleteBtn = $("deleteBtn");
 
-        /* 용어 탭 */
+        /* 단어 탭 */
         if (isTermTab()) {
             createBtn.style.display = "";  createBtn.textContent = "생성 요청";
             updateBtn.style.display = "";  deleteBtn.style.display = "";
@@ -388,10 +388,10 @@
         pageInfo.textContent  = `페이지 ${(data.page || 0) + 1} / ${totalPages}`;
         countInfo.textContent = `총 ${data.totalElements || 0}건`;
 
-        /* 용어 */
+        /* 단어 */
         if (type === "terms") {
-            listTitle.textContent = "용어 목록";
-            listHead.innerHTML = "<tr><th>ID</th><th>영문 용어</th><th>약어</th><th>뜻</th></tr>";
+            listTitle.textContent = "단어 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>영문 단어</th><th>약어</th><th>뜻</th></tr>";
             listBody.innerHTML = rows.map(r => `
                 <tr data-id="${r.id}">
                     <td>${r.id}</td><td>${esc(r.spelling)}</td>
@@ -446,11 +446,11 @@
             let body;
 
             if (isTermTab()) {
-                if (!spelling.value.trim() || !meaning.value.trim()) { writeLog("영문 용어와 뜻은 필수입니다."); return; }
+                if (!spelling.value.trim() || !meaning.value.trim()) { writeLog("영문 단어와 뜻은 필수입니다."); return; }
                 if (!glossarySelect.value)                           { writeLog("단어장을 선택하세요."); return; }
                 body = {
                     title: buildTitle("생성"),
-                    description: "CMS 요청 페이지에서 용어 생성",
+                    description: "CMS 요청 페이지에서 단어 생성",
                     entityType: "TERM",
                     operation: "CREATE",
                     spelling:     spelling.value.trim(),
@@ -482,12 +482,12 @@
     }
 
     async function updateRequest() {
-        if (!selectedTermId)                                     { writeLog("수정할 용어를 목록에서 선택하세요."); return; }
-        if (!spelling.value.trim() || !meaning.value.trim())     { writeLog("영문 용어와 뜻은 필수입니다."); return; }
+        if (!selectedTermId)                                     { writeLog("수정할 단어를 목록에서 선택하세요."); return; }
+        if (!spelling.value.trim() || !meaning.value.trim())     { writeLog("영문 단어와 뜻은 필수입니다."); return; }
         try {
             const body = {
                 title: buildTitle("수정"),
-                description: `기존 용어(ID=${selectedTermId}) 수정 요청`,
+                description: `기존 단어(ID=${selectedTermId}) 수정 요청`,
                 entityType: "TERM",
                 operation: "UPDATE",
                 termId:       selectedTermId,
@@ -503,12 +503,12 @@
     }
 
     async function deleteRequest() {
-        if (!selectedTermId) { writeLog("삭제할 용어를 목록에서 선택하세요."); return; }
-        if (!confirm(`ID ${selectedTermId} 용어를 삭제하시겠습니까?`)) return;
+        if (!selectedTermId) { writeLog("삭제할 단어를 목록에서 선택하세요."); return; }
+        if (!confirm(`ID ${selectedTermId} 단어를 삭제하시겠습니까?`)) return;
         try {
             const body = {
                 title: `삭제: ID=${selectedTermId}`,
-                description: `기존 용어(ID=${selectedTermId}) 삭제 요청`,
+                description: `기존 단어(ID=${selectedTermId}) 삭제 요청`,
                 entityType: "TERM",
                 operation: "DELETE",
                 termId: selectedTermId,

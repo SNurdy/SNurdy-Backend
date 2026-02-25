@@ -41,13 +41,13 @@ class MorphemeChangeHandler(
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
                 val morphemeId = cr.entityPk.toLongOrNull()
-                if (morphemeId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "형태소"); return v.build() }
+                if (morphemeId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "어근어미"); return v.build() }
                 if (!morphemeRepository.existsById(morphemeId)) v.error(ValidationCode.MORPHEME_NOT_FOUND, morphemeId)
                 validateFields(payload, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = morphemeId, v)
             }
 
-            else -> v.error(ValidationCode.UNSUPPORTED_OPERATION, "형태소", "CREATE, UPDATE")
+            else -> v.error(ValidationCode.UNSUPPORTED_OPERATION, "어근어미", "CREATE, UPDATE")
         }
 
         return v.build()

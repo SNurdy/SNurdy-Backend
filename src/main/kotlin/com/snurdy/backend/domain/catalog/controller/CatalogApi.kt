@@ -42,10 +42,10 @@ interface CatalogApi {
         @PathVariable termId: Long
     ): ApiResponse<TermDetailResponse>
 
-    @Operation(summary = "형태소 키워드로 단어 검색")
+    @Operation(summary = "어근어미 키워드로 단어 검색")
     @GetMapping("/terms/search/morpheme")
     fun searchTermsByMorpheme(
-        @Parameter(description = "형태소 키워드 (최소 2자)", example = "hepat")
+        @Parameter(description = "어근어미 키워드 (최소 2자)", example = "hepat")
         @RequestParam @Size(
             min = 2, max = 50,
             message = "{com.snurdy.backend.global.constants.CatalogError.INVALID_SEARCH_KEYWORD}"

@@ -5,72 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS 검증/반영대기</title>
     <style>
-        :root { --bg:#f3f6fb; --card:#fff; --line:#d7dfeb; --text:#1f2a36; --muted:#5f7086; --brand:#1362ff; --ok:#067647; --danger:#b42318; --warn:#b54708; }
+        /* ── 서비스 브랜드 컬러 ── */
+        :root {
+            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
+            --pink-light:#F9DFE9; --pink:#FFAFC8; --hotpink:#E44B7B;
+            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
+        }
         * { box-sizing:border-box; }
-        body { margin:0; background:linear-gradient(180deg,#f9fbff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
+        body { margin:0; background:linear-gradient(180deg,#f6f9ff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
         .wrap { max-width:1400px; margin:0 auto; padding:20px; }
 
         .page-nav { display:flex; gap:8px; margin-bottom:10px; }
-        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--text); background:#fff; text-decoration:none; font-size:13px; }
-        .page-link.active { color:#fff; background:var(--brand); border-color:var(--brand); font-weight:700; }
+        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--navy); background:#fff; text-decoration:none; font-size:13px; transition:all .15s; }
+        .page-link:hover { background:var(--blue-light); }
+        .page-link.active { color:#fff; background:var(--navy); border-color:var(--navy); font-weight:700; }
 
         .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background:var(--blue-light); }
+        .head strong { color:var(--navy); }
         .body { padding:16px; }
 
         .toolbar { display:grid; grid-template-columns: 170px 90px auto; gap:8px; margin-bottom:10px; }
         input, select, button, textarea { border:1px solid var(--line); border-radius:8px; font-size:14px; }
         input, select { height:36px; padding:0 10px; }
+        input:focus, select:focus, textarea:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(137,176,244,0.25); }
         textarea { padding:8px 10px; width:100%; min-height:60px; resize:vertical; }
-        button { height:36px; padding:0 12px; background:#fff; cursor:pointer; }
-        button.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
-        button.danger  { color:var(--danger); border-color:#f2b8b5; background:#fff7f7; }
-        button.warn-btn { background:#fffbeb; color:var(--warn); border-color:#fde68a; }
+        button { height:36px; padding:0 12px; background:#fff; cursor:pointer; transition:all .15s; }
+        button:hover { background:var(--blue-light); }
+        button.primary { background:var(--navy); color:#fff; border-color:var(--navy); }
+        button.primary:hover { background:#1e3060; }
+        button.danger  { color:var(--hotpink); border-color:var(--pink); background:#fff; }
+        button.danger:hover { background:var(--pink-light); }
+        button.warn-btn { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+        button.warn-btn:hover { background:#fef3c7; }
 
         table { width:100%; border-collapse:collapse; font-size:13px; }
-        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #edf2f8; vertical-align:top; }
-        th { color:var(--muted); font-weight:600; }
+        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #e8eff8; vertical-align:top; }
+        th { color:var(--navy); font-weight:600; background:rgba(203,221,252,0.2); }
         .btn-sm { height:28px; padding:0 8px; font-size:12px; margin-right:4px; }
 
         .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
-        .badge-requested   { background:#e8f0fe; color:#1a56db; }
-        .badge-validated   { background:#d1fadf; color:var(--ok); }
-        .badge-applied     { background:#f0f0f0; color:#374151; }
-        .badge-failed      { background:#fee4e2; color:var(--danger); }
-        .badge-canceled    { background:#f5f5f5; color:#6b7280; }
-        .badge-rolled_back { background:#fef3c7; color:var(--warn); }
+        .badge-requested   { background:var(--blue-light); color:var(--navy); }
+        .badge-validated   { background:#d1e7dd; color:#0a5c36; }
+        .badge-applied     { background:#e8eff8; color:#374151; }
+        .badge-failed      { background:var(--pink-light); color:var(--hotpink); }
+        .badge-canceled    { background:#f1f1f1; color:#6b7280; }
+        .badge-rolled_back { background:var(--pink-light); color:var(--hotpink); }
 
-        .detail-card { margin-top:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fbfdff; }
-        .detail-card.empty { padding:12px; }
-        .detail-header { padding:14px 16px; border-bottom:1px solid var(--line); background:#f8fbff; }
-        .detail-header-title { font-size:16px; font-weight:700; margin:0 0 2px; }
+        /* 액션 태그 */
+        .action-tag { display:inline-block; padding:1px 6px; border-radius:4px; font-size:11px; font-weight:700; margin-right:4px; }
+        .action-tag-create { background:var(--blue-light); color:var(--navy); }
+        .action-tag-update { background:#fef3c7; color:#92400e; }
+        .action-tag-delete { background:var(--hotpink); color:#fff; }
+        .action-tag-morpheme { background:var(--blue); color:#fff; }
+
+        /* 인라인 상세 */
+        .inline-detail td { padding:0; background:rgba(203,221,252,0.1); }
+        .inline-detail-inner { padding:14px 16px; border-top:2px solid var(--navy); }
+
+        .detail-header { margin-bottom:10px; }
+        .detail-header-title { font-size:15px; font-weight:700; margin:0 0 2px; color:var(--navy); }
         .detail-header-desc { font-size:13px; color:var(--muted); margin:0; }
-        .detail-meta { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:0; padding:0; }
-        .meta-item { padding:10px 16px; border-bottom:1px solid #edf2f8; }
-        .meta-label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:2px; }
+        .detail-meta { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:0; margin-bottom:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+        .meta-item { padding:8px 12px; border-bottom:1px solid #e8eff8; background:#fff; }
+        .meta-item:last-child { border-bottom:none; }
+        .meta-label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:1px; }
         .meta-value { font-size:13px; }
 
-        .diff-section { padding:12px 16px; border-top:1px solid var(--line); }
-        .diff-section-title { font-size:13px; font-weight:700; margin-bottom:10px; color:var(--text); }
-        .diff-table { width:100%; border-collapse:collapse; font-size:13px; }
-        .diff-table th { background:#f1f5f9; color:var(--muted); font-weight:600; padding:8px 10px; text-align:left; font-size:12px; }
-        .diff-table td { padding:8px 10px; border-bottom:1px solid #edf2f8; vertical-align:top; word-break:break-word; }
-        .diff-removed { background:#fef2f2; color:var(--danger); text-decoration:line-through; }
-        .diff-added   { background:#f0fdf4; color:var(--ok); font-weight:500; }
+        .diff-section { margin-top:8px; }
+        .diff-section-title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--navy); }
+        .diff-table { width:100%; border-collapse:collapse; font-size:13px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+        .diff-table th { background:var(--blue-light); color:var(--navy); font-weight:600; padding:6px 10px; text-align:left; font-size:12px; }
+        .diff-table td { padding:6px 10px; border-bottom:1px solid #e8eff8; vertical-align:top; word-break:break-word; }
+        .diff-removed { background:var(--pink-light); color:var(--hotpink); text-decoration:line-through; }
+        .diff-added   { background:rgba(203,221,252,0.35); color:var(--navy); font-weight:500; }
         .diff-unchanged { color:var(--muted); }
-        .diff-field-name { font-weight:600; color:var(--text); white-space:nowrap; }
+        .diff-field-name { font-weight:600; white-space:nowrap; }
 
-        .alert-box { margin:0 16px 12px; padding:10px 12px; border-radius:8px; font-size:13px; word-break:break-word; }
-        .alert-error   { background:#fef2f2; border:1px solid #fecaca; color:var(--danger); }
-        .alert-warning { background:#fffbeb; border:1px solid #fde68a; color:var(--warn); }
+        .alert-box { margin-bottom:10px; padding:8px 12px; border-radius:8px; font-size:13px; word-break:break-word; }
+        .alert-error   { background:var(--pink-light); border:1px solid var(--pink); color:var(--hotpink); }
+        .alert-warning { background:rgba(255,175,200,0.15); border:1px solid var(--pink); color:#8a3050; }
 
-        .edit-section { padding:12px 16px; border-top:1px solid var(--line); }
-        .edit-section-title { font-size:13px; font-weight:700; margin-bottom:10px; }
+        .edit-section { margin-top:10px; padding-top:10px; border-top:1px dashed var(--line); }
+        .edit-section-title { font-size:13px; font-weight:700; margin-bottom:8px; color:var(--navy); }
         .edit-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
         .edit-full { grid-column:1/-1; }
-        .edit-actions { margin-top:10px; display:flex; gap:8px; }
+        .edit-actions { margin-top:8px; display:flex; gap:8px; }
 
-        .log { margin-top:10px; padding:10px; border-radius:8px; background:#111928; color:#dbe8ff; min-height:74px; white-space:pre-wrap; font-size:12px; }
+        .log { margin-top:10px; padding:10px; border-radius:8px; background:var(--navy); color:var(--blue-light); min-height:74px; white-space:pre-wrap; font-size:12px; }
         .muted { color:var(--muted); }
     </style>
 </head>
@@ -105,20 +127,11 @@
 
             <table>
                 <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>제목</th>
-                    <th>유형</th>
-                    <th>작업</th>
-                    <th>상태</th>
-                    <th>에러/경고</th>
-                    <th>액션</th>
-                </tr>
+                <tr><th>ID</th><th>제목</th><th>유형</th><th>작업</th><th>상태</th><th>에러/경고</th><th>액션</th></tr>
                 </thead>
                 <tbody id="rows"></tbody>
             </table>
 
-            <div id="detail" class="detail-card empty muted">목록에서 [상세]를 클릭하면 항목 정보가 표시됩니다.</div>
             <div id="log" class="log">준비되었습니다.</div>
         </div>
     </section>
@@ -126,188 +139,139 @@
 
 <script>
     const $ = (id) => document.getElementById(id);
-
-    const statusInput = $("status");
-    const sizeInput   = $("size");
-    const rowsEl      = $("rows");
-    const detailEl    = $("detail");
-    const logEl       = $("log");
-
+    const statusInput=$("status"), sizeInput=$("size"), rowsEl=$("rows"), logEl=$("log");
     const API_BASE = "/api/v1/admin/workflows/change-requests";
+    let openDetailId = null;
 
-    function writeLog(msg) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logEl.textContent; }
+    function writeLog(msg) { logEl.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+logEl.textContent; }
 
-    function callApi(path, method = "GET", body = null) {
-        const opts = { method, headers: { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` } };
-        if (body) opts.body = JSON.stringify(body);
-        return fetch(path, opts).then(async res => {
-            const payload = await res.json();
-            if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
-            return payload.data;
-        });
+    function callApi(path, method="GET", body=null) {
+        const opts={method, headers:{"Content-Type":"application/json","X-Request-Id":`cms-${Date.now()}`}};
+        if(body) opts.body=JSON.stringify(body);
+        return fetch(path,opts).then(async res=>{ const p=await res.json(); if(!res.ok||p.success===false) throw new Error(p.message||`HTTP ${res.status}`); return p.data; });
     }
 
-    function esc(v) { if (v == null) return ""; return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function esc(v) { if(v==null) return ""; return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-    const STATUS_MAP = {
-        REQUESTED:   { label: "요청됨",   cls: "badge-requested" },
-        VALIDATED:   { label: "검증완료", cls: "badge-validated" },
-        APPLIED:     { label: "반영완료", cls: "badge-applied" },
-        FAILED:      { label: "검증실패", cls: "badge-failed" },
-        CANCELED:    { label: "취소됨",   cls: "badge-canceled" },
-        ROLLED_BACK: { label: "롤백됨",   cls: "badge-rolled_back" },
-    };
-    const OP_LABEL   = { CREATE: "생성", UPDATE: "수정", DELETE: "삭제" };
-    const TYPE_LABEL = { TERM: "용어", MORPHEME: "형태소" };
-    const FIELD_LABELS = { spelling: "영문 용어", meaning: "뜻", abbreviation: "약어", explanation: "설명", morphemes: "형태소 ID", glossaryId: "단어장 ID" };
+    const STATUS_MAP={REQUESTED:{label:"요청됨",cls:"badge-requested"},VALIDATED:{label:"검증완료",cls:"badge-validated"},APPLIED:{label:"반영완료",cls:"badge-applied"},FAILED:{label:"검증실패",cls:"badge-failed"},CANCELED:{label:"취소됨",cls:"badge-canceled"},ROLLED_BACK:{label:"롤백됨",cls:"badge-rolled_back"}};
+    const OP_LABEL={CREATE:"생성",UPDATE:"수정",DELETE:"삭제"};
+    const TYPE_LABEL={TERM:"용어",MORPHEME:"어근어미"};
+    const FIELD_LABELS={spelling:"영문 용어",meaning:"뜻",abbreviation:"약어",explanation:"설명",morphemes:"어근어미 ID",glossaryId:"단어장 ID"};
 
-    function statusBadge(s) { const m = STATUS_MAP[s] || { label: s, cls: "" }; return `<span class="badge ${m.cls}">${m.label}</span>`; }
-    function fieldLabel(k) { return FIELD_LABELS[k] || k; }
-    function safeJson(v) { if (!v) return null; try { return JSON.parse(v); } catch { return null; } }
-    function displayValue(v) { if (v == null || v === "") return "-"; if (Array.isArray(v)) return v.length ? v.join(", ") : "(없음)"; return String(v); }
-    function formatTime(iso) { if (!iso) return "-"; try { return new Date(iso).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}); } catch { return iso; } }
+    function statusBadge(s){const m=STATUS_MAP[s]||{label:s,cls:""};return `<span class="badge ${m.cls}">${m.label}</span>`;}
+    function fieldLabel(k){return FIELD_LABELS[k]||k;}
+    function safeJson(v){if(!v)return null;try{return JSON.parse(v);}catch{return null;}}
+    function displayValue(v){if(v==null||v==="")return "-";if(Array.isArray(v))return v.length?v.join(", "):"(없음)";return String(v);}
+    function formatTime(iso){if(!iso)return "-";try{return new Date(iso).toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"});}catch{return iso;}}
+
+    /* ── 제목 하이라이팅 ── */
+    function highlightTitle(title, entityType) {
+        const typePrefix = entityType==="TERM"?"단어 ":entityType==="MORPHEME"?"어근어미 ":"";
+        const patterns=[
+            {re:/^(생성):\s*/,cls:"action-tag-create"},
+            {re:/^(어근어미 추가):\s*/,cls:"action-tag-morpheme"},
+            {re:/^(수정):\s*/,cls:"action-tag-update"},
+            {re:/^(삭제):\s*/,cls:"action-tag-delete"},
+        ];
+        for(const p of patterns){const m=title.match(p.re);if(m){const label=m[1]==="어근어미 추가"?m[1]:typePrefix+m[1];return `<span class="action-tag ${p.cls}">${esc(label)}</span>${esc(title.slice(m[0].length))}`;}}
+        return esc(title);
+    }
 
     /* ── Diff ── */
-    function renderDiff(before, after, operation) {
-        if (operation === "DELETE" && before && !after) {
-            const keys = Object.keys(before); if (!keys.length) return "";
-            return `<div class="diff-section"><div class="diff-section-title">삭제 대상 데이터</div><table class="diff-table"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>${keys.map(k=>`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-removed">${esc(displayValue(before[k]))}</td></tr>`).join("")}</tbody></table></div>`;
-        }
-        if (operation === "CREATE" && !before && after) {
-            const keys = Object.keys(after); if (!keys.length) return "";
-            return `<div class="diff-section"><div class="diff-section-title">생성할 데이터</div><table class="diff-table"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>${keys.map(k=>`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-added">${esc(displayValue(after[k]))}</td></tr>`).join("")}</tbody></table></div>`;
-        }
-        if (before && after) {
-            const allKeys = [...new Set([...Object.keys(before), ...Object.keys(after)])];
-            const changed=[], unchanged=[];
-            allKeys.forEach(k=>{ displayValue(before[k])===displayValue(after[k]) ? unchanged.push(k) : changed.push(k); });
-            if (!changed.length) return `<div class="diff-section"><div class="diff-section-title">변경 사항 없음</div></div>`;
-            let h=`<div class="diff-section"><div class="diff-section-title">변경 내역</div><table class="diff-table"><thead><tr><th>필드</th><th>변경 전</th><th>변경 후</th></tr></thead><tbody>`;
-            changed.forEach(k=>{ h+=`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-removed">${esc(displayValue(before[k]))}</td><td class="diff-added">${esc(displayValue(after[k]))}</td></tr>`; });
-            unchanged.forEach(k=>{ h+=`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-unchanged" colspan="2">${esc(displayValue(before[k]))} (변경 없음)</td></tr>`; });
-            h+=`</tbody></table></div>`; return h;
-        }
+    function renderDiff(before,after,operation){
+        if(operation==="DELETE"&&before&&!after){const keys=Object.keys(before);if(!keys.length)return "";return `<div class="diff-section"><div class="diff-section-title">삭제 대상 데이터</div><table class="diff-table"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>${keys.map(k=>`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-removed">${esc(displayValue(before[k]))}</td></tr>`).join("")}</tbody></table></div>`;}
+        if(operation==="CREATE"&&!before&&after){const keys=Object.keys(after);if(!keys.length)return "";return `<div class="diff-section"><div class="diff-section-title">생성할 데이터</div><table class="diff-table"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>${keys.map(k=>`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-added">${esc(displayValue(after[k]))}</td></tr>`).join("")}</tbody></table></div>`;}
+        if(before&&after){const allKeys=[...new Set([...Object.keys(before),...Object.keys(after)])];const changed=[],unchanged=[];allKeys.forEach(k=>{displayValue(before[k])===displayValue(after[k])?unchanged.push(k):changed.push(k);});if(!changed.length)return `<div class="diff-section"><div class="diff-section-title">변경 사항 없음</div></div>`;let h=`<div class="diff-section"><div class="diff-section-title">변경 내역</div><table class="diff-table"><thead><tr><th>필드</th><th>변경 전</th><th>변경 후</th></tr></thead><tbody>`;changed.forEach(k=>{h+=`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-removed">${esc(displayValue(before[k]))}</td><td class="diff-added">${esc(displayValue(after[k]))}</td></tr>`;});unchanged.forEach(k=>{h+=`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-unchanged" colspan="2">${esc(displayValue(before[k]))} (변경 없음)</td></tr>`;});h+=`</tbody></table></div>`;return h;}
         return "";
     }
 
     /* ── FAILED/REQUESTED 수정 폼 ── */
-    function renderEditForm(d) {
-        const after = safeJson(d.afterJson) || {};
-        const isTerm = d.entityType === "TERM";
-        let h = `<div class="edit-section"><div class="edit-section-title">데이터 수정 후 재검증</div><div class="edit-grid">`;
-        h += `<input id="edit-spelling" class="edit-full" placeholder="영문 용어/형태소" value="${esc(after.spelling||"")}" />`;
-        h += `<input id="edit-meaning" class="edit-full" placeholder="뜻" value="${esc(after.meaning||"")}" />`;
-        if (isTerm) {
-            h += `<input id="edit-abbreviation" placeholder="약어" value="${esc(after.abbreviation||"")}" />`;
-            h += `<input id="edit-glossaryId" placeholder="단어장 ID" value="${esc(after.glossaryId||"")}" />`;
-            h += `<textarea id="edit-explanation" class="edit-full" placeholder="설명">${esc(after.explanation||"")}</textarea>`;
-        }
-        h += `</div><div class="edit-actions"><button class="primary" id="editSaveBtn" data-id="${d.id}" data-type="${d.entityType}">수정 저장 (재검증 대기)</button></div></div>`;
+    function renderEditForm(d){
+        const after=safeJson(d.afterJson)||{};const isTerm=d.entityType==="TERM";
+        let h=`<div class="edit-section"><div class="edit-section-title">데이터 수정 후 재검증</div><div class="edit-grid">`;
+        h+=`<input class="edit-spelling edit-full" placeholder="영문 용어/어근어미" value="${esc(after.spelling||"")}" />`;
+        h+=`<input class="edit-meaning edit-full" placeholder="뜻" value="${esc(after.meaning||"")}" />`;
+        if(isTerm){h+=`<input class="edit-abbreviation" placeholder="약어" value="${esc(after.abbreviation||"")}" />`;h+=`<input class="edit-glossaryId" placeholder="단어장 ID" value="${esc(after.glossaryId||"")}" />`;h+=`<textarea class="edit-explanation edit-full" placeholder="설명">${esc(after.explanation||"")}</textarea>`;}
+        h+=`</div><div class="edit-actions"><button class="primary edit-save-btn" data-id="${d.id}" data-type="${d.entityType}">수정 저장 (재검증 대기)</button></div></div>`;
         return h;
     }
 
-    function bindEditForm() {
-        const btn = $("editSaveBtn");
-        if (!btn) return;
-        btn.addEventListener("click", async () => {
-            const id = Number(btn.dataset.id);
-            const isTerm = btn.dataset.type === "TERM";
-            const body = { spelling: $("edit-spelling")?.value?.trim()||null, meaning: $("edit-meaning")?.value?.trim()||null };
-            if (isTerm) {
-                body.abbreviation = $("edit-abbreviation")?.value?.trim()||null;
-                body.explanation  = $("edit-explanation")?.value?.trim()||null;
-                const gid = $("edit-glossaryId")?.value?.trim();
-                if (gid) body.glossaryId = Number(gid);
-            }
-            try {
-                const r = await callApi(`${API_BASE}/${id}`, "PUT", body);
-                writeLog(`수정 저장 완료: 요청ID=${r.id}, 상태=${r.status} → 재검증 가능`);
-                await loadList();
-                const d = await callApi(`${API_BASE}/${id}`);
-                detailEl.classList.remove("muted","empty");
-                detailEl.innerHTML = renderDetail(d);
-                bindEditForm();
-            } catch (e) { writeLog(`수정 저장 실패: ${e.message}`); }
-        });
-    }
-
-    /* ── 상세 ── */
-    function renderDetail(d) {
-        const before=safeJson(d.beforeJson), after=safeJson(d.afterJson);
-        const typeLabel=TYPE_LABEL[d.entityType]||d.entityType, opLabel=OP_LABEL[d.operation]||d.operation;
-        let h = `<div class="detail-header"><p class="detail-header-title">${esc(d.title)}</p>${d.description?`<p class="detail-header-desc">${esc(d.description)}</p>`:""}</div>`;
-        if (d.errorMessage) h+=`<div class="alert-box alert-error" style="margin-top:12px;">❌ ${esc(d.errorCode?`[${d.errorCode}] `:"")}${esc(d.errorMessage)}</div>`;
-        if (d.warningMessage) h+=`<div class="alert-box alert-warning" style="margin-top:${d.errorMessage?"0":"12px"};">⚠️ ${esc(d.warningMessage)}</div>`;
+    /* ── 상세 렌더 ── */
+    function renderDetail(d){
+        const before=safeJson(d.beforeJson),after=safeJson(d.afterJson);
+        const typeLabel=TYPE_LABEL[d.entityType]||d.entityType,opLabel=OP_LABEL[d.operation]||d.operation;
+        let h=`<div class="inline-detail-inner">`;
+        h+=`<div class="detail-header"><p class="detail-header-title">${highlightTitle(d.title,d.entityType)}</p>${d.description?`<p class="detail-header-desc">${esc(d.description)}</p>`:""}</div>`;
+        if(d.errorMessage) h+=`<div class="alert-box alert-error">❌ ${esc(d.errorCode?`[${d.errorCode}] `:"")}${esc(d.errorMessage)}</div>`;
+        if(d.warningMessage) h+=`<div class="alert-box alert-warning">⚠️ ${esc(d.warningMessage)}</div>`;
         h+=`<div class="detail-meta">`;
         h+=`<div class="meta-item"><div class="meta-label">유형</div><div class="meta-value">${typeLabel} / ${opLabel}</div></div>`;
-        if (d.entityPk&&d.entityPk!=="NEW") h+=`<div class="meta-item"><div class="meta-label">대상 ID</div><div class="meta-value">${esc(d.entityPk)}</div></div>`;
+        if(d.entityPk&&d.entityPk!=="NEW") h+=`<div class="meta-item"><div class="meta-label">대상 ID</div><div class="meta-value">${esc(d.entityPk)}</div></div>`;
         h+=`<div class="meta-item"><div class="meta-label">상태</div><div class="meta-value">${statusBadge(d.status)}</div></div>`;
         h+=`<div class="meta-item"><div class="meta-label">요청 시각</div><div class="meta-value">${formatTime(d.createdAt)}</div></div>`;
-        if (d.appliedAt) h+=`<div class="meta-item"><div class="meta-label">반영 시각</div><div class="meta-value">${formatTime(d.appliedAt)}</div></div>`;
-        if (d.rolledBackAt) h+=`<div class="meta-item"><div class="meta-label">롤백 시각</div><div class="meta-value">${formatTime(d.rolledBackAt)}</div></div>`;
+        if(d.appliedAt) h+=`<div class="meta-item"><div class="meta-label">반영 시각</div><div class="meta-value">${formatTime(d.appliedAt)}</div></div>`;
+        if(d.rolledBackAt) h+=`<div class="meta-item"><div class="meta-label">롤백 시각</div><div class="meta-value">${formatTime(d.rolledBackAt)}</div></div>`;
         h+=`</div>`;
         h+=renderDiff(before,after,d.operation);
-        if (d.status==="FAILED"||d.status==="REQUESTED") h+=renderEditForm(d);
+        if(d.status==="FAILED"||d.status==="REQUESTED") h+=renderEditForm(d);
+        h+=`</div>`;
         return h;
     }
 
-    function summaryText(item) {
-        if (item.errorMessage) return `❌ ${item.errorMessage}`;
-        if (item.warningMessage) return `⚠️ ${item.warningMessage}`;
-        return "-";
+    /* ── 인라인 상세 토글 ── */
+    function closeOpenDetail(){const e=rowsEl.querySelector(".inline-detail");if(e)e.remove();openDetailId=null;}
+
+    async function toggleDetail(id,afterTr){
+        if(openDetailId===id){closeOpenDetail();return;}
+        closeOpenDetail();
+        try{
+            const d=await callApi(`${API_BASE}/${id}`);
+            const tr=document.createElement("tr");tr.className="inline-detail";tr.dataset.detailId=id;
+            tr.innerHTML=`<td colspan="7">${renderDetail(d)}</td>`;
+            afterTr.after(tr);openDetailId=id;
+            // 수정 저장 바인딩
+            const saveBtn=tr.querySelector(".edit-save-btn");
+            if(saveBtn){saveBtn.addEventListener("click",async()=>{
+                const crId=Number(saveBtn.dataset.id),isTerm=saveBtn.dataset.type==="TERM";
+                const body={spelling:tr.querySelector(".edit-spelling")?.value?.trim()||null,meaning:tr.querySelector(".edit-meaning")?.value?.trim()||null};
+                if(isTerm){body.abbreviation=tr.querySelector(".edit-abbreviation")?.value?.trim()||null;body.explanation=tr.querySelector(".edit-explanation")?.value?.trim()||null;const gid=tr.querySelector(".edit-glossaryId")?.value?.trim();if(gid)body.glossaryId=Number(gid);}
+                try{const r=await callApi(`${API_BASE}/${crId}`,"PUT",body);writeLog(`수정 저장 완료: 요청ID=${r.id}, 상태=${r.status}`);await loadList();}catch(e){writeLog(`수정 저장 실패: ${e.message}`);}
+            });}
+            writeLog(`상세 조회: 요청ID=${id}`);
+        }catch(e){writeLog(`상세 조회 실패: ${e.message}`);}
     }
+
+    function summaryText(item){if(item.errorMessage)return `❌ ${item.errorMessage}`;if(item.warningMessage)return `⚠️ ${item.warningMessage}`;return "-";}
 
     /* ── 목록 ── */
-    async function loadList() {
-        const size=Number(sizeInput.value||20), status=statusInput.value;
+    async function loadList(){
+        const size=Number(sizeInput.value||20),status=statusInput.value;
         const params=new URLSearchParams({page:"0",size:String(size)});
-        if (status) params.set("status",status);
-        const data=await callApi(`${API_BASE}?${params}`);
-        const items=data.items||[];
-        if (!items.length) { rowsEl.innerHTML=`<tr><td colspan="7" class="muted">데이터가 없습니다.</td></tr>`; return; }
+        if(status)params.set("status",status);
+        const data=await callApi(`${API_BASE}?${params}`);const items=data.items||[];openDetailId=null;
+        if(!items.length){rowsEl.innerHTML=`<tr><td colspan="7" class="muted">데이터가 없습니다.</td></tr>`;return;}
 
-        rowsEl.innerHTML = items.map(it => {
-            let actions = `<button class="btn-sm" data-action="detail" data-id="${it.id}">상세</button>`;
-            if (it.status==="REQUESTED") actions+=`<button class="btn-sm primary" data-action="validate" data-id="${it.id}">검증</button>`;
-            if (it.status==="FAILED") actions+=`<button class="btn-sm warn-btn" data-action="detail" data-id="${it.id}">수정</button>`;
-            if (["REQUESTED","FAILED","VALIDATED"].includes(it.status)) actions+=`<button class="btn-sm danger" data-action="cancel" data-id="${it.id}">취소</button>`;
-            return `<tr>
-                <td>${it.id}</td><td>${esc(it.title)}</td><td>${it.entityType}</td><td>${it.operation}</td>
-                <td>${statusBadge(it.status)}</td>
-                <td style="max-width:320px; word-break:break-word;">${esc(summaryText(it))}</td>
-                <td>${actions}</td>
-            </tr>`;
+        rowsEl.innerHTML=items.map(it=>{
+            let actions=it.status==="FAILED"
+                ?`<button class="btn-sm warn-btn" data-action="detail" data-id="${it.id}">수정</button>`
+                :`<button class="btn-sm" data-action="detail" data-id="${it.id}">상세</button>`;
+            if(it.status==="REQUESTED") actions+=`<button class="btn-sm primary" data-action="validate" data-id="${it.id}">검증</button>`;
+            if(["REQUESTED","FAILED","VALIDATED"].includes(it.status)) actions+=`<button class="btn-sm danger" data-action="cancel" data-id="${it.id}">취소</button>`;
+            return `<tr data-row-id="${it.id}"><td>${it.id}</td><td>${highlightTitle(it.title,it.entityType)}</td><td>${it.entityType}</td><td>${it.operation}</td><td>${statusBadge(it.status)}</td><td style="max-width:320px;word-break:break-word;">${esc(summaryText(it))}</td><td>${actions}</td></tr>`;
         }).join("");
 
-        rowsEl.querySelectorAll("button").forEach(btn => {
-            btn.addEventListener("click", async () => {
-                const id=Number(btn.dataset.id), act=btn.dataset.action;
-                if (act==="detail") {
-                    try { const d=await callApi(`${API_BASE}/${id}`); detailEl.classList.remove("muted","empty"); detailEl.innerHTML=renderDetail(d); bindEditForm(); writeLog(`상세 조회: 요청ID=${id}`); }
-                    catch(e) { writeLog(`상세 조회 실패: ${e.message}`); }
-                    return;
-                }
-                if (act==="validate") {
-                    try {
-                        const r=await callApi(`${API_BASE}/${id}/validate`,"POST");
-                        writeLog(`검증 완료: 요청ID=${id}, 상태=${r.status}${r.warningMessage?", 경고="+r.warningMessage:""}`);
-                        await loadList();
-                    } catch(e) { writeLog(`검증 실패: ${e.message}`); }
-                    return;
-                }
-                if (act==="cancel") {
-                    if (!confirm(`요청ID ${id}를 취소하시겠습니까?`)) return;
-                    try { const r=await callApi(`${API_BASE}/${id}/cancel`,"POST"); writeLog(`취소 완료: 요청ID=${id}, 상태=${r.status}`); await loadList(); }
-                    catch(e) { writeLog(`취소 실패: ${e.message}`); }
-                }
-            });
-        });
+        rowsEl.querySelectorAll("button").forEach(btn=>{btn.addEventListener("click",async()=>{
+            const id=Number(btn.dataset.id),act=btn.dataset.action,parentTr=btn.closest("tr");
+            if(act==="detail"){await toggleDetail(id,parentTr);return;}
+            if(act==="validate"){try{const r=await callApi(`${API_BASE}/${id}/validate`,"POST");writeLog(`검증 완료: 요청ID=${id}, 상태=${r.status}${r.warningMessage?", 경고="+r.warningMessage:""}`);await loadList();}catch(e){writeLog(`검증 실패: ${e.message}`);}return;}
+            if(act==="cancel"){if(!confirm(`요청ID ${id}를 취소하시겠습니까?`))return;try{const r=await callApi(`${API_BASE}/${id}/cancel`,"POST");writeLog(`취소 완료: 요청ID=${id}, 상태=${r.status}`);await loadList();}catch(e){writeLog(`취소 실패: ${e.message}`);}}
+        });});
     }
 
-    function doSearch() { loadList().catch(e=>writeLog(`조회 실패: ${e.message}`)); }
-    $("searchBtn").addEventListener("click", doSearch);
-    sizeInput.addEventListener("keydown", e=>{ if(e.key==="Enter") doSearch(); });
-    statusInput.addEventListener("keydown", e=>{ if(e.key==="Enter") doSearch(); });
+    function doSearch(){loadList().catch(e=>writeLog(`조회 실패: ${e.message}`));}
+    $("searchBtn").addEventListener("click",doSearch);
+    sizeInput.addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
+    statusInput.addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
     loadList().catch(e=>writeLog(`초기 조회 실패: ${e.message}`));
 </script>
 </body>

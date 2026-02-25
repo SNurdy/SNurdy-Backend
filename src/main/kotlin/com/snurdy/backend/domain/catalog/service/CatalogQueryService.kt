@@ -89,7 +89,7 @@ class CatalogQueryService(
 
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId)
 
-        // 형태소 ID 목록으로 variants 일괄 조회
+        // 어근어미 ID 목록으로 variants 일괄 조회
         val morphemeIds = morphemes.map { it.morphemeId }
         val variantsByMorphemeId = if (morphemeIds.isNotEmpty()) {
             morphemeVariantRepository.findByMorphemeIds(morphemeIds)
@@ -148,7 +148,7 @@ class CatalogQueryService(
         // 2단계: term 기본 정보
         val termEntities = termRepository.findAllById(termIds).associateBy { it.id!! }
 
-        // 전체 형태소 구성 일괄
+        // 전체 어근어미 구성 일괄
         val allMorphemes = termMorphemeRepository.findOrderedMorphemesByTermIds(termIds)
         val morphemesByTermId = allMorphemes.groupBy { it.termId }
 

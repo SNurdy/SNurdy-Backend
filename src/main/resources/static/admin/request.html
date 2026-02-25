@@ -5,19 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS 요청 관리</title>
     <style>
+        /* ── 서비스 브랜드 컬러 ── */
         :root {
-            --bg: #f3f6fb;
-            --card: #ffffff;
-            --line: #d7dfeb;
-            --text: #1f2a36;
-            --muted: #5f7086;
-            --brand: #1362ff;
-            --danger: #b42318;
+            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
+            --pink-light:#F9DFE9; --pink:#FFAFC8; --hotpink:#E44B7B;
+            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
         }
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            background: linear-gradient(180deg, #f9fbff 0%, var(--bg) 100%);
+            background: linear-gradient(180deg, #f6f9ff 0%, var(--bg) 100%);
             color: var(--text);
             font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
         }
@@ -28,9 +25,10 @@
         .page-link {
             display: inline-flex; align-items: center; height: 34px; padding: 0 12px;
             border: 1px solid var(--line); border-radius: 999px;
-            color: var(--text); background: #fff; text-decoration: none; font-size: 13px;
+            color: var(--navy); background: #fff; text-decoration: none; font-size: 13px; transition: all .15s;
         }
-        .page-link.active { color: #fff; background: var(--brand); border-color: var(--brand); font-weight: 700; }
+        .page-link:hover { background: var(--blue-light); }
+        .page-link.active { color: #fff; background: var(--navy); border-color: var(--navy); font-weight: 700; }
 
         /* ── 패널 ── */
         .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
@@ -40,36 +38,43 @@
         .tabs { display: flex; gap: 6px; padding: 0 12px 12px; border-bottom: 1px solid var(--line); }
         .tab {
             border: 1px solid var(--line); border-radius: 999px; height: 32px; padding: 0 12px;
-            background: #fff; cursor: pointer; font-size: 13px;
+            background: #fff; cursor: pointer; font-size: 13px; transition: all .15s;
         }
-        .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 700; }
+        .tab:hover { background: var(--blue-light); }
+        .tab.active { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
 
         /* ── 입력 ── */
         input, textarea, button, select {
             border: 1px solid var(--line); border-radius: 8px; font-size: 14px;
         }
         input, textarea, select { padding: 8px 10px; width: 100%; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(137,176,244,0.25); }
         textarea { min-height: 90px; resize: vertical; }
-        button { height: 36px; padding: 0 12px; background: #fff; cursor: pointer; }
-        button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
-        button.danger  { color: var(--danger); border-color: #f2b8b5; background: #fff7f7; }
+        button { height: 36px; padding: 0 12px; background: #fff; cursor: pointer; transition: all .15s; }
+        button:hover { background: var(--blue-light); }
+        button.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+        button.primary:hover { background: #1e3060; }
+        button.danger  { color: var(--hotpink); border-color: var(--pink); background: #fff; }
+        button.danger:hover { background: var(--pink-light); }
+        button.warn-btn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        button.warn-btn:hover { background: #fef3c7; }
 
         /* ── 그리드 ── */
         .grid { display: grid; grid-template-columns: 56% 44%; gap: 12px; padding: 12px; }
         .section { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
         .section h3 {
             margin: 0; font-size: 14px; padding: 10px 12px;
-            border-bottom: 1px solid var(--line); background: #f8fbff;
+            border-bottom: 1px solid var(--line); background: var(--blue-light); color: var(--navy);
         }
         .section .body { padding: 10px 12px; }
 
         /* ── 목록 테이블 ── */
         .toolbar { display: grid; grid-template-columns: 1fr 100px auto; gap: 8px; margin-bottom: 10px; }
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        th, td { padding: 8px 6px; border-bottom: 1px solid #edf2f8; text-align: left; vertical-align: top; }
-        th { color: var(--muted); font-weight: 600; }
-        tr:hover { background: #f8fbff; }
-        tr.selected { background: #ecf3ff; }
+        th, td { padding: 8px 6px; border-bottom: 1px solid #e8eff8; text-align: left; vertical-align: top; }
+        th { color: var(--navy); font-weight: 600; background: rgba(203,221,252,0.2); }
+        tr:hover { background: rgba(203,221,252,0.12); }
+        tr.selected { background: var(--blue-light); }
 
         /* ── 페이저 ── */
         .pager { margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
@@ -79,7 +84,7 @@
         .full { grid-column: 1 / -1; }
         .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
 
-        /* ── 형태소 박스 ── */
+        /* ── 어근어미 박스 ── */
         .morpheme-box { border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
         .morpheme-search { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-bottom: 8px; }
         .morpheme-results, .morpheme-selected {
@@ -92,7 +97,7 @@
         /* ── 로그 ── */
         .log {
             margin-top: 10px; padding: 10px; border-radius: 8px;
-            background: #111928; color: #dbe8ff; min-height: 74px;
+            background: var(--navy); color: var(--blue-light); min-height: 74px;
             white-space: pre-wrap; font-size: 12px;
         }
         .muted { color: var(--muted); }
@@ -104,6 +109,7 @@
         <a class="page-link active" href="/api/admin/request.html">요청</a>
         <a class="page-link" href="/api/admin/validate-waiting.html">검증/반영대기</a>
         <a class="page-link" href="/api/admin/apply.html">반영</a>
+        <a class="page-link" href="/api/admin/audit-log.html">변경이력</a>
     </nav>
 
     <section class="panel">
@@ -113,8 +119,7 @@
         <div class="tabs" id="tabs">
             <button class="tab active" data-type="terms">용어</button>
             <button class="tab" data-type="glossaries">단어장</button>
-            <button class="tab" data-type="morphemes">형태소</button>
-            <button class="tab" data-type="morpheme-variants">변형어</button>
+            <button class="tab" data-type="morphemes">어근어미</button>
         </div>
 
         <div class="grid">
@@ -145,7 +150,7 @@
                 <h3>편집</h3>
                 <div class="body">
                     <div class="form-grid">
-                        <input id="spelling" class="full" placeholder="영문 용어/형태소 (필수)" />
+                        <input id="spelling" class="full" placeholder="영문 용어/어근어미 (필수)" />
                         <input id="meaning" class="full" placeholder="뜻 (필수)" />
                         <select id="glossarySelect" class="full" style="display:none;">
                             <option value="">단어장 선택</option>
@@ -154,15 +159,15 @@
                         <input id="selectedId" placeholder="선택된 ID (읽기전용)" disabled />
                         <textarea id="explanation" class="full" placeholder="설명"></textarea>
 
-                        <!-- 형태소 선택 -->
+                        <!-- 어근어미 선택 -->
                         <div id="morphemeBox" class="morpheme-box full">
                             <div class="morpheme-search">
-                                <input id="morphemeKeyword" placeholder="형태소 검색어" />
-                                <button id="searchMorphemeBtn">형태소 검색</button>
+                                <input id="morphemeKeyword" placeholder="어근어미 검색어" />
+                                <button id="searchMorphemeBtn">어근어미 검색</button>
                             </div>
                             <div class="muted">검색 결과</div>
                             <div id="morphemeResults" class="morpheme-results"></div>
-                            <div class="muted">선택된 형태소 (위/아래로 순서 조정)</div>
+                            <div class="muted">선택된 어근어미 (위/아래로 순서 조정)</div>
                             <div id="selectedMorphemes" class="morpheme-selected"></div>
                         </div>
                     </div>
@@ -170,7 +175,7 @@
                     <div class="actions">
                         <button id="newBtn">새 항목</button>
                         <button id="createBtn" class="primary">생성 요청</button>
-                        <button id="updateBtn">수정 요청</button>
+                        <button id="updateBtn" class="warn-btn">수정 요청</button>
                         <button id="deleteBtn" class="danger">삭제 요청</button>
                     </div>
                     <p id="formHint" class="muted">생성 시 ID 입력이 필요 없습니다. 수정/삭제는 목록에서 선택 후 진행하세요.</p>
@@ -295,19 +300,17 @@
             [spelling, meaning, abbreviation, explanation, selectedIdInput].forEach(el => el.style.display = "");
             glossarySelect.style.display = "";
             morphemeBox.style.display = "";
-            formHint.textContent = "생성 시 ID 불필요. 수정/삭제는 목록에서 선택 후 진행.";
             return;
         }
 
-        /* 형태소 탭 */
+        /* 어근어미 탭 */
         if (isMorphemeTab()) {
-            createBtn.style.display = "";  createBtn.textContent = "형태소 추가 요청";
+            createBtn.style.display = "";  createBtn.textContent = "어근어미 추가 요청";
             updateBtn.style.display = "none";  deleteBtn.style.display = "none";
             spelling.style.display = "";  meaning.style.display = "";
             glossarySelect.style.display = "none";
             abbreviation.style.display = "none";  explanation.style.display = "none";
             selectedIdInput.style.display = "none";  morphemeBox.style.display = "none";
-            formHint.textContent = "형태소는 추가 요청만 지원. 반영 시 변형어 자동 생성.";
             return;
         }
 
@@ -319,11 +322,11 @@
     }
 
     /* ================================================================
-     *  형태소 선택 UI
+     *  어근어미 선택 UI
      * ================================================================ */
     function renderSelectedMorphemes() {
         if (selectedMorphemes.length === 0) {
-            selectedMorphemesEl.innerHTML = `<div class="muted">선택된 형태소가 없습니다.</div>`;
+            selectedMorphemesEl.innerHTML = `<div class="muted">선택된 어근어미가 없습니다.</div>`;
             return;
         }
         selectedMorphemesEl.innerHTML = selectedMorphemes.map((m, idx) => `
@@ -365,7 +368,7 @@
                 const id = Number(btn.dataset.id);
                 const found = items.find(i => i.id === id);
                 if (!found) return;
-                if (selectedMorphemes.some(m => m.id === id)) { writeLog("이미 추가된 형태소입니다."); return; }
+                if (selectedMorphemes.some(m => m.id === id)) { writeLog("이미 추가된 어근어미입니다."); return; }
                 selectedMorphemes.push({ id: found.id, spelling: found.spelling, meaning: found.meaning });
                 renderSelectedMorphemes();
             });
@@ -423,20 +426,14 @@
             return;
         }
 
-        /* 형태소 */
+        /* 어근어미 */
         if (type === "morphemes") {
-            listTitle.textContent = "형태소 목록";
-            listHead.innerHTML = "<tr><th>ID</th><th>형태소</th><th>뜻</th></tr>";
+            listTitle.textContent = "어근어미 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>어근어미</th><th>뜻</th></tr>";
             listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${esc(r.spelling)}</td><td>${esc(r.meaning)}</td></tr>`).join("");
             return;
         }
 
-        /* 변형어 */
-        if (type === "morpheme-variants") {
-            listTitle.textContent = "변형어 목록";
-            listHead.innerHTML = "<tr><th>ID</th><th>morphemeId</th><th>variant</th><th>base</th></tr>";
-            listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${r.morphemeId}</td><td>${esc(r.variant)}</td><td>${esc(r.base)}</td></tr>`).join("");
-        }
     }
 
     /* ================================================================
@@ -464,10 +461,10 @@
                     morphemes:    selectedMorphemes.map(m => m.id),
                 };
             } else if (isMorphemeTab()) {
-                if (!spelling.value.trim() || !meaning.value.trim()) { writeLog("형태소와 뜻은 필수입니다."); return; }
+                if (!spelling.value.trim() || !meaning.value.trim()) { writeLog("어근어미와 뜻은 필수입니다."); return; }
                 body = {
-                    title: buildTitle("형태소 추가"),
-                    description: "CMS 요청 페이지에서 형태소 추가",
+                    title: buildTitle("어근어미 추가"),
+                    description: "CMS 요청 페이지에서 어근어미 추가",
                     entityType: "MORPHEME",
                     operation: "CREATE",
                     spelling: spelling.value.trim(),
@@ -547,12 +544,12 @@
 
     async function searchMorphemes() {
         const q = morphemeKeyword.value.trim();
-        if (!q) { writeLog("형태소 검색어를 입력하세요."); return; }
+        if (!q) { writeLog("어근어미 검색어를 입력하세요."); return; }
         try {
             const data = await callApi(`${API.dictionary("morphemes")}?${qs({ keyword: q, page: 0, size: 20 })}`);
             renderMorphemeResults(data.items || []);
-            writeLog(`형태소 검색: ${data.totalElements || 0}건`);
-        } catch (e) { writeLog(`형태소 검색 실패: ${e.message}`); }
+            writeLog(`어근어미 검색: ${data.totalElements || 0}건`);
+        } catch (e) { writeLog(`어근어미 검색 실패: ${e.message}`); }
     }
 
     $("tabs").querySelectorAll(".tab").forEach(tab => {

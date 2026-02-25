@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.admin.dictionary.service
 
 import com.snurdy.backend.domain.admin.dictionary.dto.*
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
 import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
@@ -19,7 +20,8 @@ class AdminDictionaryQueryService(
     private val termRepository: TermRepository,
     private val termMorphemeRepository: TermMorphemeRepository,
     private val morphemeRepository: MorphemeRepository,
-    private val morphemeVariantRepository: MorphemeVariantRepository
+    private val morphemeVariantRepository: MorphemeVariantRepository,
+    private val glossaryTermRepository: GlossaryTermRepository
 ) {
 
     @Transactional(readOnly = true)
@@ -72,12 +74,13 @@ class AdminDictionaryQueryService(
     @Transactional(readOnly = true)
     fun getTerm(termId: Long): TermDetailResponse {
         val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map {
             TermMorphemeMappingResponse(
                 morphemeId = it.morphemeId,
                 spelling = it.spelling,
                 meaning = it.meaning,
-                position = it.position
+                position = it.position,
             )
         }
         return TermDetailResponse(
@@ -86,6 +89,7 @@ class AdminDictionaryQueryService(
             meaning = term.meaning,
             abbreviation = term.abbreviation,
             explanation = term.explanation,
+            glossaryIds = glossaryIds,
             morphemes = morphemes
         )
     }

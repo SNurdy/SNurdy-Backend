@@ -34,6 +34,28 @@
         .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
         .top { display: flex; justify-content: flex-start; gap: 8px; padding: 12px; }
 
+        .glossary-picker { border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+        .glossary-picker-title { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+        .glossary-checklist {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 6px;
+            max-height: 180px;
+            overflow: auto;
+            padding-right: 2px;
+        }
+        .glossary-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            border: 1px solid #e8eff8;
+            border-radius: 8px;
+            padding: 6px 8px;
+            background: #fff;
+            font-size: 12px;
+        }
+        .glossary-item input { width: auto; margin-top: 1px; }
+
         /* ── 탭 ── */
         .tabs { display: flex; gap: 6px; padding: 0 12px 12px; border-bottom: 1px solid var(--line); }
         .tab {
@@ -152,9 +174,10 @@
                     <div class="form-grid">
                         <input id="spelling" class="full" placeholder="영문 단어/어근어미 (필수)" />
                         <input id="meaning" class="full" placeholder="뜻 (필수)" />
-                        <select id="glossarySelect" class="full" style="display:none;" multiple size="6">
-                            <option value="" disabled>단어장 선택(다중 선택 가능)</option>
-                        </select>
+                        <div id="glossaryPicker" class="glossary-picker full" style="display:none;">
+                            <div class="glossary-picker-title">단어장 선택 (1개 이상 필수)</div>
+                            <div id="glossaryChecklist" class="glossary-checklist"></div>
+                        </div>
                         <input id="abbreviation" placeholder="약어" />
                         <input id="selectedId" placeholder="선택된 ID (읽기전용)" disabled />
                         <textarea id="explanation" class="full" placeholder="설명"></textarea>
@@ -165,7 +188,6 @@
                                 <input id="morphemeKeyword" placeholder="어근어미 검색어" />
                                 <button id="searchMorphemeBtn">어근어미 검색</button>
                             </div>
-                            <div class="muted">검색 결과</div>
                             <div id="morphemeResults" class="morpheme-results"></div>
                             <div class="muted">선택된 어근어미 (위/아래로 순서 조정)</div>
                             <div id="selectedMorphemes" class="morpheme-selected"></div>
@@ -203,7 +225,8 @@
 
     const spelling       = $("spelling");
     const meaning        = $("meaning");
-    const glossarySelect = $("glossarySelect");
+    const glossaryPicker = $("glossaryPicker");
+    const glossaryChecklist = $("glossaryChecklist");
     const abbreviation   = $("abbreviation");
     const explanation    = $("explanation");
     const selectedIdInput = $("selectedId");
@@ -223,6 +246,7 @@
     let selectedTermId = null;
     let rows = [];
     let selectedMorphemes = [];
+    let glossaryItems = [];
 
     /* ================================================================
      *  API 경로 상수
@@ -271,9 +295,29 @@
     }
 
     function getSelectedGlossaryIds() {
-        return Array.from(glossarySelect.selectedOptions)
-            .map(opt => Number(opt.value))
+        return Array.from(glossaryChecklist.querySelectorAll('input[type="checkbox"]:checked'))
+            .map(input => Number(input.value))
             .filter(Number.isFinite);
+    }
+
+    function setSelectedGlossaryIds(ids) {
+        const selected = new Set((ids || []).map(Number).filter(Number.isFinite));
+        glossaryChecklist.querySelectorAll('input[type="checkbox"]').forEach(input => {
+            input.checked = selected.has(Number(input.value));
+        });
+    }
+
+    function renderGlossaryChecklist() {
+        if (!glossaryItems.length) {
+            glossaryChecklist.innerHTML = `<div class="muted">단어장 목록이 없습니다.</div>`;
+            return;
+        }
+        glossaryChecklist.innerHTML = glossaryItems.map(g => `
+            <label class="glossary-item">
+                <input type="checkbox" value="${g.id}" />
+                <span>${esc(g.category)} / ${esc(g.title)}</span>
+            </label>
+        `).join("");
     }
 
     /* ================================================================
@@ -284,7 +328,7 @@
         selectedIdInput.value = "";
         spelling.value = "";
         meaning.value = "";
-        glossarySelect.value = "";
+        setSelectedGlossaryIds([]);
         abbreviation.value = "";
         explanation.value = "";
         selectedMorphemes = [];
@@ -304,7 +348,7 @@
             createBtn.style.display = "";  createBtn.textContent = "생성 요청";
             updateBtn.style.display = "";  deleteBtn.style.display = "";
             [spelling, meaning, abbreviation, explanation, selectedIdInput].forEach(el => el.style.display = "");
-            glossarySelect.style.display = "";
+            glossaryPicker.style.display = "";
             morphemeBox.style.display = "";
             return;
         }
@@ -314,7 +358,7 @@
             createBtn.style.display = "";  createBtn.textContent = "어근어미 추가 요청";
             updateBtn.style.display = "none";  deleteBtn.style.display = "none";
             spelling.style.display = "";  meaning.style.display = "";
-            glossarySelect.style.display = "none";
+            glossaryPicker.style.display = "none";
             abbreviation.style.display = "none";  explanation.style.display = "none";
             selectedIdInput.style.display = "none";  morphemeBox.style.display = "none";
             return;
@@ -322,7 +366,7 @@
 
         /* 그 외 (단어장, 변형어) — 편집 비활성 */
         [createBtn, updateBtn, deleteBtn].forEach(b => b.style.display = "none");
-        [spelling, meaning, glossarySelect, abbreviation, explanation, selectedIdInput].forEach(el => el.style.display = "none");
+        [spelling, meaning, glossaryPicker, abbreviation, explanation, selectedIdInput].forEach(el => el.style.display = "none");
         morphemeBox.style.display = "none";
         formHint.textContent = "현재 탭은 요청 생성 대상이 아닙니다.";
     }
@@ -417,6 +461,7 @@
                         abbreviation.value = d.abbreviation || "";
                         explanation.value   = d.explanation || "";
                         selectedMorphemes = (d.morphemes || []).map(m => ({ id: m.morphemeId, spelling: m.spelling, meaning: m.meaning }));
+                        setSelectedGlossaryIds(d.glossaryIds || []);
                         renderSelectedMorphemes();
                     } catch (e) { writeLog(`상세 조회 실패: ${e.message}`); }
                 });
@@ -579,9 +624,8 @@
     async function init() {
         try {
             const data = await callApi(`${API.dictionary("glossaries")}?page=0&size=100`);
-            const items = data.items || [];
-            glossarySelect.innerHTML = `<option value="" disabled>단어장 선택(다중 선택 가능)</option>` +
-                items.map(g => `<option value="${g.id}">${esc(g.category)} / ${esc(g.title)}</option>`).join("");
+            glossaryItems = data.items || [];
+            renderGlossaryChecklist();
         } catch (e) { writeLog(`단어장 목록 로드 실패: ${e.message}`); }
 
         renderSelectedMorphemes();

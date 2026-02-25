@@ -189,6 +189,7 @@
     function renderEditForm(d){
         const after=safeJson(d.afterJson)||{};const isTerm=d.entityType==="TERM";
         let h=`<div class="edit-section"><div class="edit-section-title">데이터 수정 후 재검증</div><div class="edit-grid">`;
+        h+=`<input class="edit-title edit-full" placeholder="요청 제목" value="${esc(d.title||"")}" />`;
         h+=`<input class="edit-spelling edit-full" placeholder="영문 단어/어근어미" value="${esc(after.spelling||"")}" />`;
         h+=`<input class="edit-meaning edit-full" placeholder="뜻" value="${esc(after.meaning||"")}" />`;
         if(isTerm){h+=`<input class="edit-abbreviation" placeholder="약어" value="${esc(after.abbreviation||"")}" />`;h+=`<input class="edit-glossaryId" placeholder="단어장 ID" value="${esc(after.glossaryId||"")}" />`;h+=`<textarea class="edit-explanation edit-full" placeholder="설명">${esc(after.explanation||"")}</textarea>`;}
@@ -234,6 +235,7 @@
             if(saveBtn){saveBtn.addEventListener("click",async()=>{
                 const crId=Number(saveBtn.dataset.id),isTerm=saveBtn.dataset.type==="TERM";
                 const body={spelling:tr.querySelector(".edit-spelling")?.value?.trim()||null,meaning:tr.querySelector(".edit-meaning")?.value?.trim()||null};
+                body.title=tr.querySelector(".edit-title")?.value?.trim()||null;
                 if(isTerm){body.abbreviation=tr.querySelector(".edit-abbreviation")?.value?.trim()||null;body.explanation=tr.querySelector(".edit-explanation")?.value?.trim()||null;const gid=tr.querySelector(".edit-glossaryId")?.value?.trim();if(gid)body.glossaryId=Number(gid);}
                 try{const r=await callApi(`${API_BASE}/${crId}`,"PUT",body);writeLog(`수정 저장 완료: 요청ID=${r.id}, 상태=${r.status}`);await loadList();}catch(e){writeLog(`수정 저장 실패: ${e.message}`);}
             });}

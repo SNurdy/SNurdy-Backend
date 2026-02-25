@@ -16,6 +16,7 @@ data class CreateChangeRequest(
 )
 
 data class UpdateChangeRequest(
+    val title: String? = null,
     val spelling: String? = null,
     val meaning: String? = null,
     val abbreviation: String? = null,

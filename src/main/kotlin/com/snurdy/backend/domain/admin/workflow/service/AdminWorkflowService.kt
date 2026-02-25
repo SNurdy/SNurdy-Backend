@@ -75,6 +75,7 @@ class AdminWorkflowService(
             ?.let { objectMapper.readValue(it) }
             ?: mutableMapOf()
 
+        request.title?.trim()?.takeIf { it.isNotBlank() }?.let { cr.title = it }
         request.spelling?.let { currentPayload["spelling"] = it.trim() }
         request.meaning?.let { currentPayload["meaning"] = it.trim() }
         request.abbreviation?.let { currentPayload["abbreviation"] = it.trim().takeIf { v -> v.isNotBlank() } }

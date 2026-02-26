@@ -19,6 +19,7 @@ import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.constants.CatalogError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class TermChangeHandler(
@@ -44,11 +45,17 @@ class TermChangeHandler(
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
                 validateFields(payload, v)
+
                 val glossaryIds = resolveGlossaryIds(payload)
                 if (glossaryIds == null) {
                     v.error(ValidationCode.GLOSSARY_REQUIRED)
                     return v.build()
                 }
+                if (glossaryIds.isEmpty()) {
+                    v.error(ValidationCode.EMPTY_GLOSSARY_IDS)
+                    return v.build()
+                }
+
                 validateGlossaryIds(glossaryIds, v)
                 validateMorphemeIds(payload.morphemes, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = null, v)
@@ -61,7 +68,16 @@ class TermChangeHandler(
                 if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "단어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
                 validateFields(payload, v)
-                resolveGlossaryIds(payload)?.let { validateGlossaryIds(it, v) }
+
+                val glossaryIds = resolveGlossaryIds(payload)
+                if (glossaryIds != null) {
+                    if (glossaryIds.isEmpty()) {
+                        v.error(ValidationCode.EMPTY_GLOSSARY_IDS)
+                        return v.build()
+                    }
+                    validateGlossaryIds(glossaryIds, v)
+                }
+
                 validateMorphemeIds(payload.morphemes, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = termId, v)
             }
@@ -131,8 +147,10 @@ class TermChangeHandler(
     private fun applyDelete(cr: ChangeRequestEntity): String? {
         val termId = cr.entityPk.toLong()
         termMorphemeRepository.deleteByIdTermId(termId)
+        glossaryTermRepository.deleteByIdTermId(termId)
         val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
-        termRepository.delete(term)
+        term.deletedAt = Instant.now()
+        termRepository.save(term)
         return null
     }
 
@@ -146,7 +164,6 @@ class TermChangeHandler(
     }
 
     private fun rollbackUpdate(cr: ChangeRequestEntity) {
-        // UPDATE 롤백 = beforeJson으로 복원
         val termId = cr.entityPk.toLong()
         val beforePayload = parsePayload(cr.beforeJson)
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
@@ -167,15 +184,10 @@ class TermChangeHandler(
         val beforePayload = parsePayload(cr.beforeJson)
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
 
-        termRepository.save(
-            TermEntity(
-                id = termId,
-                spelling = beforePayload.spelling.trim(),
-                meaning = beforePayload.meaning.trim(),
-                abbreviation = beforePayload.abbreviation?.trim()?.takeIf { it.isNotBlank() },
-                explanation = beforePayload.explanation?.trim()?.takeIf { it.isNotBlank() }
-            )
-        )
+        val term = termRepository.findById(termId).orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
+        term.deletedAt = null
+        termRepository.save(term)
+
         replaceMorphemeMappings(termId, beforePayload.morphemes)
         resolveGlossaryIds(beforePayload)?.let { replaceGlossaryMappings(termId, it) }
     }
@@ -206,8 +218,9 @@ class TermChangeHandler(
     }
 
     private fun checkSpellingDuplicate(spelling: String, excludeId: Long?, v: ValidationCollector) {
-        val duplicate = termRepository.findBySpellingIgnoreCase(spelling)
-        if (duplicate != null && duplicate.id != excludeId) {
+        val duplicates = termRepository.findAllBySpellingIgnoreCase(spelling)
+        val duplicate = duplicates.firstOrNull { it.id != excludeId }
+        if (duplicate != null) {
             v.warn(ValidationCode.TERM_SPELLING_DUPLICATE, duplicate.spelling, duplicate.id, duplicate.meaning)
         }
     }

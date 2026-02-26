@@ -14,6 +14,7 @@ enum class ValidationCode(
     ABBREVIATION_TOO_LONG("VALIDATION_ABBREVIATION_TOO_LONG", "abbreviation은 %d자 이하여야 합니다"),
 
     GLOSSARY_REQUIRED("VALIDATION_GLOSSARY_REQUIRED", "단어 생성 시 단어장 선택은 필수입니다"),
+    EMPTY_GLOSSARY_IDS("VALIDATION_EMPTY_GLOSSARY_IDS", "단어장을 최소 1개 이상 선택해야 합니다"),
     GLOSSARY_NOT_FOUND("VALIDATION_GLOSSARY_NOT_FOUND", "단어장을 찾을 수 없습니다 (ID=%d)"),
     TERM_NOT_FOUND("VALIDATION_TERM_NOT_FOUND", "대상 단어를 찾을 수 없습니다 (ID=%d)"),
     MORPHEME_NOT_FOUND("VALIDATION_MORPHEME_NOT_FOUND", "대상 어근어미를 찾을 수 없습니다 (ID=%d)"),

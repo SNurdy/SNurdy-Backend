@@ -37,7 +37,9 @@ interface MorphemeVariantRepository : JpaRepository<MorphemeVariantEntity, Long>
     SELECT DISTINCT tm.term_id AS termId, tm.morpheme_id AS morphemeId
     FROM morpheme_variants mv
     JOIN term_morphemes tm ON tm.morpheme_id = mv.morpheme_id
+    JOIN terms t ON t.id = tm.term_id
     WHERE mv.variant LIKE CONCAT(:keyword, '%')
+      AND t.deleted_at IS NULL
     ORDER BY tm.term_id
     """,
         nativeQuery = true

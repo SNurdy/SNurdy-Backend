@@ -19,6 +19,7 @@ interface GlossaryRepository : JpaRepository<GlossaryEntity, Long> {
         SELECT g.id AS glossaryId, g.category AS category, g.title AS title, COUNT(gt.term_id) AS termCount
         FROM glossaries g
         LEFT JOIN glossary_terms gt ON gt.glossary_id = g.id
+        LEFT JOIN terms t ON t.id = gt.term_id AND t.deleted_at IS NULL
         GROUP BY g.id, g.category, g.title
         ORDER BY g.id
         """,

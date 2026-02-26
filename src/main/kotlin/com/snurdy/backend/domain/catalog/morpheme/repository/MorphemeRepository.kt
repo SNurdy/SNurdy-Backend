@@ -8,7 +8,8 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
 interface MorphemeRepository : JpaRepository<MorphemeEntity, Long> {
-    fun findBySpellingIgnoreCase(spelling: String): MorphemeEntity?
+
+    fun findAllBySpellingIgnoreCase(spelling: String): List<MorphemeEntity>
 
     fun findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCase(
         spelling: String,

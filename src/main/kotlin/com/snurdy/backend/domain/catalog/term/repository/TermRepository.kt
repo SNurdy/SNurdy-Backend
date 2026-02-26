@@ -18,5 +18,5 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         pageable: Pageable
     ): Page<TermEntity>
 
-    fun findBySpellingIgnoreCase(spelling: String): TermEntity?
+    fun findAllBySpellingIgnoreCase(spelling: String): List<TermEntity>
 }

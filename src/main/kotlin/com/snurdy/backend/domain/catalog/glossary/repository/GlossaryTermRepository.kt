@@ -28,6 +28,7 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         FROM terms t
         LEFT JOIN glossary_terms gt ON gt.term_id = t.id
         WHERE gt.term_id IS NULL
+          AND t.deleted_at IS NULL
         ORDER BY t.id
         LIMIT :limit
         """,
@@ -41,6 +42,7 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
         ORDER BY t.id
         """,
         nativeQuery = true
@@ -53,12 +55,15 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
         ORDER BY t.id
         """,
         countQuery = """
         SELECT COUNT(*)
         FROM glossary_terms gt
+        JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
         """,
         nativeQuery = true
     )

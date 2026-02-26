@@ -92,7 +92,6 @@ class MorphemeChangeHandler(
             }
 
             ChangeRequestOperation.UPDATE -> {
-                // UPDATE 롤백 = beforeJson으로 복원
                 val morphemeId = cr.entityPk.toLong()
                 val beforePayload = parsePayload(cr.beforeJson)
                     ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
@@ -116,8 +115,9 @@ class MorphemeChangeHandler(
     }
 
     private fun checkSpellingDuplicate(spelling: String, excludeId: Long?, v: ValidationCollector) {
-        val duplicate = morphemeRepository.findBySpellingIgnoreCase(spelling)
-        if (duplicate != null && duplicate.id != excludeId) {
+        val duplicates = morphemeRepository.findAllBySpellingIgnoreCase(spelling)
+        val duplicate = duplicates.firstOrNull { it.id != excludeId }
+        if (duplicate != null) {
             v.warn(ValidationCode.MORPHEME_SPELLING_DUPLICATE, duplicate.spelling, duplicate.id, duplicate.meaning)
         }
     }

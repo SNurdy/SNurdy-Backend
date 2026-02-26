@@ -5,10 +5,11 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import java.util.Optional
 
 interface TermRepository : JpaRepository<TermEntity, Long> {
 
-    @Query(value = "SELECT spelling FROM terms ORDER BY id", nativeQuery = true)
+    @Query(value = "SELECT spelling FROM terms WHERE deleted_at IS NULL ORDER BY id", nativeQuery = true)
     fun findAllSpellings(): List<String>
 
     fun findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCaseOrAbbreviationContainingIgnoreCase(
@@ -19,4 +20,6 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
     ): Page<TermEntity>
 
     fun findAllBySpellingIgnoreCase(spelling: String): List<TermEntity>
+
+    fun findByIdAndDeletedAtIsNull(id: Long): Optional<TermEntity>
 }

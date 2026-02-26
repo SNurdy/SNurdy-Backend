@@ -8,6 +8,7 @@ import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import jakarta.validation.ConstraintViolationException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -29,6 +30,7 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is MethodArgumentNotValidException -> this.toValidationApiException()
     is HandlerMethodValidationException -> this.toMethodValidationApiException()
     is ConstraintViolationException -> this.toConstraintViolationApiException()
+    is DataIntegrityViolationException -> ApiException(CommonError.BAD_REQUEST)
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->

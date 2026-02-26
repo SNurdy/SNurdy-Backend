@@ -5,26 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS 반영</title>
     <style>
-        :root { --bg:#f3f6fb; --card:#fff; --line:#d7dfeb; --text:#1f2a36; --muted:#5f7086; --brand:#1362ff; --ok:#067647; }
+        /* ── 서비스 브랜드 컬러 ── */
+        :root {
+            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
+            --pink-light:#F9DFE9; --pink:#FFAFC8; --hotpink:#E44B7B;
+            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
+        }
         * { box-sizing:border-box; }
-        body { margin:0; background:linear-gradient(180deg,#f9fbff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
-        .wrap { max-width:1100px; margin:0 auto; padding:20px; }
+        body { margin:0; background:linear-gradient(180deg,#f6f9ff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
+        .wrap { max-width:1400px; margin:0 auto; padding:20px; }
+
+        /* 네비 */
         .page-nav { display:flex; gap:8px; margin-bottom:10px; }
-        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--text); background:#fff; text-decoration:none; font-size:13px; }
-        .page-link.active { color:#fff; background:var(--brand); border-color:var(--brand); font-weight:700; }
+        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--navy); background:#fff; text-decoration:none; font-size:13px; transition:all .15s; }
+        .page-link:hover { background:var(--blue-light); }
+        .page-link.active { color:#fff; background:var(--navy); border-color:var(--navy); font-weight:700; }
+
+        /* 패널 */
         .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; }
+        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background:var(--blue-light); }
+        .head strong { color:var(--navy); }
         .body { padding:16px; }
+
+        /* 입력 */
         .toolbar { display:grid; grid-template-columns: 90px auto; gap:8px; margin-bottom:10px; }
         input, button { border:1px solid var(--line); border-radius:8px; font-size:14px; height:36px; padding:0 10px; }
-        button { background:#fff; cursor:pointer; }
-        button.primary { background:var(--brand); color:#fff; border-color:var(--brand); }
-        button.apply { background:var(--ok); color:#fff; border-color:var(--ok); }
+        input:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(137,176,244,0.25); }
+        button { background:#fff; cursor:pointer; transition:all .15s; }
+        button:hover { background:var(--blue-light); }
+        button.primary { background:var(--navy); color:#fff; border-color:var(--navy); }
+        button.primary:hover { background:#1e3060; }
+        button.apply   { background:var(--blue); color:var(--navy); border-color:var(--blue); font-weight:600; }
+        button.apply:hover { background:var(--navy); color:#fff; }
+        button.danger  { color:var(--hotpink); border-color:var(--pink); background:#fff; }
+        button.danger:hover { background:var(--pink-light); }
+
+        /* 탭 */
+        .tabs { display:flex; gap:6px; margin-bottom:10px; }
+        .tab-btn { border:1px solid var(--line); border-radius:999px; height:32px; padding:0 14px; background:#fff; cursor:pointer; font-size:13px; transition:all .15s; }
+        .tab-btn:hover { background:var(--blue-light); }
+        .tab-btn.active { background:var(--navy); border-color:var(--navy); color:#fff; font-weight:700; }
+
+        /* 테이블 */
         table { width:100%; border-collapse:collapse; font-size:13px; }
-        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #edf2f8; vertical-align:top; }
-        th { color:var(--muted); font-weight:600; }
-        .log { margin-top:10px; padding:10px; border-radius:8px; background:#111928; color:#dbe8ff; min-height:74px; white-space:pre-wrap; font-size:12px; }
+        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #e8eff8; vertical-align:top; }
+        th { color:var(--navy); font-weight:600; background:rgba(203,221,252,0.2); }
+
+        /* 배지 */
+        .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
+        .badge-validated   { background:var(--blue-light); color:var(--navy); }
+        .badge-applied     { background:#e8eff8; color:#374151; }
+        .badge-rolled_back { background:var(--pink-light); color:var(--hotpink); }
+
+        /* 경고 텍스트 */
+        .warn-text { color:var(--hotpink); font-size:12px; }
+
+        /* 로그 */
+        .log { margin-top:10px; padding:10px; border-radius:8px; background:var(--navy); color:var(--blue-light); min-height:74px; white-space:pre-wrap; font-size:12px; }
         .muted { color:var(--muted); }
+        .btn-sm { height:28px; padding:0 8px; font-size:12px; margin-right:4px; }
     </style>
 </head>
 <body>
@@ -33,27 +72,30 @@
         <a class="page-link" href="/api/admin/request.html">요청</a>
         <a class="page-link" href="/api/admin/validate-waiting.html">검증/반영대기</a>
         <a class="page-link active" href="/api/admin/apply.html">반영</a>
+        <a class="page-link" href="/api/admin/audit-log.html">변경이력</a>
     </nav>
 
     <section class="panel">
         <div class="head">
             <strong>반영 실행</strong>
-            <span class="muted">검증통과/반영대기 건만 반영할 수 있습니다</span>
+            <span class="muted">검증완료(VALIDATED) 건만 반영할 수 있습니다</span>
         </div>
         <div class="body">
             <div class="toolbar">
                 <input id="size" value="20" />
-                <button id="searchBtn" class="primary">조회</button>
+                <button id="searchBtn" class="primary" style="width: 100px">조회</button>
             </div>
 
             <table>
                 <thead>
                 <tr>
-                    <th>요청 ID</th>
+                    <th>ID</th>
                     <th>제목</th>
-                    <th>상태</th>
-                    <th>검증요약</th>
+                    <th>유형</th>
                     <th>작업</th>
+                    <th>상태</th>
+                    <th>경고</th>
+                    <th>액션</th>
                 </tr>
                 </thead>
                 <tbody id="rows"></tbody>
@@ -65,44 +107,52 @@
 </div>
 
 <script>
-    const sizeInput = document.getElementById("size");
-    const rowsEl = document.getElementById("rows");
-    const logEl = document.getElementById("log");
+    const $ = (id) => document.getElementById(id);
 
-    function writeLog(message) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${message}\n` + logEl.textContent; }
-    function statusLabel(status) {
-        if (status === "VALIDATED_WAITING") return "검증통과/반영대기";
-        if (status === "APPLIED_DEV") return "반영완료(DEV)";
-        return status;
-    }
+    const sizeInput = $("size");
+    const rowsEl    = $("rows");
+    const logEl     = $("log");
+
+    const API_BASE = "/api/v1/admin/workflows/change-requests";
+
+    function writeLog(msg) { logEl.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logEl.textContent; }
 
     function callApi(path, method = "GET") {
-        const headers = { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` };
-        return fetch(path, { method, headers }).then(async res => {
+        return fetch(path, {
+            method,
+            headers: { "Content-Type": "application/json", "X-Request-Id": `cms-${Date.now()}` },
+        }).then(async res => {
             const payload = await res.json();
             if (!res.ok || payload.success === false) throw new Error(payload.message || `HTTP ${res.status}`);
             return payload.data;
         });
     }
 
+    function esc(v) {
+        if (v == null) return "";
+        return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
     async function loadList() {
         const size = Number(sizeInput.value || 20);
-        const qs = new URLSearchParams({ page: "0", size: String(size), status: "VALIDATED_WAITING" });
-        const data = await callApi(`/api/v1/admin/workflows/change-sets?${qs.toString()}`);
+        const params = new URLSearchParams({ page: "0", size: String(size), status: "VALIDATED" });
+        const data  = await callApi(`${API_BASE}?${params}`);
         const items = data.items || [];
 
         if (items.length === 0) {
-            rowsEl.innerHTML = `<tr><td colspan="5" class="muted">반영 대기 데이터가 없습니다.</td></tr>`;
+            rowsEl.innerHTML = `<tr><td colspan="7" class="muted">반영 대기 데이터가 없습니다.</td></tr>`;
             return;
         }
 
         rowsEl.innerHTML = items.map(it => `
             <tr>
                 <td>${it.id}</td>
-                <td>${it.title}</td>
-                <td>${statusLabel(it.status)}</td>
-                <td>${it.validationSummary || "-"}</td>
-                <td><button type="button" class="apply" data-id="${it.id}">반영</button></td>
+                <td>${esc(it.title)}</td>
+                <td>${it.entityType}</td>
+                <td>${it.operation}</td>
+                <td><span class="badge badge-validated">검증완료</span></td>
+                <td>${it.warningMessage ? `<span class="warn-text">⚠️ ${esc(it.warningMessage)}</span>` : "-"}</td>
+                <td><button class="apply" data-id="${it.id}">반영</button><button class="danger" data-cancel-id="${it.id}" style="margin-left:6px;">취소</button></td>
             </tr>
         `).join("");
 
@@ -111,19 +161,30 @@
                 const id = Number(btn.dataset.id);
                 if (!confirm(`요청ID ${id}를 반영하시겠습니까?`)) return;
                 try {
-                    const result = await callApi(`/api/v1/admin/workflows/change-sets/${id}/apply`, "POST");
-                    writeLog(`반영 완료: 요청ID=${id}, 상태=${result.status}, 성공=${result.successCount}, 실패=${result.failedCount}`);
+                    const r = await callApi(`${API_BASE}/${id}/apply`, "POST");
+                    writeLog(`반영 완료: 요청ID=${id}, 상태=${r.status}`);
                     await loadList();
-                } catch (e) {
-                    writeLog(`반영 실패: ${e.message}`);
-                }
+                } catch (e) { writeLog(`반영 실패: ${e.message}`); }
+            });
+        });
+        rowsEl.querySelectorAll("button[data-cancel-id]").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const id = Number(btn.dataset.cancelId);
+                if (!confirm(`요청ID ${id}를 취소하시겠습니까?`)) return;
+                try {
+                    const r = await callApi(`${API_BASE}/${id}/cancel`, "POST");
+                    writeLog(`취소 완료: 요청ID=${id}, 상태=${r.status}`);
+                    await loadList();
+                } catch (e) { writeLog(`취소 실패: ${e.message}`); }
             });
         });
     }
 
-    document.getElementById("searchBtn").addEventListener("click", () => {
-        loadList().catch(e => writeLog(`조회 실패: ${e.message}`));
-    });
+    function doSearch() { loadList().catch(e => writeLog(`조회 실패: ${e.message}`)); }
+    $("searchBtn").addEventListener("click", doSearch);
+
+    // Enter 키로 조회
+    sizeInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doSearch(); });
 
     loadList().catch(e => writeLog(`초기 조회 실패: ${e.message}`));
 </script>

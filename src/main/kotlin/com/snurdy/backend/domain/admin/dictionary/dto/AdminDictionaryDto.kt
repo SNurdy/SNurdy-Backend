@@ -36,6 +36,7 @@ data class TermDetailResponse(
     val meaning: String,
     val abbreviation: String?,
     val explanation: String?,
+    val glossaryIds: List<Long>,
     val morphemes: List<TermMorphemeMappingResponse>
 )
 

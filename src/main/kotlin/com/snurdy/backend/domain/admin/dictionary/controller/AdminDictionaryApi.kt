@@ -25,7 +25,7 @@ interface AdminDictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<GlossaryPageResponse>
 
-    @Operation(summary = "용어 목록 조회")
+    @Operation(summary = "단어 목록 조회")
     @GetMapping("/terms")
     fun getTerms(
         @RequestParam(required = false) keyword: String?,
@@ -33,13 +33,13 @@ interface AdminDictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<TermPageResponse>
 
-    @Operation(summary = "용어 상세 조회")
+    @Operation(summary = "단어 상세 조회")
     @GetMapping("/terms/{termId}")
     fun getTerm(
         @PathVariable termId: Long
     ): ApiResponse<TermDetailResponse>
 
-    @Operation(summary = "형태소 목록 조회")
+    @Operation(summary = "어근어미 목록 조회")
     @GetMapping("/morphemes")
     fun getMorphemes(
         @RequestParam(required = false) keyword: String?,
@@ -47,7 +47,7 @@ interface AdminDictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<MorphemePageResponse>
 
-    @Operation(summary = "형태소 variant 목록 조회")
+    @Operation(summary = "어근어미 variant 목록 조회")
     @GetMapping("/morpheme-variants")
     fun getMorphemeVariants(
         @RequestParam(required = false) keyword: String?,

@@ -11,58 +11,67 @@ data class CreateChangeRequest(
     val abbreviation: String? = null,
     val explanation: String? = null,
     val morphemes: List<Long> = emptyList(),
-    val glossaryId: Long? = null
+    val glossaryId: Long? = null,
+    val glossaryIds: List<Long>? = null,
 )
 
-data class ChangeSetPageResponse(
+data class UpdateChangeRequest(
+    val title: String? = null,
+    val spelling: String? = null,
+    val meaning: String? = null,
+    val abbreviation: String? = null,
+    val explanation: String? = null,
+    val morphemes: List<Long>? = null,
+    val glossaryId: Long? = null,
+    val glossaryIds: List<Long>? = null
+)
+
+data class ChangeRequestPageResponse(
     val page: Int,
     val size: Int,
     val totalElements: Long,
     val totalPages: Int,
-    val items: List<ChangeSetSummary>
+    val items: List<ChangeRequestSummary>
 )
 
-data class ChangeSetSummary(
+data class ChangeRequestSummary(
     val id: Long,
     val title: String,
     val status: String,
+    val entityType: String,
+    val operation: String,
+    val entityPk: String,
     val requestedBy: String,
     val createdAt: String,
-    val validationSummary: String?,
-    val applySummary: String?
+    val errorMessage: String?,
+    val warningMessage: String?
 )
 
-data class ChangeSetDetailResponse(
+data class ChangeRequestDetailResponse(
     val id: Long,
     val title: String,
     val description: String?,
     val status: String,
-    val sourceEnv: String,
-    val targetEnv: String,
-    val requestedBy: String,
-    val approvedBy: String?,
-    val appliedBy: String?,
-    val validationSummary: String?,
-    val applySummary: String?,
-    val createdAt: String,
-    val items: List<ChangeSetItemDetail>
-)
-
-data class ChangeSetItemDetail(
-    val id: Long,
-    val operation: String,
     val entityType: String,
+    val operation: String,
     val entityPk: String,
-    val status: String,
     val beforeJson: String?,
     val afterJson: String?,
     val errorCode: String?,
-    val errorMessage: String?
+    val errorMessage: String?,
+    val warningMessage: String?,
+    val requestedBy: String,
+    val appliedBy: String?,
+    val appliedAt: String?,
+    val rolledBackBy: String?,
+    val rolledBackAt: String?,
+    val createdAt: String
 )
 
-data class WorkflowActionResponse(
-    val changeSetId: Long,
+data class ChangeRequestActionResponse(
+    val id: Long,
     val status: String,
-    val successCount: Int,
-    val failedCount: Int
+    val errorCode: String? = null,
+    val errorMessage: String? = null,
+    val warningMessage: String? = null
 )

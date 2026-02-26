@@ -46,7 +46,7 @@ class SeedDataIntegrityTest {
         val missingReferences = termMorphemeRepository.countMissingMorphemeReferences()
 
         assertTrue(samples.isNotEmpty(), "term_morphemes 샘플을 찾지 못했습니다.")
-        assertTrue(emptyLinks.isEmpty(), "형태소 연결이 0개인 샘플 term이 있습니다. termIds=$emptyLinks")
+        assertTrue(emptyLinks.isEmpty(), "어근어미 연결이 0개인 샘플 term이 있습니다. termIds=$emptyLinks")
         assertEquals(0L, missingReferences, "term_morphemes -> morphemes 참조 무결성이 깨졌습니다. missingCount=$missingReferences")
     }
 

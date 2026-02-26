@@ -76,7 +76,7 @@ class CatalogQueryService(
     }
 
     fun getTermDetail(termId: Long): TermDetailResponse {
-        val term = termRepository.findById(termId)
+        val term = termRepository.findByIdAndDeletedAtIsNull(termId)
             .orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
         val glossaries = glossaryTermRepository.findGlossariesByTermId(termId)
             .map {
@@ -89,7 +89,6 @@ class CatalogQueryService(
 
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId)
 
-        // 형태소 ID 목록으로 variants 일괄 조회
         val morphemeIds = morphemes.map { it.morphemeId }
         val variantsByMorphemeId = if (morphemeIds.isNotEmpty()) {
             morphemeVariantRepository.findByMorphemeIds(morphemeIds)
@@ -98,7 +97,6 @@ class CatalogQueryService(
             emptyMap()
         }
 
-        // Fallback 매칭으로 highlight 범위 계산
         val orderedMorphemes = morphemes.map { m ->
             val variants = variantsByMorphemeId[m.morphemeId] ?: emptyList()
             val range = highlightCalculator.calculate(term.spelling, variants)
@@ -134,7 +132,6 @@ class CatalogQueryService(
             return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
         }
 
-        // 1단계: keyword prefix match → 매칭 term_id + morpheme_id 쌍
         val searchHits = morphemeVariantRepository.findTermIdsByVariantPrefix(normalizedKeyword)
         if (searchHits.isEmpty()) {
             return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
@@ -145,14 +142,11 @@ class CatalogQueryService(
             .groupBy({ it.termId }, { it.morphemeId })
             .mapValues { it.value.toSet() }
 
-        // 2단계: term 기본 정보
         val termEntities = termRepository.findAllById(termIds).associateBy { it.id!! }
 
-        // 전체 형태소 구성 일괄
         val allMorphemes = termMorphemeRepository.findOrderedMorphemesByTermIds(termIds)
         val morphemesByTermId = allMorphemes.groupBy { it.termId }
 
-        // highlight용 variant 일괄
         val allMorphemeIds = allMorphemes.map { it.morphemeId }.distinct()
         val variantsByMorphemeId = if (allMorphemeIds.isNotEmpty()) {
             morphemeVariantRepository.findByMorphemeIds(allMorphemeIds).groupBy { it.morphemeId }
@@ -160,11 +154,9 @@ class CatalogQueryService(
             emptyMap()
         }
 
-        // 3단계: glossary 태그 일괄
         val glossaryProjections = glossaryTermRepository.findGlossariesByTermIds(termIds)
         val glossariesByTermId = glossaryProjections.groupBy { it.termId }
 
-        // 조합
         val resultTerms = termIds.mapNotNull { termId ->
             val term = termEntities[termId] ?: return@mapNotNull null
             val matchedMorphemeIds = matchedMorphemeIdsByTermId[termId] ?: emptySet()

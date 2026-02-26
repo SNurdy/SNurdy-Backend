@@ -53,5 +53,7 @@ enum class AdminSuccess(
     CREATE_CHANGE_REQUEST(HttpStatus.CREATED, "ADMIN_010", "변경 요청 생성에 성공했습니다"),
     VALIDATE_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_011", "변경 요청 검증에 성공했습니다"),
     APPLY_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_012", "변경 요청 반영에 성공했습니다"),
-    CANCEL_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_013", "변경 요청 취소에 성공했습니다")
+    CANCEL_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_013", "변경 요청 취소에 성공했습니다"),
+    ROLLBACK_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_014", "변경 요청 롤백에 성공했습니다.")
+
 }

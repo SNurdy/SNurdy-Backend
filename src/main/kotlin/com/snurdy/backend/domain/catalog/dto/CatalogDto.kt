@@ -60,7 +60,7 @@ data class TermDetailResponse(
     val term: TermDetail,
     @field:Schema(description = "단어가 포함된 단어장(해시태그 표시용)")
     val glossaries: List<TermGlossaryTag>,
-    @field:Schema(description = "순서가 보장된 형태소 목록")
+    @field:Schema(description = "순서가 보장된 어근어미 목록")
     val morphemes: List<OrderedMorpheme>
 )
 
@@ -89,13 +89,13 @@ data class TermDetail(
 )
 
 
-@Schema(description = "순서 포함 형태소")
+@Schema(description = "순서 포함 어근어미")
 data class OrderedMorpheme(
-    @field:Schema(description = "형태소 ID", example = "361")
+    @field:Schema(description = "어근어미 ID", example = "361")
     val id: Long,
-    @field:Schema(description = "형태소 철자", example = "hepat(o)-")
+    @field:Schema(description = "어근어미 철자", example = "hepat(o)-")
     val spelling: String,
-    @field:Schema(description = "형태소 의미", example = "간")
+    @field:Schema(description = "어근어미 의미", example = "간")
     val meaning: String,
     @field:Schema(description = "단어 내 순서", example = "0")
     val order: Int,
@@ -103,7 +103,7 @@ data class OrderedMorpheme(
     val highlight: MorphemeHighlight? = null
 )
 
-@Schema(description = "형태소 하이라이팅 범위")
+@Schema(description = "어근어미 하이라이팅 범위")
 data class MorphemeHighlight(
     @field:Schema(description = "하이라이팅 시작 인덱스 (0-based)", example = "0")
     val start: Int,

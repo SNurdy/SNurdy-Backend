@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.Instant
 
 @Entity
 @Table(name = "terms")
@@ -26,5 +27,8 @@ class TermEntity(
     var abbreviation: String? = null,
 
     @Column(name = "explanation", columnDefinition = "TEXT")
-    var explanation: String? = null
+    var explanation: String? = null,
+
+    @Column(name = "deleted_at")
+    var deletedAt: Instant? = null
 ) : BaseTimeEntity()

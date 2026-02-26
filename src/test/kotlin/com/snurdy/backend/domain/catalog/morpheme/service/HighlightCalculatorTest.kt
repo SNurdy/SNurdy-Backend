@@ -22,7 +22,7 @@ class HighlightCalculatorTest {
     }
 
     @Nested
-    @DisplayName("hepat(o)- 형태소")
+    @DisplayName("hepat(o)- 어근어미")
     inner class HepatTests {
 
         private val variants = listOf(variant(morphemeId = 361, variant = "hepato", base = "hepat"))
@@ -56,7 +56,7 @@ class HighlightCalculatorTest {
     }
 
     @Nested
-    @DisplayName("electr(o)- 형태소")
+    @DisplayName("electr(o)- 어근어미")
     inner class ElectrTests {
 
         private val variants = listOf(

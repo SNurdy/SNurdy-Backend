@@ -1,0 +1,233 @@
+/* ============================================
+   SNurdy CMS — 공통 스타일 (common.css)
+   ============================================ */
+
+/* --- CSS Variables --- */
+:root {
+    --blue-light: #CBDDFC;
+    --blue: #89B0F4;
+    --navy: #2A3F76;
+    --pink-light: #F9DFE9;
+    --pink: #FFAFC8;
+    --hotpink: #E44B7B;
+    --bg: #F0F4FB;
+    --card: #fff;
+    --line: #D4DEEF;
+    --text: #1f2a36;
+    --muted: #5f7086;
+}
+
+/* --- Reset --- */
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: linear-gradient(180deg, #f6f9ff 0%, var(--bg) 100%);
+    color: var(--text);
+    font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+}
+
+/* --- Layout --- */
+.layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Navigation --- */
+.nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.nav__link {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--navy);
+    background: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.15s;
+}
+
+.nav__link:hover {
+    background: var(--blue-light);
+}
+
+.nav__link--active {
+    color: #fff;
+    background: var(--navy);
+    border-color: var(--navy);
+    font-weight: 700;
+}
+
+/* --- Buttons --- */
+.btn {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    height: 36px;
+    padding: 0 12px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn:hover { background: var(--blue-light); }
+
+.btn--primary {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+}
+
+.btn--primary:hover { background: #1e3060; }
+
+.btn--danger {
+    color: var(--hotpink);
+    border-color: var(--pink);
+    background: #fff;
+}
+
+.btn--danger:hover { background: var(--pink-light); }
+
+.btn--warn {
+    background: #fffbeb;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.btn--warn:hover { background: #fef3c7; }
+
+.btn--sm {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 12px;
+    margin-right: 4px;
+}
+
+/* --- Input --- */
+.input {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 8px 10px;
+    width: 100%;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(137, 176, 244, 0.25);
+}
+
+.textarea {
+    min-height: 90px;
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* --- Panel --- */
+.panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.panel__top {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 12px;
+}
+
+/* --- Card --- */
+.card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card__header {
+    margin: 0;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    background: var(--blue-light);
+    color: var(--navy);
+}
+
+.card__body {
+    padding: 10px 12px;
+}
+
+/* --- Table --- */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.table th,
+.table td {
+    padding: 8px 6px;
+    border-bottom: 1px solid #e8eff8;
+    text-align: left;
+    vertical-align: top;
+}
+
+.table th {
+    color: var(--navy);
+    font-weight: 600;
+    background: rgba(203, 221, 252, 0.2);
+}
+
+.table tr:hover { background: rgba(203, 221, 252, 0.12); }
+.table tr.selected { background: var(--blue-light); }
+
+/* --- Badge --- */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge--requested  { background: var(--blue-light); color: var(--navy); }
+.badge--validated  { background: #d1e7dd; color: #0a5c36; }
+.badge--applied    { background: #e8eff8; color: #374151; }
+.badge--failed     { background: var(--pink-light); color: var(--hotpink); }
+.badge--canceled   { background: #f1f1f1; color: #6b7280; }
+.badge--rolledback { background: var(--pink-light); color: var(--hotpink); }
+
+/* --- Pager --- */
+.pager {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* --- Log --- */
+.log {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--navy);
+    color: var(--blue-light);
+    min-height: 74px;
+    white-space: pre-wrap;
+    font-size: 12px;
+}
+
+/* --- Utilities --- */
+.text--muted { color: var(--muted); }

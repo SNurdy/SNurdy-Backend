@@ -45,7 +45,7 @@ class SecurityConfig(
                 // 관리자 로그인
                 authorize("/v1/admin/auth/**", permitAll)
 
-                // 관리자 API
+                // 관리자 APIㄷㄷㄷㄷ
                 authorize("/v1/admin/**", hasRole("ADMIN"))
 
                 // CMS 정적 페이지

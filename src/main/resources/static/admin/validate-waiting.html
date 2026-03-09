@@ -173,8 +173,8 @@
 
     const STATUS_MAP={REQUESTED:{label:"요청됨",cls:"badge-requested"},VALIDATED:{label:"검증완료",cls:"badge-validated"},APPLIED:{label:"반영완료",cls:"badge-applied"},FAILED:{label:"검증실패",cls:"badge-failed"},CANCELED:{label:"취소됨",cls:"badge-canceled"},ROLLED_BACK:{label:"롤백됨",cls:"badge-rolled_back"}};
     const OP_LABEL={CREATE:"생성",UPDATE:"수정",DELETE:"삭제"};
-    const TYPE_LABEL={TERM:"단어",MORPHEME:"어근어미"};
-    const FIELD_LABELS={spelling:"영문 단어",meaning:"뜻",abbreviation:"약어",explanation:"설명",morphemes:"어근어미 ID",glossaryId:"단어장 ID"};
+    const TYPE_LABEL={TERM:"용어",MORPHEME:"어근어미"};
+    const FIELD_LABELS={spelling:"영문 용어",meaning:"뜻",abbreviation:"약어",explanation:"설명",morphemes:"어근어미 ID",glossaryId:"용어집 ID"};
 
     function statusBadge(s){const m=STATUS_MAP[s]||{label:s,cls:""};return `<span class="badge ${m.cls}">${m.label}</span>`;}
     function fieldLabel(k){return FIELD_LABELS[k]||k;}
@@ -184,7 +184,7 @@
 
     /* ── 제목 하이라이팅 ── */
     function highlightTitle(title, entityType) {
-        const typePrefix = entityType==="TERM"?"단어 ":entityType==="MORPHEME"?"어근어미 ":"";
+        const typePrefix = entityType==="TERM"?"용어 ":entityType==="MORPHEME"?"어근어미 ":"";
         const patterns=[
             {re:/^(생성):\s*/,cls:"action-tag-create"},
             {re:/^(어근어미 추가):\s*/,cls:"action-tag-morpheme"},
@@ -208,9 +208,9 @@
         const after=safeJson(d.afterJson)||{};const isTerm=d.entityType==="TERM";
         let h=`<div class="edit-section"><div class="edit-section-title">데이터 수정 후 재검증</div><div class="edit-grid">`;
         h+=`<input class="edit-title edit-full" placeholder="요청 제목" value="${esc(d.title||"")}" />`;
-        h+=`<input class="edit-spelling edit-full" placeholder="영문 단어/어근어미" value="${esc(after.spelling||"")}" />`;
+        h+=`<input class="edit-spelling edit-full" placeholder="용어/어근어미" value="${esc(after.spelling||"")}" />`;
         h+=`<input class="edit-meaning edit-full" placeholder="뜻" value="${esc(after.meaning||"")}" />`;
-        if(isTerm){h+=`<input class="edit-abbreviation" placeholder="약어" value="${esc(after.abbreviation||"")}" />`;h+=`<input class="edit-glossaryId" placeholder="단어장 ID" value="${esc(after.glossaryId||"")}" />`;h+=`<textarea class="edit-explanation edit-full" placeholder="설명">${esc(after.explanation||"")}</textarea>`;}
+        if(isTerm){h+=`<input class="edit-abbreviation" placeholder="약어" value="${esc(after.abbreviation||"")}" />`;h+=`<input class="edit-glossaryId" placeholder="용어집 ID" value="${esc(after.glossaryId||"")}" />`;h+=`<textarea class="edit-explanation edit-full" placeholder="설명">${esc(after.explanation||"")}</textarea>`;}
         h+=`</div><div class="edit-actions"><button class="primary edit-save-btn" data-id="${d.id}" data-type="${d.entityType}">수정 저장 (재검증 대기)</button></div></div>`;
         return h;
     }

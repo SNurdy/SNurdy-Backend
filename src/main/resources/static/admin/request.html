@@ -71,7 +71,7 @@
         }
         input, textarea, select { padding: 8px 10px; width: 100%; }
         input:focus, textarea:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(137,176,244,0.25); }
-        textarea { min-height: 90px; resize: vertical; }
+        textarea { min-height: 90px; resize: vertical; font-family: inherit; }
         button { height: 36px; padding: 0 12px; background: #fff; cursor: pointer; transition: all .15s; }
         button:hover { background: var(--blue-light); }
         button.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
@@ -139,15 +139,14 @@
             <button id="refreshBtn" class="primary">새로고침</button>
         </div>
         <div class="tabs" id="tabs">
-            <button class="tab active" data-type="terms">단어</button>
-            <button class="tab" data-type="glossaries">단어장</button>
+            <button class="tab active" data-type="terms">용어</button>
             <button class="tab" data-type="morphemes">어근어미</button>
         </div>
 
         <div class="grid">
             <!-- ── 좌: 목록 ── -->
             <section class="section">
-                <h3 id="listTitle">단어 목록</h3>
+                <h3 id="listTitle">용어 목록</h3>
                 <div class="body">
                     <div class="toolbar">
                         <input id="keyword" placeholder="검색어 입력" />
@@ -172,10 +171,10 @@
                 <h3>편집</h3>
                 <div class="body">
                     <div class="form-grid">
-                        <input id="spelling" class="full" placeholder="영문 단어/어근어미 (필수)" />
+                        <input id="spelling" class="full" placeholder="용어/어근어미 (필수)" />
                         <input id="meaning" class="full" placeholder="뜻 (필수)" />
                         <div id="glossaryPicker" class="glossary-picker full" style="display:none;">
-                            <div class="glossary-picker-title">단어장 선택 (1개 이상 필수)</div>
+                            <div class="glossary-picker-title">용어집 선택 (1개 이상 필수)</div>
                             <div id="glossaryChecklist" class="glossary-checklist"></div>
                         </div>
                         <input id="abbreviation" placeholder="약어" />
@@ -200,7 +199,6 @@
                         <button id="updateBtn" class="warn-btn">수정 요청</button>
                         <button id="deleteBtn" class="danger">삭제 요청</button>
                     </div>
-                    <p id="formHint" class="muted">생성 시 ID 입력이 필요 없습니다. 수정/삭제는 목록에서 선택 후 진행하세요.</p>
                     <div id="log" class="log">준비되었습니다.</div>
                 </div>
             </section>
@@ -320,7 +318,7 @@
 
     function renderGlossaryChecklist() {
         if (!glossaryItems.length) {
-            glossaryChecklist.innerHTML = `<div class="muted">단어장 목록이 없습니다.</div>`;
+            glossaryChecklist.innerHTML = `<div class="muted">용어집 목록이 없습니다.</div>`;
             return;
         }
         glossaryChecklist.innerHTML = glossaryItems.map(g => `
@@ -354,7 +352,6 @@
         const updateBtn = $("updateBtn");
         const deleteBtn = $("deleteBtn");
 
-        /* 단어 탭 */
         if (isTermTab()) {
             createBtn.style.display = "";  createBtn.textContent = "생성 요청";
             updateBtn.style.display = "";  deleteBtn.style.display = "";
@@ -374,12 +371,6 @@
             selectedIdInput.style.display = "none";  morphemeBox.style.display = "none";
             return;
         }
-
-        /* 그 외 (단어장, 변형어) — 편집 비활성 */
-        [createBtn, updateBtn, deleteBtn].forEach(b => b.style.display = "none");
-        [spelling, meaning, glossaryPicker, abbreviation, explanation, selectedIdInput].forEach(el => el.style.display = "none");
-        morphemeBox.style.display = "none";
-        formHint.textContent = "현재 탭은 요청 생성 대상이 아닙니다.";
     }
 
     /* ================================================================
@@ -391,21 +382,49 @@
             return;
         }
         selectedMorphemesEl.innerHTML = selectedMorphemes.map((m, idx) => `
-            <div class="m-row">
-                <div>${idx + 1}. ${esc(m.spelling)} (${esc(m.meaning)})</div>
-                <button data-action="up"     data-idx="${idx}">위</button>
-                <button data-action="down"   data-idx="${idx}">아래</button>
-                <button data-action="remove" data-idx="${idx}">제거</button>
-            </div>
-        `).join("");
+        <div class="m-row" draggable="true" data-idx="${idx}">
+            <div>${idx + 1}. ${esc(m.spelling)} (${esc(m.meaning)})</div>
+            <span></span>
+            <span></span>
+            <button data-action="remove" data-idx="${idx}">제거</button>
+        </div>
+    `).join("");
 
+        // 제거 버튼
         selectedMorphemesEl.querySelectorAll("button").forEach(btn => {
             btn.addEventListener("click", () => {
-                const idx = Number(btn.dataset.idx);
-                const act = btn.dataset.action;
-                if (act === "remove") { selectedMorphemes.splice(idx, 1); }
-                if (act === "up"   && idx > 0) [selectedMorphemes[idx - 1], selectedMorphemes[idx]] = [selectedMorphemes[idx], selectedMorphemes[idx - 1]];
-                if (act === "down" && idx < selectedMorphemes.length - 1) [selectedMorphemes[idx], selectedMorphemes[idx + 1]] = [selectedMorphemes[idx + 1], selectedMorphemes[idx]];
+                selectedMorphemes.splice(Number(btn.dataset.idx), 1);
+                renderSelectedMorphemes();
+            });
+        });
+
+        // 드래그앤드롭
+        let dragIdx = null;
+        selectedMorphemesEl.querySelectorAll(".m-row").forEach(row => {
+            row.addEventListener("dragstart", (e) => {
+                dragIdx = Number(row.dataset.idx);
+                row.classList.add("dragging");
+                e.dataTransfer.effectAllowed = "move";
+            });
+            row.addEventListener("dragend", () => {
+                row.classList.remove("dragging");
+                selectedMorphemesEl.querySelectorAll(".m-row").forEach(r => r.classList.remove("drag-over"));
+            });
+            row.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                selectedMorphemesEl.querySelectorAll(".m-row").forEach(r => r.classList.remove("drag-over"));
+                row.classList.add("drag-over");
+            });
+            row.addEventListener("dragleave", () => {
+                row.classList.remove("drag-over");
+            });
+            row.addEventListener("drop", (e) => {
+                e.preventDefault();
+                const dropIdx = Number(row.dataset.idx);
+                if (dragIdx === null || dragIdx === dropIdx) return;
+                const item = selectedMorphemes.splice(dragIdx, 1)[0];
+                selectedMorphemes.splice(dropIdx, 0, item);
                 renderSelectedMorphemes();
             });
         });
@@ -449,10 +468,9 @@
         pageInfo.textContent  = `페이지 ${(data.page || 0) + 1} / ${totalPages}`;
         countInfo.textContent = `총 ${data.totalElements || 0}건`;
 
-        /* 단어 */
         if (type === "terms") {
-            listTitle.textContent = "단어 목록";
-            listHead.innerHTML = "<tr><th>ID</th><th>영문 단어</th><th>약어</th><th>뜻</th></tr>";
+            listTitle.textContent = "용어 목록";
+            listHead.innerHTML = "<tr><th>ID</th><th>용어</th><th>약어</th><th>뜻</th></tr>";
             listBody.innerHTML = rows.map(r => `
                 <tr data-id="${r.id}">
                     <td>${r.id}</td><td>${esc(r.spelling)}</td>
@@ -477,14 +495,6 @@
                     } catch (e) { writeLog(`상세 조회 실패: ${e.message}`); }
                 });
             });
-            return;
-        }
-
-        /* 단어장 */
-        if (type === "glossaries") {
-            listTitle.textContent = "단어장 목록";
-            listHead.innerHTML = "<tr><th>ID</th><th>카테고리</th><th>단어장</th></tr>";
-            listBody.innerHTML = rows.map(r => `<tr><td>${r.id}</td><td>${esc(r.category)}</td><td>${esc(r.title)}</td></tr>`).join("");
             return;
         }
 
@@ -513,7 +523,7 @@
                 if (glossaryIds.length === 0)                        { writeLog("단어장을 1개 이상 선택하세요."); return; }
                 body = {
                     title: buildTitle("생성"),
-                    description: "CMS 요청 페이지에서 단어 생성",
+                    description: "CMS 요청 페이지에서 용어 생성",
                     entityType: "TERM",
                     operation: "CREATE",
                     spelling:     spelling.value.trim(),
@@ -551,7 +561,7 @@
             const glossaryIds = getSelectedGlossaryIds();
             const body = {
                 title: buildTitle("수정"),
-                description: `기존 단어(ID=${selectedTermId}) 수정 요청`,
+                description: `기존 용어(ID=${selectedTermId}) 수정 요청`,
                 entityType: "TERM",
                 operation: "UPDATE",
                 termId:       selectedTermId,
@@ -573,7 +583,7 @@
         try {
             const body = {
                 title: `삭제: ID=${selectedTermId}`,
-                description: `기존 단어(ID=${selectedTermId}) 삭제 요청`,
+                description: `기존 용어(ID=${selectedTermId}) 삭제 요청`,
                 entityType: "TERM",
                 operation: "DELETE",
                 termId: selectedTermId,
@@ -637,7 +647,7 @@
             const data = await callApi(`${API.dictionary("glossaries")}?page=0&size=100`);
             glossaryItems = data.items || [];
             renderGlossaryChecklist();
-        } catch (e) { writeLog(`단어장 목록 로드 실패: ${e.message}`); }
+        } catch (e) { writeLog(`용어집 목록 로드 실패: ${e.message}`); }
 
         renderSelectedMorphemes();
         updateFormMode();

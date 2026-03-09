@@ -35,7 +35,8 @@ enum class AuthError(
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_002", "만료된 토큰입니다"),
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_003", "카카오 API 오류가 발생했습니다"),
     APPLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_004", "애플 API 오류가 발생했습니다"),
-    GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_005", "구글 API 오류가 발생했습니다")
+    GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_005", "구글 API 오류가 발생했습니다"),
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_010", "이메일 또는 비밀번호가 올바르지 않습니다")
 }
 
 // 유저 관련 에러

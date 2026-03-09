@@ -36,7 +36,19 @@
         <a href="/api/admin/validate-waiting.html">검증/반영대기 페이지</a>
         <a href="/api/admin/apply.html">반영 페이지</a>
         <a href="/api/admin/audit-log.html">변경이력 페이지</a>
+        <a href="#" id="logoutBtn" style="color:var(--hotpink); border-color:var(--hotpink);">로그아웃</a>
     </div>
 </section>
+<script>
+    /* ── 인증 ── */
+    function getToken() { return sessionStorage.getItem("admin_token"); }
+    if (!getToken()) { window.location.href = "/api/admin/login.html"; }
+    if (!sessionStorage.getItem("admin_token")) { window.location.href = "/api/admin/login.html"; }
+    document.getElementById("logoutBtn").addEventListener("click", (e) => {
+        e.preventDefault();
+        sessionStorage.removeItem("admin_token");
+        window.location.href = "/api/admin/login.html";
+    });
+</script>
 </body>
 </html>

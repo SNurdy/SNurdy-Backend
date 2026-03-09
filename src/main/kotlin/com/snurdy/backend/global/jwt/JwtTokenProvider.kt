@@ -18,12 +18,18 @@ class JwtTokenProvider(
     )
 
     fun createToken(user: UserEntity) = TokenResponse(
-        accessToken = generateToken(user.id, jwtProperties.accessTokenExpiration),
-        refreshToken = generateToken(user.id, jwtProperties.refreshTokenExpiration),
+        accessToken = generateToken(user.id, user.role.name, jwtProperties.accessTokenExpiration),
+        refreshToken = generateToken(user.id, user.role.name, jwtProperties.refreshTokenExpiration),
         accessTokenExpiresIn = jwtProperties.accessTokenExpiration,
         refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration,
         user = user.toUserInfo()
     )
+
+    fun createAdminToken(adminId: UUID): Pair<String, String> {
+        val accessToken = generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration)
+        val refreshToken = generateToken(adminId, "ADMIN", jwtProperties.refreshTokenExpiration)
+        return accessToken to refreshToken
+    }
 
     fun validateToken(token: String): Boolean = runCatching {
         Jwts.parser()
@@ -41,10 +47,22 @@ class JwtTokenProvider(
             .subject
             .let(UUID::fromString)
 
-    private fun generateToken(userId: UUID, expirationMillis: Long): String {
+    fun getRoleFromToken(token: String): String =
+        Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .get("role", String::class.java) ?: "USER"
+
+    fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
+    fun refreshTokenExpiration(): Long = jwtProperties.refreshTokenExpiration
+
+    private fun generateToken(userId: UUID, role: String, expirationMillis: Long): String {
         val now = Date()
         return Jwts.builder()
             .subject(userId.toString())
+            .claim("role", role)
             .issuedAt(now)
             .expiration(Date(now.time + expirationMillis))
             .signWith(secretKey)

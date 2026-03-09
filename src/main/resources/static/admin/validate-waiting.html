@@ -138,6 +138,10 @@
 </div>
 
 <script>
+    /* ── 인증 ── */
+    function getToken() { return sessionStorage.getItem("admin_token"); }
+    if (!getToken()) { window.location.href = "/api/admin/login.html"; }
+
     const $ = (id) => document.getElementById(id);
     const statusInput=$("status"), sizeInput=$("size"), rowsEl=$("rows"), logEl=$("log");
     const API_BASE = "/api/v1/admin/workflows/change-requests";
@@ -145,10 +149,24 @@
 
     function writeLog(msg) { logEl.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+logEl.textContent; }
 
-    function callApi(path, method="GET", body=null) {
-        const opts={method, headers:{"Content-Type":"application/json","X-Request-Id":`cms-${Date.now()}`}};
-        if(body) opts.body=JSON.stringify(body);
-        return fetch(path,opts).then(async res=>{ const p=await res.json(); if(!res.ok||p.success===false) throw new Error(p.message||`HTTP ${res.status}`); return p.data; });
+    function callApi(path, method = "GET", body = null) {
+        const token = getToken();
+        if (!token) { window.location.href = "/api/admin/login.html"; return Promise.reject(new Error("인증 필요")); }
+        const opts = {
+            method,
+            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token, "X-Request-Id": "cms-" + Date.now() },
+        };
+        if (body) opts.body = JSON.stringify(body);
+        return fetch(path, opts).then(async (res) => {
+            if (res.status === 401 || res.status === 403) {
+                sessionStorage.removeItem("admin_token");
+                window.location.href = "/api/admin/login.html";
+                throw new Error("인증 만료");
+            }
+            const payload = await res.json();
+            if (!res.ok || payload.success === false) throw new Error(payload.message || "HTTP " + res.status);
+            return payload.data;
+        });
     }
 
     function esc(v) { if(v==null) return ""; return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }

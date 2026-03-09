@@ -127,6 +127,10 @@
 </div>
 
 <script>
+    /* ── 인증 ── */
+    function getToken() { return sessionStorage.getItem("admin_token"); }
+    if (!getToken()) { window.location.href = "/api/admin/login.html"; }
+
     const $ = (id) => document.getElementById(id);
     const actionInput=$("action");
     const sizeInput=$("size"),rowsEl=$("rows"),logEl=$("log");

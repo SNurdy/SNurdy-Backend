@@ -311,11 +311,11 @@ async function loadList() {
 
         return `<tr data-row-id="${it.id}">
             <td>${it.id}</td>
-            <td style="max-width:340px;">${highlightTitle(it.title, it.entityType)}</td>
+            <td class="ellipsis" title="${esc(it.title)}">${highlightTitle(it.title, it.entityType)}</td>
             <td>${it.entityType}</td>
             <td>${it.operation}</td>
             <td>${statusBadge(it.status)}</td>
-            <td style="max-width:320px;">${esc(summaryText(it))}</td>
+            <td class="ellipsis" title="${esc(summaryText(it))}">${esc(summaryText(it))}</td>
             <td>${actions}</td>
         </tr>`;
     }).join("");

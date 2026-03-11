@@ -2,47 +2,32 @@
    SNurdy CMS — 변경이력 페이지 (audit-log.css)
    ============================================ */
 
-/* --- Panel Header --- */
-.panel__header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--blue-light);
-}
-
-.panel__header strong { color: var(--navy); }
-
-.panel__body { padding: 16px; }
-
 /* --- Toolbar --- */
 .toolbar {
-    display: grid;
-    grid-template-columns: 140px 80px auto;
+    display: flex;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 }
 
-.toolbar__search { width: 100px; }
+.toolbar select.input { width: 140px; flex: none; }
+.toolbar input.input { width: 80px; flex: none; }
+.toolbar__search { flex-shrink: 0; }
 
 /* --- Action Badges --- */
-.badge--request  { background: var(--blue-light); color: var(--navy); }
-.badge--validate { background: #d1e7dd; color: #0a5c36; }
-.badge--apply    { background: #e8eff8; color: #374151; }
-.badge--update   { background: var(--pink-light); color: var(--hotpink); }
-.badge--cancel   { background: #f1f1f1; color: #6b7280; }
-.badge--rollback { background: var(--pink-light); color: var(--hotpink); }
+.badge--request  { background: var(--accent-light); color: var(--accent); }
+.badge--validate { background: var(--green-light); color: var(--green); }
+.badge--apply    { background: var(--gray-100); color: var(--gray-600); }
+.badge--update   { background: var(--amber-light); color: var(--amber); }
+.badge--cancel   { background: var(--gray-100); color: var(--gray-400); }
+.badge--rollback { background: var(--red-light); color: var(--red); }
 
 /* --- Modal --- */
 .modal-overlay {
     display: none;
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
     z-index: 1000;
     place-items: center;
 }
@@ -50,83 +35,92 @@
 .modal-overlay--open { display: grid; }
 
 .modal {
-    background: var(--card);
-    border-radius: 14px;
-    width: min(700px, calc(100% - 32px));
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    width: min(640px, calc(100% - 32px));
     max-height: 80vh;
     overflow: auto;
-    padding: 20px;
+    padding: 24px;
     position: relative;
-    box-shadow: 0 8px 32px rgba(42, 63, 118, 0.18);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .modal__close {
     position: absolute;
-    top: 12px;
-    right: 12px;
-    width: 32px;
-    height: 32px;
+    top: 16px;
+    right: 16px;
+    width: 28px;
+    height: 28px;
     border: none;
-    background: none;
-    font-size: 20px;
+    background: transparent;
+    font-size: 18px;
     cursor: pointer;
-    color: var(--muted);
-    border-radius: 8px;
+    color: var(--text-tertiary);
+    border-radius: var(--radius-sm);
     display: grid;
     place-items: center;
+    transition: all var(--transition);
 }
 
 .modal__close:hover {
-    background: var(--pink-light);
-    color: var(--hotpink);
+    background: var(--gray-100);
+    color: var(--text);
 }
 
 .modal__title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--navy);
-    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* --- Diff Table --- */
+/* --- Diff Table (reuse from validate-waiting) --- */
 .diff-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     overflow: hidden;
 }
 
 .diff-table th {
-    background: var(--blue-light);
-    color: var(--navy);
-    font-weight: 600;
-    padding: 6px 10px;
+    background: var(--gray-50);
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 12px 16px;
     text-align: left;
     font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
 .diff-table td {
-    padding: 6px 10px;
-    border-bottom: 1px solid #e8eff8;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-light);
     vertical-align: top;
     word-break: break-word;
+    line-height: 1.7;
 }
 
-.diff-table__field { font-weight: 600; white-space: nowrap; }
-.diff-table__removed { background: var(--pink-light); color: var(--hotpink); text-decoration: line-through; }
-.diff-table__added { background: rgba(203, 221, 252, 0.35); color: var(--navy); font-weight: 500; }
-.diff-table__unchanged { color: var(--muted); }
+.diff-table tbody tr:last-child td { border-bottom: none; }
+
+.diff-table__field { font-weight: 500; white-space: nowrap; color: var(--text); }
+.diff-table__removed { background: var(--red-light); color: var(--red); text-decoration: line-through; }
+.diff-table__added { background: var(--green-light); color: var(--green); font-weight: 500; }
+.diff-table__unchanged { color: var(--text-tertiary); }
 
 /* --- Detail Section --- */
-.detail-section {
-    margin-top: 10px;
-}
+.detail-section { margin-top: 12px; }
 
 .detail-section__title {
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    color: var(--navy);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }

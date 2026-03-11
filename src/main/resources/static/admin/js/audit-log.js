@@ -11,12 +11,12 @@ document.addEventListener("DOMContentLoaded", () => {
 const API_BASE = "/api/v1/admin/audit-logs";
 
 const ACTION_BADGE_MAP = {
-    REQUEST: "badge--request",
-    UPDATE: "badge--update",
-    VALIDATE: "badge--validate",
-    APPLY: "badge--apply",
-    ROLLBACK: "badge--rollback",
-    CANCEL: "badge--cancel"
+    REQUEST:  { cls: "badge--request",  label: "요청" },
+    UPDATE:   { cls: "badge--update",   label: "수정" },
+    VALIDATE: { cls: "badge--validate", label: "검증" },
+    APPLY:    { cls: "badge--apply",    label: "반영" },
+    ROLLBACK: { cls: "badge--rollback", label: "롤백" },
+    CANCEL:   { cls: "badge--cancel",   label: "취소" }
 };
 
 const FIELD_LABELS = {
@@ -29,7 +29,8 @@ const FIELD_LABELS = {
 
 const SKIP_FIELDS = new Set([
     "isEditable", "isApplicable", "isCancelable", "isValidatable",
-    "isRollbackable", "requestedBy", "appliedBy", "description"
+    "isRollbackable", "requestedBy", "appliedBy", "description",
+    "beforeJson", "afterJson"
 ]);
 
 /* --- DOM 참조 --- */
@@ -93,12 +94,25 @@ function formatFieldValue(key, val) {
     if (typeof val === "string" && (key.endsWith("At") || key === "createdAt" || key === "updatedAt")) {
         return formatTime(val);
     }
+    // JSON 문자열이면 파싱 시도
+    if (typeof val === "string" && (val.startsWith("{") || val.startsWith("["))) {
+        const parsed = safeJson(val);
+        if (parsed) return formatFieldValue(key, parsed);
+    }
+    if (Array.isArray(val)) {
+        return val.length ? val.join(", ") : "(없음)";
+    }
+    if (val !== null && typeof val === "object") {
+        return Object.entries(val)
+            .map(([k, v]) => `${fieldLabel(k)}: ${v ?? "-"}`)
+            .join("  ·  ");
+    }
     return displayValue(val);
 }
 
 function actionBadge(action) {
-    const cls = ACTION_BADGE_MAP[action] || "";
-    return `<span class="badge ${cls}">${action}</span>`;
+    const m = ACTION_BADGE_MAP[action] || { cls: "", label: action };
+    return `<span class="badge ${m.cls}">${m.label}</span>`;
 }
 
 /* ============================================
@@ -215,13 +229,41 @@ function renderDetail(item) {
     const after = safeJson(item.afterJson);
 
     let html = `<div class="modal__title">${actionBadge(item.action)} 상세</div>`;
-    html += `<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">${formatTime(item.createdAt)}</div>`;
+    html += `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">${formatTime(item.createdAt)}</div>`;
 
+    // 메타 정보 (item 최상위 필드 중 주요 항목)
+    const metaFields = [
+        ["ID", item.id],
+        ["제목", item.title],
+        ["유형", item.entityType],
+        ["작업", item.operation],
+        ["상태", item.status],
+        ["대상 PK", item.entityPk],
+        ["생성시각", formatTime(item.createdAt)],
+        ["수정시각", formatTime(item.updatedAt)]
+    ].filter(([, v]) => v != null && v !== "");
+
+    html += `<div class="detail-section">
+        <div class="detail-section__title">요청 정보</div>
+        <table class="diff-table">
+            <thead><tr><th>필드</th><th>값</th></tr></thead>
+            <tbody>${metaFields.map(([label, val]) =>
+        `<tr><td class="diff-table__field">${esc(label)}</td><td>${esc(String(val))}</td></tr>`
+    ).join("")}</tbody>
+        </table>
+    </div>`;
+
+    // before/after diff 또는 단독 표시
     if (before && after) {
         html += renderDiff(before, after);
     } else {
         if (before) html += renderDataTable("변경 전 데이터", before, "diff-table__removed");
         if (after) html += renderDataTable("변경 후 데이터", after, "diff-table__added");
+    }
+
+    // before/after 모두 없으면 안내
+    if (!before && !after) {
+        html += `<div class="text--muted" style="padding:12px 0;">상세 변경 데이터가 없습니다.</div>`;
     }
 
     return html;

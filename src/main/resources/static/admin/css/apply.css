@@ -2,42 +2,30 @@
    SNurdy CMS — 반영 페이지 (apply.css)
    ============================================ */
 
-.panel__header {
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--blue-light);
-}
-
-.panel__header strong { color: var(--navy); }
-.panel__body { padding: 16px; }
-
+/* --- Toolbar --- */
 .toolbar {
-    display: grid;
-    grid-template-columns: 90px auto;
+    display: flex;
     gap: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 16px;
 }
 
-.toolbar__search { width: 100px; }
+.toolbar .input { width: 80px; flex: none; }
+.toolbar__search { flex-shrink: 0; }
 
-.badge--validated { background: var(--blue-light); color: var(--navy); }
-
+/* --- Apply button --- */
 .btn--apply {
-    background: var(--blue);
-    color: var(--navy);
-    border-color: var(--blue);
+    background: var(--gray-900);
+    color: #fff;
+    border-color: var(--gray-900);
     font-weight: 600;
 }
 
 .btn--apply:hover {
-    background: var(--navy);
-    color: #fff;
+    background: var(--gray-800);
 }
 
+/* --- Warning text --- */
 .warn-text {
-    color: var(--hotpink);
+    color: var(--amber);
     font-size: 12px;
 }

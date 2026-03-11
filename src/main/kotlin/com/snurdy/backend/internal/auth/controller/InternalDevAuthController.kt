@@ -26,11 +26,4 @@ class InternalDevAuthController(
     @PostMapping("/dev-token")
     fun issueDevToken(): ApiResponse<TokenResponse> =
         ApiResponse.success(AuthSuccess.LOGIN, internalDevAuthService.issueDevToken())
-
-    @GetMapping("/hash")
-    fun hashPassword(@RequestParam raw: String): ApiResponse<Map<String, String>> =
-        ApiResponse.success(
-            CommonSuccess.OK,
-            mapOf("raw" to raw, "hash" to passwordEncoder.encode(raw))
-        )
 }

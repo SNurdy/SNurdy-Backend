@@ -58,11 +58,12 @@ class JwtTokenProvider(
     fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
     fun refreshTokenExpiration(): Long = jwtProperties.refreshTokenExpiration
 
-    private fun generateToken(userId: UUID, role: String, expirationMillis: Long): String {
+    private fun generateToken(userId: UUID, role: String, expirationMillis: Long, tokenType: String = "user"): String {
         val now = Date()
         return Jwts.builder()
             .subject(userId.toString())
             .claim("role", role)
+            .claim("type", tokenType)
             .issuedAt(now)
             .expiration(Date(now.time + expirationMillis))
             .signWith(secretKey)

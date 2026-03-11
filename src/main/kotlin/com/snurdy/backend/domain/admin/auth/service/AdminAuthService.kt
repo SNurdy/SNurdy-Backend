@@ -27,26 +27,14 @@ class AdminAuthService(
             throw ApiException(AuthError.LOGIN_FAILED)
         }
 
-        val (accessToken, refreshToken) = jwtTokenProvider.createAdminToken(admin.id)
-
-        refreshTokenRepository.save(
-            RefreshToken.create(
-                userId = admin.id,
-                token = refreshToken,
-                ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
-            )
-        )
+        val (accessToken, _) = jwtTokenProvider.createAdminToken(admin.id)
 
         return AdminTokenResponse(
             accessToken = accessToken,
-            refreshToken = refreshToken,
+            refreshToken = "",
             accessTokenExpiresIn = jwtTokenProvider.accessTokenExpiration(),
-            refreshTokenExpiresIn = jwtTokenProvider.refreshTokenExpiration(),
-            admin = AdminInfo(
-                id = admin.id,
-                email = admin.email,
-                name = admin.name
-            )
+            refreshTokenExpiresIn = 0,
+            admin = AdminInfo(id = admin.id, email = admin.email, name = admin.name)
         )
     }
 

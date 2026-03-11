@@ -10,14 +10,14 @@ class HighlightCalculator {
     private val log = LoggerFactory.getLogger(HighlightCalculator::class.java)
 
     /**
-     * 단어(termSpelling) 내에서 형태소의 하이라이팅 범위를 계산합니다.
+     * 용어(termSpelling) 내에서 형태소의 하이라이팅 범위를 계산합니다.
      *
      * Fallback 전략:
      *   1순위 — variant(괄호 확장형)로 매칭 시도
      *   2순위 — base(괄호 제거형)로 fallback 매칭
      *   실패  — null 반환 + 로깅
      *
-     * @param termSpelling  단어 철자 (예: "hepatocyte")
+     * @param termSpelling  용어 철자 (예: "hepatocyte")
      * @param variants      해당 형태소의 variant/base 목록
      * @return HighlightRange 또는 null
      */

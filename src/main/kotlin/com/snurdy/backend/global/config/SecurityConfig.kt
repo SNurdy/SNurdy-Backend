@@ -34,24 +34,32 @@ class SecurityConfig(
             }
 
             authorizeHttpRequests {
-                // 헬스체크 및 기본 경로
+                // 헬스체크
                 authorize("/", permitAll)
                 authorize("/health", permitAll)
-                authorize("/v1/health", permitAll) // context-path가 /api이므로 확인 필요
+                authorize("/v1/health", permitAll)
 
-                // 인증 관련
+                // 일반 사용자 인증
                 authorize("/v1/auth/**", permitAll)
-                authorize("/admin/**", permitAll)
-                authorize("/v1/admin/**", permitAll)
 
-                // Swagger 및 API Docs
+                // 관리자 로그인
+                authorize("/v1/admin/auth/**", permitAll)
+
+                // 관리자 APIㄷㄷㄷㄷ
+                authorize("/v1/admin/**", hasRole("ADMIN"))
+
+                // CMS 정적 페이지
+                authorize("/admin/**", permitAll)
+
+                // Swagger
                 authorize("/swagger-ui/**", permitAll)
                 authorize("/swagger-resources/**", permitAll)
                 authorize("/v3/api-docs/**", permitAll)
                 authorize("/webjars/**", permitAll)
+
+                // Internal
                 authorize("/internal/**", denyAll)
 
-                // 나머지 요청은 인증 필요
                 authorize(anyRequest, authenticated)
             }
 

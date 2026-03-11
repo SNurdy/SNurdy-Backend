@@ -1,0 +1,365 @@
+/* ============================================
+   SNurdy CMS — 공통 스타일 (common.css)
+   Redesign: Mono-gray, Linear/Notion minimal
+   ============================================ */
+
+/* --- CSS Variables --- */
+:root {
+    --gray-50: #fafafa;
+    --gray-100: #f5f5f5;
+    --gray-150: #efefef;
+    --gray-200: #e5e5e5;
+    --gray-300: #d4d4d4;
+    --gray-400: #a3a3a3;
+    --gray-500: #737373;
+    --gray-600: #525252;
+    --gray-700: #404040;
+    --gray-800: #262626;
+    --gray-900: #171717;
+
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --accent-light: #eff6ff;
+    --accent-muted: #93c5fd;
+
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --red-hover: #fde8e8;
+    --amber: #d97706;
+    --amber-light: #fffbeb;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --purple: #7c3aed;
+    --purple-light: #f5f3ff;
+
+    --bg: #ffffff;
+    --bg-secondary: var(--gray-50);
+    --surface: #ffffff;
+    --border: var(--gray-200);
+    --border-light: var(--gray-150);
+    --text: var(--gray-900);
+    --text-secondary: var(--gray-500);
+    --text-tertiary: var(--gray-400);
+
+    --radius-sm: 6px;
+    --radius: 8px;
+    --radius-lg: 12px;
+
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+
+    --font: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif;
+    --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
+
+    --transition: 120ms ease;
+}
+
+/* --- Reset --- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Layout --- */
+.layout {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* --- Navigation --- */
+.nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+}
+
+.nav__link {
+    display: inline-flex;
+    align-items: center;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all var(--transition);
+}
+
+.nav__link:hover {
+    color: var(--text);
+    background: var(--gray-100);
+}
+
+.nav__link--active {
+    color: var(--text);
+    background: var(--gray-100);
+    font-weight: 600;
+}
+
+/* --- Buttons --- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    height: 32px;
+    padding: 0 12px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+    font-family: var(--font);
+}
+
+.btn:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-300);
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn--primary {
+    background: var(--gray-900);
+    color: #fff;
+    border-color: var(--gray-900);
+}
+
+.btn--primary:hover {
+    background: var(--gray-800);
+    border-color: var(--gray-800);
+}
+
+.btn--danger {
+    color: var(--red);
+    border-color: var(--gray-200);
+}
+
+.btn--danger:hover {
+    background: var(--red-light);
+    border-color: var(--red);
+}
+
+.btn--warn {
+    color: var(--amber);
+    border-color: var(--gray-200);
+}
+
+.btn--warn:hover {
+    background: var(--amber-light);
+    border-color: var(--amber);
+}
+
+.btn--ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.btn--ghost:hover {
+    background: var(--gray-100);
+    color: var(--text);
+}
+
+.btn--sm {
+    height: 28px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+/* --- Input --- */
+.input {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font);
+    padding: 6px 10px;
+    height: 32px;
+    width: 100%;
+    color: var(--text);
+    background: var(--bg);
+    transition: border-color var(--transition), box-shadow var(--transition);
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--gray-400);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.input::placeholder { color: var(--text-tertiary); }
+
+.textarea {
+    min-height: 80px;
+    resize: vertical;
+    font-family: var(--font);
+    line-height: 1.5;
+}
+
+select.input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23737373' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+}
+
+/* --- Panel --- */
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.panel__header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.panel__header strong {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.panel__body { padding: 20px; }
+
+.panel__top {
+    display: flex;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* --- Card --- */
+.card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.card__header {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--gray-50);
+    color: var(--text);
+}
+
+.card__body { padding: 14px; }
+
+/* --- Table --- */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.table th,
+.table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-light);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table th {
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: var(--gray-50);
+    position: sticky;
+    top: 0;
+}
+
+.table tbody tr {
+    transition: background var(--transition);
+}
+
+.table tbody tr:hover { background: var(--gray-50); }
+.table tbody tr.selected { background: var(--accent-light); }
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+/* 고정 레이아웃 */
+.table--fixed { table-layout: fixed; }
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* --- Badge --- */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+
+.badge--requested  { background: var(--accent-light); color: var(--accent); }
+.badge--validated  { background: var(--green-light); color: var(--green); }
+.badge--applied    { background: var(--gray-100); color: var(--gray-600); }
+.badge--failed     { background: var(--red-light); color: var(--red); }
+.badge--canceled   { background: var(--gray-100); color: var(--gray-400); }
+.badge--rolledback { background: var(--amber-light); color: var(--amber); }
+
+/* --- Pager --- */
+.pager {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* --- Log --- */
+.log {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius);
+    background: var(--gray-900);
+    color: var(--gray-400);
+    min-height: 64px;
+    white-space: pre-wrap;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    line-height: 1.6;
+}
+
+/* --- Utilities --- */
+.text--muted { color: var(--text-secondary); }
+.text--tertiary { color: var(--text-tertiary); }

@@ -65,7 +65,7 @@ class TermChangeHandler(
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
                 val termId = cr.entityPk.toLongOrNull()
-                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "단어"); return v.build() }
+                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "용어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
                 validateFields(payload, v)
 
@@ -84,7 +84,7 @@ class TermChangeHandler(
 
             ChangeRequestOperation.DELETE -> {
                 val termId = cr.entityPk.toLongOrNull()
-                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "단어"); return v.build() }
+                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "용어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
             }
 

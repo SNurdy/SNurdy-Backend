@@ -10,13 +10,13 @@ data class MorphemeSearchResponse(
     val keyword: String,
     @field:Schema(description = "검색 결과 수", example = "3")
     val totalCount: Int,
-    @field:Schema(description = "검색 결과 단어 목록")
+    @field:Schema(description = "검색 결과 용어 목록")
     val terms: List<MorphemeSearchTermItem>
 )
 
-@Schema(description = "어근어미 검색 결과 단어 항목")
+@Schema(description = "어근어미 검색 결과 용어 항목")
 data class MorphemeSearchTermItem(
-    @field:Schema(description = "단어 ID", example = "618")
+    @field:Schema(description = "용어 ID", example = "618")
     val id: Long,
     @field:Schema(description = "철자", example = "Hepatitis")
     val spelling: String,
@@ -24,7 +24,7 @@ data class MorphemeSearchTermItem(
     val meaning: String,
     @field:Schema(description = "약어")
     val abbreviation: String?,
-    @field:Schema(description = "단어가 포함된 단어장 목록")
+    @field:Schema(description = "용어가 포함된 용어집 목록")
     val glossaries: List<TermGlossaryTag>,
     @field:Schema(description = "순서가 보장된 어근어미 목록")
     val morphemes: List<SearchOrderedMorpheme>
@@ -38,7 +38,7 @@ data class SearchOrderedMorpheme(
     val spelling: String,
     @field:Schema(description = "어근어미 의미", example = "간")
     val meaning: String,
-    @field:Schema(description = "단어 내 순서", example = "0")
+    @field:Schema(description = "용어 내 순서", example = "0")
     val order: Int,
     @field:Schema(description = "하이라이팅 범위")
     val highlight: MorphemeHighlight? = null,

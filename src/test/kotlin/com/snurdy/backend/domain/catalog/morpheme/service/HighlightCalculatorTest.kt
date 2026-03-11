@@ -146,7 +146,7 @@ class HighlightCalculatorTest {
     inner class NoMatchTests {
 
         @Test
-        @DisplayName("관련 없는 단어 → null 반환")
+        @DisplayName("관련 없는 용어 → null 반환")
         fun noMatch() {
             val variants = listOf(variant(variant = "hepato", base = "hepat"))
             val result = calculator.calculate("cardiology", variants)

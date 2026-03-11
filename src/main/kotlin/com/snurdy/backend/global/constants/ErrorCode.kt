@@ -35,7 +35,8 @@ enum class AuthError(
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "AUTH_002", "만료된 토큰입니다"),
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_003", "카카오 API 오류가 발생했습니다"),
     APPLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_004", "애플 API 오류가 발생했습니다"),
-    GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_005", "구글 API 오류가 발생했습니다")
+    GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_005", "구글 API 오류가 발생했습니다"),
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_010", "이메일 또는 비밀번호가 올바르지 않습니다")
 }
 
 // 유저 관련 에러
@@ -64,7 +65,7 @@ enum class AdminError(
     override val message: String
 ) : ErrorCode {
     TERM_REQUIRED_FIELDS_MISSING(HttpStatus.BAD_REQUEST, "ADMIN_011", "spelling과 meaning은 필수입니다"),
-    INVALID_TERM_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_012", "단어 필드 길이가 유효하지 않습니다"),
+    INVALID_TERM_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_012", "용어 필드 길이가 유효하지 않습니다"),
     INVALID_WORKFLOW_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_013", "지원하지 않는 작업 유형입니다"),
     WORKFLOW_TERM_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_014", "수정/삭제 요청에는 termId가 필요합니다"),
     WORKFLOW_INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "ADMIN_015", "요청 상태 전이가 올바르지 않습니다"),
@@ -73,7 +74,7 @@ enum class AdminError(
     DUPLICATE_TERM_SPELLING(HttpStatus.CONFLICT, "ADMIN_018", "이미 존재하는 단어입니다"),
     INVALID_MORPHEME_MAPPING(HttpStatus.BAD_REQUEST, "ADMIN_019", "어근어미 매핑 값이 유효하지 않습니다"),
     MORPHEME_NOT_FOUND(HttpStatus.BAD_REQUEST, "ADMIN_020", "존재하지 않는 어근어미가 포함되어 있습니다"),
-    GLOSSARY_REQUIRED_FOR_TERM_CREATE(HttpStatus.BAD_REQUEST, "ADMIN_021", "단어 생성 시 단어장 선택은 필수입니다"),
+    GLOSSARY_REQUIRED_FOR_TERM_CREATE(HttpStatus.BAD_REQUEST, "ADMIN_021", "용어 생성 시 용어집 선택은 필수입니다"),
     MORPHEME_REQUIRED_FIELDS_MISSING(HttpStatus.BAD_REQUEST, "ADMIN_022", "어근어미 spelling과 meaning은 필수입니다"),
     INVALID_MORPHEME_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_023", "어근어미 필드 길이가 유효하지 않습니다"),
     DUPLICATE_MORPHEME_SPELLING(HttpStatus.CONFLICT, "ADMIN_024", "이미 존재하는 어근어미입니다"),

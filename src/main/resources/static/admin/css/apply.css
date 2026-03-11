@@ -1,0 +1,31 @@
+/* ============================================
+   SNurdy CMS — 반영 페이지 (apply.css)
+   ============================================ */
+
+/* --- Toolbar --- */
+.toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.toolbar .input { width: 80px; flex: none; }
+.toolbar__search { flex-shrink: 0; }
+
+/* --- Apply button --- */
+.btn--apply {
+    background: var(--gray-900);
+    color: #fff;
+    border-color: var(--gray-900);
+    font-weight: 600;
+}
+
+.btn--apply:hover {
+    background: var(--gray-800);
+}
+
+/* --- Warning text --- */
+.warn-text {
+    color: var(--amber);
+    font-size: 12px;
+}

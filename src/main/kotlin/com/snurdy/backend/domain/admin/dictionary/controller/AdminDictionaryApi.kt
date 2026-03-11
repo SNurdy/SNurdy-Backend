@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 @RequestMapping("/v1/admin/dictionary")
 interface AdminDictionaryApi {
 
-    @Operation(summary = "단어장 목록 조회")
+    @Operation(summary = "용어집 목록 조회")
     @GetMapping("/glossaries")
     fun getGlossaries(
         @RequestParam(required = false) keyword: String?,
@@ -25,7 +25,7 @@ interface AdminDictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<GlossaryPageResponse>
 
-    @Operation(summary = "단어 목록 조회")
+    @Operation(summary = "용어 목록 조회")
     @GetMapping("/terms")
     fun getTerms(
         @RequestParam(required = false) keyword: String?,
@@ -33,7 +33,7 @@ interface AdminDictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<TermPageResponse>
 
-    @Operation(summary = "단어 상세 조회")
+    @Operation(summary = "용어 상세 조회")
     @GetMapping("/terms/{termId}")
     fun getTerm(
         @PathVariable termId: Long

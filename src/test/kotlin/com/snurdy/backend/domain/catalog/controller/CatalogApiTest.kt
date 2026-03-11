@@ -25,7 +25,7 @@ class CatalogApiTest {
     private lateinit var mockMvc: MockMvc
 
     @Test
-    fun `단어장 목록 조회는 인증이 필요하다`() {
+    fun `용어집 목록 조회는 인증이 필요하다`() {
         mockMvc.get("/v1/catalog/glossaries")
             .andExpect {
                 status { isUnauthorized () }
@@ -33,7 +33,7 @@ class CatalogApiTest {
     }
 
     @Test
-    fun `인증 사용자는 단어장 목록을 조회할 수 있다`() {
+    fun `인증 사용자는 용어집 목록을 조회할 수 있다`() {
         mockMvc.get("/v1/catalog/glossaries") {
             with(user("ios-client").roles("USER"))
         }
@@ -46,7 +46,7 @@ class CatalogApiTest {
     }
 
     @Test
-    fun `인증 사용자는 단어장별 단어 목록을 조회할 수 있다`() {
+    fun `인증 사용자는 단어장별 용어 목록을 조회할 수 있다`() {
         mockMvc.get("/v1/catalog/glossaries/4/terms") {
             with(user("ios-client").roles("USER"))
             param("page", "0")
@@ -62,7 +62,7 @@ class CatalogApiTest {
     }
 
     @Test
-    fun `인증 사용자는 단어 상세와 ordered morphemes를 조회할 수 있다`() {
+    fun `인증 사용자는 용어 상세와 ordered morphemes를 조회할 수 있다`() {
         mockMvc.get("/v1/catalog/terms/3") {
             with(user("ios-client").roles("USER"))
         }

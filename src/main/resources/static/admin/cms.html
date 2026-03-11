@@ -4,51 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS</title>
-    <style>
-        /* ── 서비스 브랜드 컬러 ── */
-        :root {
-            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
-            --pink-light:#F9DFE9; --pink:#FFAFC8; --hotpink:#E44B7B;
-            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0; min-height: 100vh; display: grid; place-items: center;
-            background: linear-gradient(180deg, #f6f9ff 0%, var(--bg) 100%);
-            color: var(--text); font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
-        }
-        .card { width: min(520px, calc(100% - 32px)); border: 1px solid var(--line); border-radius: 14px; background: var(--card); padding: 18px; }
-        h1 { margin: 0 0 8px; font-size: 20px; color: var(--navy); }
-        p  { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
-        .links { display: grid; gap: 8px; }
-        a { display: block; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; color: var(--navy); text-decoration: none; background: #fff; transition: all .15s; }
-        a:hover { background: var(--blue-light); }
-        a.primary { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
-        a.primary:hover { background: #1e3060; }
-    </style>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/cms.css" />
 </head>
 <body>
-<section class="card">
-    <h1>관리자 CMS</h1>
-    <p>요청 → 검증 → 반영 단계별 페이지</p>
-    <div class="links">
-        <a class="primary" href="/api/admin/request.html">요청 페이지</a>
-        <a href="/api/admin/validate-waiting.html">검증/반영대기 페이지</a>
-        <a href="/api/admin/apply.html">반영 페이지</a>
-        <a href="/api/admin/audit-log.html">변경이력 페이지</a>
-        <a href="#" id="logoutBtn" style="color:var(--hotpink); border-color:var(--hotpink);">로그아웃</a>
+
+<section class="cms-card">
+    <h1 class="cms-card__title">관리자 CMS</h1>
+    <p class="cms-card__desc">요청 → 검증 → 반영 단계별 페이지</p>
+    <div class="cms-card__links">
+        <a class="cms-card__link cms-card__link--primary" href="/api/admin/request.html">요청 페이지</a>
+        <a class="cms-card__link" href="/api/admin/validate-waiting.html">검증/반영대기 페이지</a>
+        <a class="cms-card__link" href="/api/admin/apply.html">반영 페이지</a>
+        <a class="cms-card__link" href="/api/admin/audit-log.html">변경이력 페이지</a>
+        <a class="cms-card__link cms-card__link--logout" href="#" id="logoutBtn">로그아웃</a>
     </div>
 </section>
-<script>
-    /* ── 인증 ── */
-    function getToken() { return sessionStorage.getItem("admin_token"); }
-    if (!getToken()) { window.location.href = "/api/admin/login.html"; }
-    if (!sessionStorage.getItem("admin_token")) { window.location.href = "/api/admin/login.html"; }
-    document.getElementById("logoutBtn").addEventListener("click", (e) => {
-        e.preventDefault();
-        sessionStorage.removeItem("admin_token");
-        window.location.href = "/api/admin/login.html";
-    });
-</script>
+
+<script src="js/common.js"></script>
+<script src="js/cms.js"></script>
 </body>
 </html>

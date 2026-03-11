@@ -4,86 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS 로그인</title>
-    <style>
-        :root {
-            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
-            --hotpink:#E44B7B;
-            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
-        }
-        * { box-sizing: border-box; }
-        body {
-            margin: 0; min-height: 100vh; display: grid; place-items: center;
-            background: linear-gradient(180deg, #f6f9ff 0%, var(--bg) 100%);
-            color: var(--text); font-family: "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
-        }
-        .card {
-            width: min(400px, calc(100% - 32px));
-            border: 1px solid var(--line); border-radius: 14px;
-            background: var(--card); padding: 24px;
-        }
-        h1 { margin: 0 0 4px; font-size: 20px; color: var(--navy); }
-        p { margin: 0 0 16px; color: var(--muted); font-size: 13px; }
-        label { display: block; font-size: 13px; color: var(--navy); font-weight: 600; margin-bottom: 4px; }
-        input {
-            width: 100%; border: 1px solid var(--line); border-radius: 8px;
-            font-size: 14px; height: 40px; padding: 0 12px; margin-bottom: 12px;
-        }
-        input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(137,176,244,0.25); }
-        button {
-            width: 100%; height: 42px; border: none; border-radius: 8px;
-            background: var(--navy); color: #fff; font-size: 14px; font-weight: 700;
-            cursor: pointer; transition: background .15s;
-        }
-        button:hover { background: #1e3060; }
-        button:disabled { background: #aaa; cursor: not-allowed; }
-        .error { color: var(--hotpink); font-size: 13px; margin-top: 8px; display: none; }
-    </style>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/login.css" />
 </head>
 <body>
-<section class="card">
-    <h1>관리자 로그인</h1>
-    <p>SNurdy CMS</p>
 
-    <label for="email">이메일</label>
-    <input id="email" type="email" placeholder="admin@snurdy.org" autocomplete="username" />
+<section class="login-card">
+    <h1 class="login-card__title">관리자 로그인</h1>
+    <p class="login-card__desc">SNurdy CMS</p>
 
-    <label for="password">비밀번호</label>
-    <input id="password" type="password" placeholder="비밀번호" autocomplete="current-password" />
+    <label class="login-card__label" for="email">이메일</label>
+    <input id="email" class="input" type="email" placeholder="admin@snurdy.org" autocomplete="username" />
 
-    <button id="loginBtn">로그인</button>
-    <div id="error" class="error"></div>
+    <label class="login-card__label" for="password">비밀번호</label>
+    <input id="password" class="input" type="password" placeholder="비밀번호" autocomplete="current-password" />
+
+    <button id="loginBtn" class="login-card__submit">로그인</button>
+    <div id="error" class="login-card__error"></div>
 </section>
 
-<script>
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const loginBtn = document.getElementById("loginBtn");
-    const errorEl = document.getElementById("error");
-
-    async function doLogin() {
-        errorEl.style.display = "none";
-        loginBtn.disabled = true;
-        try {
-            const res = await fetch("/api/v1/admin/auth/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: emailInput.value.trim(), password: passwordInput.value })
-            });
-            const payload = await res.json();
-            if (!res.ok || !payload.success) throw new Error(payload.message || "로그인 실패");
-            sessionStorage.setItem("admin_token", payload.data.accessToken);
-            window.location.href = "/api/admin/cms.html";
-        } catch (e) {
-            errorEl.textContent = e.message;
-            errorEl.style.display = "block";
-        } finally {
-            loginBtn.disabled = false;
-        }
-    }
-
-    loginBtn.addEventListener("click", doLogin);
-    passwordInput.addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
-    emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter") passwordInput.focus(); });
-</script>
+<script src="js/common.js"></script>
+<script src="js/login.js"></script>
 </body>
 </html>

@@ -1,0 +1,58 @@
+/* ============================================
+   SNurdy CMS — 메인 페이지 (cms.css)
+   ============================================ */
+
+body {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+}
+
+.cms-card {
+    width: min(520px, calc(100% - 32px));
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--card);
+    padding: 18px;
+}
+
+.cms-card__title {
+    margin: 0 0 8px;
+    font-size: 20px;
+    color: var(--navy);
+}
+
+.cms-card__desc {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.cms-card__links { display: grid; gap: 8px; }
+
+.cms-card__link {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: var(--navy);
+    text-decoration: none;
+    background: #fff;
+    transition: all 0.15s;
+}
+
+.cms-card__link:hover { background: var(--blue-light); }
+
+.cms-card__link--primary {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+    font-weight: 700;
+}
+
+.cms-card__link--primary:hover { background: #1e3060; }
+
+.cms-card__link--logout {
+    color: var(--hotpink);
+    border-color: var(--hotpink);
+}

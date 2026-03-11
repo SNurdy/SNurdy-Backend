@@ -1,0 +1,43 @@
+/* ============================================
+   SNurdy CMS — 반영 페이지 (apply.css)
+   ============================================ */
+
+.panel__header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue-light);
+}
+
+.panel__header strong { color: var(--navy); }
+.panel__body { padding: 16px; }
+
+.toolbar {
+    display: grid;
+    grid-template-columns: 90px auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.toolbar__search { width: 100px; }
+
+.badge--validated { background: var(--blue-light); color: var(--navy); }
+
+.btn--apply {
+    background: var(--blue);
+    color: var(--navy);
+    border-color: var(--blue);
+    font-weight: 600;
+}
+
+.btn--apply:hover {
+    background: var(--navy);
+    color: #fff;
+}
+
+.warn-text {
+    color: var(--hotpink);
+    font-size: 12px;
+}

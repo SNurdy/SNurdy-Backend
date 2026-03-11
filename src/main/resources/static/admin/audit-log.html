@@ -4,116 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CMS 변경이력</title>
-    <style>
-        /* ── 서비스 브랜드 컬러 ── */
-        :root {
-            --blue-light:#CBDDFC; --blue:#89B0F4; --navy:#2A3F76;
-            --pink-light:#F9DFE9; --pink:#FFAFC8; --hotpink:#E44B7B;
-            --bg:#F0F4FB; --card:#fff; --line:#D4DEEF; --text:#1f2a36; --muted:#5f7086;
-        }
-        * { box-sizing:border-box; }
-        body { margin:0; background:linear-gradient(180deg,#f6f9ff 0%,var(--bg) 100%); color:var(--text); font-family:"Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
-        .wrap { max-width:1400px; margin:0 auto; padding:20px; }
-
-        .page-nav { display:flex; gap:8px; margin-bottom:10px; }
-        .page-link { display:inline-flex; align-items:center; height:34px; padding:0 12px; border:1px solid var(--line); border-radius:999px; color:var(--navy); background:#fff; text-decoration:none; font-size:13px; transition:all .15s; }
-        .page-link:hover { background:var(--blue-light); }
-        .page-link.active { color:#fff; background:var(--navy); border-color:var(--navy); font-weight:700; }
-
-        .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; }
-        .head { padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background:var(--blue-light); }
-        .head strong { color:var(--navy); }
-        .body { padding:16px; }
-
-        .toolbar { display:grid; grid-template-columns: 140px 80px auto; gap:8px; margin-bottom:10px; }
-        input, select, button { border:1px solid var(--line); border-radius:8px; font-size:14px; height:36px; padding:0 10px; }
-        input:focus, select:focus { outline:none; border-color:var(--blue); box-shadow:0 0 0 3px rgba(137,176,244,0.25); }
-        button { background:#fff; cursor:pointer; transition:all .15s; }
-        button:hover { background:var(--blue-light); }
-        button.primary { background:var(--navy); color:#fff; border-color:var(--navy); }
-        button.primary:hover { background:#1e3060; }
-
-        table { width:100%; border-collapse:collapse; font-size:13px; }
-        th, td { text-align:left; padding:10px 8px; border-bottom:1px solid #e8eff8; vertical-align:top; }
-        th { color:var(--navy); font-weight:600; background:rgba(203,221,252,0.2); }
-        .btn-sm { height:28px; padding:0 8px; font-size:12px; }
-
-        .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; }
-        .badge-request  { background:var(--blue-light); color:var(--navy); }
-        .badge-validate { background:#d1e7dd; color:#0a5c36; }
-        .badge-apply    { background:#e8eff8; color:#374151; }
-        .badge-update   { background:var(--pink-light); color:var(--hotpink); }
-        .badge-cancel   { background:#f1f1f1; color:#6b7280; }
-        .badge-rollback { background:var(--pink-light); color:var(--hotpink); }
-
-        .pager { margin-top:10px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
-
-        /* 인라인 상세 */
-        .inline-detail td { padding:0; background:rgba(203,221,252,0.1); }
-        .inline-detail-inner { padding:14px 16px; border-top:2px solid var(--navy); }
-
-        .detail-meta { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:0; margin-bottom:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-        .meta-item { padding:8px 12px; border-bottom:1px solid #e8eff8; background:#fff; }
-        .meta-item:last-child { border-bottom:none; }
-        .meta-label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.3px; margin-bottom:1px; }
-        .meta-value { font-size:13px; word-break:break-word; }
-
-        .diff-section { margin-top:8px; }
-        .diff-section-title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--navy); }
-        .diff-table { width:100%; border-collapse:collapse; font-size:13px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-        .diff-table th { background:var(--blue-light); color:var(--navy); font-weight:600; padding:6px 10px; text-align:left; font-size:12px; }
-        .diff-table td { padding:6px 10px; border-bottom:1px solid #e8eff8; vertical-align:top; word-break:break-word; }
-        .diff-removed { background:var(--pink-light); color:var(--hotpink); text-decoration:line-through; }
-        .diff-added   { background:rgba(203,221,252,0.35); color:var(--navy); font-weight:500; }
-        .diff-unchanged { color:var(--muted); }
-        .diff-field-name { font-weight:600; white-space:nowrap; }
-
-        .data-section { margin-top:8px; }
-        .data-section-title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--navy); }
-        .data-table { width:100%; border-collapse:collapse; font-size:13px; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
-        .data-table th { background:var(--blue-light); color:var(--navy); font-weight:600; padding:6px 10px; text-align:left; font-size:12px; }
-        .data-table td { padding:6px 10px; border-bottom:1px solid #e8eff8; vertical-align:top; word-break:break-word; }
-
-        .log { margin-top:10px; padding:10px; border-radius:8px; background:var(--navy); color:var(--blue-light); min-height:74px; white-space:pre-wrap; font-size:12px; }
-        .muted { color:var(--muted); }
-
-        /* 모달 */
-        .modal-overlay {
-            display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-            background:rgba(0,0,0,0.4); z-index:1000; place-items:center;
-        }
-        .modal-overlay.open { display:grid; }
-        .modal {
-            background:var(--card); border-radius:14px; width:min(700px, calc(100% - 32px));
-            max-height:80vh; overflow:auto; padding:20px; position:relative;
-            box-shadow:0 8px 32px rgba(42,63,118,0.18);
-        }
-        .modal-close {
-            position:absolute; top:12px; right:12px; width:32px; height:32px;
-            border:none; background:none; font-size:20px; cursor:pointer; color:var(--muted);
-            border-radius:8px; display:grid; place-items:center;
-        }
-        .modal-close:hover { background:var(--pink-light); color:var(--hotpink); }
-        .modal-title { font-size:16px; font-weight:700; color:var(--navy); margin:0 0 12px; }
-    </style>
+    <link rel="stylesheet" href="css/common.css" />
+    <link rel="stylesheet" href="css/audit-log.css" />
 </head>
 <body>
-<div class="wrap">
-    <nav class="page-nav">
-        <a class="page-link" href="/api/admin/request.html">요청</a>
-        <a class="page-link" href="/api/admin/validate-waiting.html">검증/반영대기</a>
-        <a class="page-link" href="/api/admin/apply.html">반영</a>
-        <a class="page-link active" href="/api/admin/audit-log.html">변경이력</a>
+
+<div class="layout">
+    <nav class="nav">
+        <a class="nav__link" href="/api/admin/request.html">요청</a>
+        <a class="nav__link" href="/api/admin/validate-waiting.html">검증/반영대기</a>
+        <a class="nav__link" href="/api/admin/apply.html">반영</a>
+        <a class="nav__link nav__link--active" href="/api/admin/audit-log.html">변경이력</a>
     </nav>
 
     <section class="panel">
-        <div class="head">
+        <header class="panel__header">
             <strong>변경이력</strong>
-            <span class="muted">모든 관리자 액션 기록</span>
-        </div>
-        <div class="body">
+            <span class="text--muted">모든 관리자 액션 기록</span>
+        </header>
+
+        <div class="panel__body">
             <div class="toolbar">
-                <select id="action">
+                <select id="action" class="input">
                     <option value="">액션 전체</option>
                     <option value="REQUEST">REQUEST</option>
                     <option value="UPDATE">UPDATE</option>
@@ -122,21 +34,27 @@
                     <option value="ROLLBACK">ROLLBACK</option>
                     <option value="CANCEL">CANCEL</option>
                 </select>
-                <input id="size" value="20" />
-                <button id="searchBtn" class="primary" style="width: 100px">조회</button>
+                <input id="size" class="input" value="20" />
+                <button id="searchBtn" class="btn btn--primary toolbar__search">조회</button>
             </div>
 
-            <table>
+            <table class="table">
                 <thead>
-                <tr><th>ID</th><th>액션</th><th>변경 내용</th><th>시각</th><th>상세</th></tr>
+                <tr>
+                    <th>ID</th>
+                    <th>액션</th>
+                    <th>변경 내용</th>
+                    <th>시각</th>
+                    <th>상세</th>
+                </tr>
                 </thead>
                 <tbody id="rows"></tbody>
             </table>
 
             <div class="pager">
-                <button id="prevBtn">이전</button>
+                <button id="prevBtn" class="btn">이전</button>
                 <span id="pageInfo">페이지 1 / 1</span>
-                <button id="nextBtn">다음</button>
+                <button id="nextBtn" class="btn">다음</button>
                 <span id="countInfo">총 0건</span>
             </div>
 
@@ -144,190 +62,16 @@
         </div>
     </section>
 </div>
+
+<!-- 모달 -->
 <div id="modalOverlay" class="modal-overlay">
     <div class="modal">
-        <button class="modal-close" id="modalClose">&times;</button>
+        <button class="modal__close" id="modalClose">&times;</button>
         <div id="modalContent"></div>
     </div>
 </div>
-<script>
-    /* ── 인증 ── */
-    function getToken() { return sessionStorage.getItem("admin_token"); }
-    if (!getToken()) { window.location.href = "/api/admin/login.html"; }
 
-    const $ = (id) => document.getElementById(id);
-    const actionInput=$("action");
-    const sizeInput=$("size"),rowsEl=$("rows"),logEl=$("log");
-    const pageInfoEl=$("pageInfo"),countInfoEl=$("countInfo");
-    const modalOverlay=$("modalOverlay"),modalContent=$("modalContent"),modalClose=$("modalClose");
-    const API_BASE="/api/v1/admin/audit-logs";
-    let page=0, totalPages=1, allItems=[];
-
-    function writeLog(msg){logEl.textContent=`[${new Date().toLocaleTimeString()}] ${msg}\n`+logEl.textContent;}
-
-    function callApi(path) {
-        const token = getToken();
-        if (!token) { window.location.href = "/api/admin/login.html"; return Promise.reject(new Error("인증 필요")); }
-        return fetch(path, {
-            headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token }
-        }).then(async res => {
-            if (res.status === 401 || res.status === 403) {
-                sessionStorage.removeItem("admin_token");
-                window.location.href = "/api/admin/login.html";
-                throw new Error("인증 만료");
-            }
-            const p = await res.json();
-            if (!res.ok || p.success === false) throw new Error(p.message || `HTTP ${res.status}`);
-            return p.data;
-        });
-    }
-
-    function esc(v){if(v==null)return "";return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-
-    function formatTime(iso){
-        if(!iso)return "-";
-        try{
-            const d=new Date(iso);
-            const y=d.getFullYear(), mo=String(d.getMonth()+1).padStart(2,"0"),
-                da=String(d.getDate()).padStart(2,"0"), h=String(d.getHours()).padStart(2,"0"),
-                mi=String(d.getMinutes()).padStart(2,"0"), s=String(d.getSeconds()).padStart(2,"0");
-            return `${y}년 ${mo}월 ${da}일 ${h}:${mi}:${s}`;
-        }catch{return iso;}
-    }
-
-    function safeJson(v){if(!v)return null;try{return JSON.parse(v);}catch{return null;}}
-
-    const ACTION_BADGE={REQUEST:"badge-request",UPDATE:"badge-update",VALIDATE:"badge-validate",APPLY:"badge-apply",ROLLBACK:"badge-rollback",CANCEL:"badge-cancel"};
-    function actionBadge(a){return `<span class="badge ${ACTION_BADGE[a]||""}">${a}</span>`;}
-
-    const FIELD_LABELS={
-        spelling:"영문",meaning:"뜻",abbreviation:"약어",explanation:"설명",
-        morphemes:"어근어미 ID",glossaryId:"용어집 ID",glossaryIds:"용어집 ID",
-        title:"제목",status:"상태",entityType:"유형",operation:"작업",entityPk:"대상 PK",
-        errorCode:"에러코드",errorMessage:"에러메시지",warningMessage:"경고",
-        createdAt:"생성시각",updatedAt:"수정시각",id:"ID"
-    };
-    function fieldLabel(k){return FIELD_LABELS[k]||k;}
-    function displayValue(v){
-        if(v==null||v==="")return "-";
-        if(Array.isArray(v))return v.length?v.join(", "):"(없음)";
-        if(typeof v==="object")return JSON.stringify(v);
-        return String(v);
-    }
-
-    /* ── 변경 내용 요약 (테이블 컬럼용) ── */
-    function summarizeChange(item){
-        const after=safeJson(item.afterJson);
-        if(!after)return "-";
-        const parts=[];
-        if(after.spelling) parts.push(after.spelling);
-        if(after.meaning) parts.push(after.meaning);
-        if(after.title) parts.push(after.title);
-        if(after.status) parts.push(after.status);
-        if(parts.length===0) return "-";
-        const text=parts.join(" / ");
-        return text.length>50 ? esc(text.substring(0,50))+"…" : esc(text);
-    }
-
-    /* ── 모달 ── */
-    function openModal(html){
-        modalContent.innerHTML=html;
-        modalOverlay.classList.add("open");
-    }
-    function closeModal(){
-        modalOverlay.classList.remove("open");
-        modalContent.innerHTML="";
-    }
-    modalClose.addEventListener("click",closeModal);
-    modalOverlay.addEventListener("click",(e)=>{if(e.target===modalOverlay)closeModal();});
-    document.addEventListener("keydown",(e)=>{if(e.key==="Escape")closeModal();});
-
-    /* ── 데이터를 테이블로 표시 ── */
-    function renderDataTable(title, obj, cssClass) {
-        if(!obj||typeof obj!=="object") return "";
-        const keys=Object.keys(obj).filter(k=>!["isEditable","isApplicable","isCancelable","isValidatable","isRollbackable","requestedBy","appliedBy","description"].includes(k));
-        if(!keys.length)return "";
-        return `<div style="margin-top:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--navy);">${title}</div><table class="diff-table"><thead><tr><th>필드</th><th>값</th></tr></thead><tbody>${keys.map(k=>{
-            let val=obj[k];
-            // 시각 필드 포맷팅
-            if(typeof val==="string"&&(k.endsWith("At")||k==="createdAt"||k==="updatedAt")) val=formatTime(val);
-            return `<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="${cssClass||""}">${esc(displayValue(val))}</td></tr>`;
-        }).join("")}</tbody></table></div>`;
-    }
-
-    /* ── Diff 비교 ── */
-    function renderDiff(before, after) {
-        if(!before||!after) return "";
-        const skipKeys=new Set(["isEditable","isApplicable","isCancelable","isValidatable","isRollbackable","requestedBy","appliedBy","description"]);
-        const allKeys=[...new Set([...Object.keys(before),...Object.keys(after)])].filter(k=>!skipKeys.has(k));
-        const changed=[],unchanged=[];
-        allKeys.forEach(k=>{displayValue(before[k])===displayValue(after[k])?unchanged.push(k):changed.push(k);});
-        if(!changed.length) return `<div style="margin-top:10px;color:var(--muted);">변경 사항 없음</div>`;
-        let h=`<div style="margin-top:10px;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;color:var(--navy);">변경 내역</div><table class="diff-table"><thead><tr><th>필드</th><th>변경 전</th><th>변경 후</th></tr></thead><tbody>`;
-        changed.forEach(k=>{
-            let bv=before[k],av=after[k];
-            if(typeof bv==="string"&&k.endsWith("At")) bv=formatTime(bv);
-            if(typeof av==="string"&&k.endsWith("At")) av=formatTime(av);
-            h+=`<tr><td class="diff-field-name">${esc(fieldLabel(k))}</td><td class="diff-removed">${esc(displayValue(bv))}</td><td class="diff-added">${esc(displayValue(av))}</td></tr>`;
-        });
-        if(unchanged.length>3){h+=`<tr><td class="muted" colspan="3">외 ${unchanged.length}개 필드 변경 없음</td></tr>`;}
-        h+=`</tbody></table></div>`;return h;
-    }
-
-    /* ── 모달 상세 렌더 ── */
-    function renderDetail(item){
-        const before=safeJson(item.beforeJson),after=safeJson(item.afterJson);
-        let h=`<div class="modal-title">${actionBadge(item.action)} 상세</div>`;
-        h+=`<div style="font-size:13px;color:var(--muted);margin-bottom:12px;">${formatTime(item.createdAt)}</div>`;
-        if(before&&after){
-            h+=renderDiff(before,after);
-        } else {
-            if(before) h+=renderDataTable("변경 전 데이터",before,"diff-removed");
-            if(after) h+=renderDataTable("변경 후 데이터",after,"diff-added");
-        }
-        return h;
-    }
-
-    /* ── 목록 ── */
-    async function loadList(){
-        const size=Number(sizeInput.value||20);
-        const params=new URLSearchParams({page:String(page),size:String(size)});
-        const action=actionInput.value;
-        if(action)params.set("action",action);
-        const data=await callApi(`${API_BASE}?${params}`);
-        allItems=data.items||[];totalPages=Math.max(data.totalPages||1,1);
-        pageInfoEl.textContent=`페이지 ${(data.page||0)+1} / ${totalPages}`;
-        countInfoEl.textContent=`총 ${data.totalElements||0}건`;
-
-        if(!allItems.length){rowsEl.innerHTML=`<tr><td colspan="5" class="muted">데이터가 없습니다.</td></tr>`;return;}
-
-        rowsEl.innerHTML=allItems.map(it=>`
-        <tr>
-            <td>${it.id}</td>
-            <td>${actionBadge(it.action)}</td>
-            <td>${summarizeChange(it)}</td>
-            <td>${formatTime(it.createdAt)}</td>
-            <td><button class="btn-sm" data-id="${it.id}">상세</button></td>
-        </tr>
-    `).join("");
-
-        rowsEl.querySelectorAll("button").forEach(btn=>{
-            btn.addEventListener("click",()=>{
-                const item=allItems.find(i=>i.id===Number(btn.dataset.id));
-                if(!item)return;
-                openModal(renderDetail(item));
-                writeLog(`상세 조회: 로그ID=${item.id}`);
-            });
-        });
-    }
-
-    function doSearch(){page=0;loadList().catch(e=>writeLog(`조회 실패: ${e.message}`));}
-    $("searchBtn").addEventListener("click",doSearch);
-    sizeInput.addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
-    $("prevBtn").addEventListener("click",()=>{if(page>0){page--;loadList().catch(e=>writeLog(`조회 실패: ${e.message}`));}});
-    $("nextBtn").addEventListener("click",()=>{if(page+1<totalPages){page++;loadList().catch(e=>writeLog(`조회 실패: ${e.message}`));}});
-    loadList().catch(e=>writeLog(`초기 조회 실패: ${e.message}`));
-</script>
-
+<script src="js/common.js"></script>
+<script src="js/audit-log.js"></script>
 </body>
 </html>

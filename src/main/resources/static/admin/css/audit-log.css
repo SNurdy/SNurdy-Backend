@@ -1,0 +1,132 @@
+/* ============================================
+   SNurdy CMS — 변경이력 페이지 (audit-log.css)
+   ============================================ */
+
+/* --- Panel Header --- */
+.panel__header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue-light);
+}
+
+.panel__header strong { color: var(--navy); }
+
+.panel__body { padding: 16px; }
+
+/* --- Toolbar --- */
+.toolbar {
+    display: grid;
+    grid-template-columns: 140px 80px auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.toolbar__search { width: 100px; }
+
+/* --- Action Badges --- */
+.badge--request  { background: var(--blue-light); color: var(--navy); }
+.badge--validate { background: #d1e7dd; color: #0a5c36; }
+.badge--apply    { background: #e8eff8; color: #374151; }
+.badge--update   { background: var(--pink-light); color: var(--hotpink); }
+.badge--cancel   { background: #f1f1f1; color: #6b7280; }
+.badge--rollback { background: var(--pink-light); color: var(--hotpink); }
+
+/* --- Modal --- */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+    place-items: center;
+}
+
+.modal-overlay--open { display: grid; }
+
+.modal {
+    background: var(--card);
+    border-radius: 14px;
+    width: min(700px, calc(100% - 32px));
+    max-height: 80vh;
+    overflow: auto;
+    padding: 20px;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(42, 63, 118, 0.18);
+}
+
+.modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--muted);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+}
+
+.modal__close:hover {
+    background: var(--pink-light);
+    color: var(--hotpink);
+}
+
+.modal__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--navy);
+    margin: 0 0 12px;
+}
+
+/* --- Diff Table --- */
+.diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.diff-table th {
+    background: var(--blue-light);
+    color: var(--navy);
+    font-weight: 600;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.diff-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e8eff8;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.diff-table__field { font-weight: 600; white-space: nowrap; }
+.diff-table__removed { background: var(--pink-light); color: var(--hotpink); text-decoration: line-through; }
+.diff-table__added { background: rgba(203, 221, 252, 0.35); color: var(--navy); font-weight: 500; }
+.diff-table__unchanged { color: var(--muted); }
+
+/* --- Detail Section --- */
+.detail-section {
+    margin-top: 10px;
+}
+
+.detail-section__title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--navy);
+}

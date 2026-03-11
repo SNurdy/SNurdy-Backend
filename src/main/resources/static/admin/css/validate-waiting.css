@@ -1,0 +1,187 @@
+/* ============================================
+   SNurdy CMS — 검증/반영대기 (validate-waiting.css)
+   ============================================ */
+
+/* --- Panel --- */
+.panel__header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--blue-light);
+}
+
+.panel__header strong { color: var(--navy); }
+.panel__body { padding: 16px; }
+
+/* --- Toolbar --- */
+.toolbar {
+    display: grid;
+    grid-template-columns: 170px 90px auto;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.toolbar__search { width: 100px; }
+
+/* --- Action Tag --- */
+.action-tag {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-right: 4px;
+}
+
+.action-tag--create   { background: var(--blue-light); color: var(--navy); }
+.action-tag--update   { background: #fef3c7; color: #92400e; }
+.action-tag--delete   { background: var(--hotpink); color: #fff; }
+.action-tag--morpheme { background: var(--blue); color: #fff; }
+
+/* --- Inline Detail --- */
+.inline-detail td {
+    padding: 0;
+    background: rgba(203, 221, 252, 0.1);
+}
+
+.inline-detail__inner {
+    padding: 14px 16px;
+    border-top: 2px solid var(--navy);
+}
+
+/* --- Detail Header --- */
+.detail-header { margin-bottom: 10px; }
+
+.detail-header__title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: var(--navy);
+}
+
+.detail-header__desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 0;
+}
+
+/* --- Detail Meta --- */
+.detail-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0;
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.detail-meta__item {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e8eff8;
+    background: #fff;
+}
+
+.detail-meta__item:last-child { border-bottom: none; }
+
+.detail-meta__label {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 1px;
+}
+
+.detail-meta__value { font-size: 13px; }
+
+/* --- Diff Table --- */
+.diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.diff-table th {
+    background: var(--blue-light);
+    color: var(--navy);
+    font-weight: 600;
+    padding: 6px 10px;
+    text-align: left;
+    font-size: 12px;
+}
+
+.diff-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e8eff8;
+    vertical-align: top;
+    word-break: break-word;
+}
+
+.diff-table__field { font-weight: 600; white-space: nowrap; }
+.diff-table__removed { background: var(--pink-light); color: var(--hotpink); text-decoration: line-through; }
+.diff-table__added { background: rgba(203, 221, 252, 0.35); color: var(--navy); font-weight: 500; }
+.diff-table__unchanged { color: var(--muted); }
+
+.diff-section { margin-top: 8px; }
+
+.diff-section__title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--navy);
+}
+
+/* --- Alert Box --- */
+.alert {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    word-break: break-word;
+}
+
+.alert--error {
+    background: var(--pink-light);
+    border: 1px solid var(--pink);
+    color: var(--hotpink);
+}
+
+.alert--warning {
+    background: rgba(255, 175, 200, 0.15);
+    border: 1px solid var(--pink);
+    color: #8a3050;
+}
+
+/* --- Edit Section --- */
+.edit-section {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+}
+
+.edit-section__title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--navy);
+}
+
+.edit-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.edit-grid__full { grid-column: 1 / -1; }
+
+.edit-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+}

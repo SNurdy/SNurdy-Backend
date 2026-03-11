@@ -27,10 +27,10 @@ class JwtAuthenticationFilter(
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             val userId = jwtTokenProvider.getUserIdFromToken(token)
-            val role = jwtTokenProvider.getRoleFromToken(token)
+            val tokenType = jwtTokenProvider.getTokenType(token)
 
-            val authentication = when (role) {
-                "ADMIN" -> {
+            val authentication = when (tokenType) {
+                "admin" -> {
                     val admin = adminUserRepository.findById(userId).orElse(null)
                     if (admin != null) {
                         UsernamePasswordAuthenticationToken(

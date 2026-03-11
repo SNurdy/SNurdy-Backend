@@ -26,8 +26,8 @@ class JwtTokenProvider(
     )
 
     fun createAdminToken(adminId: UUID): Pair<String, String> {
-        val accessToken = generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration)
-        val refreshToken = generateToken(adminId, "ADMIN", jwtProperties.refreshTokenExpiration)
+        val accessToken = generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration, tokenType = "admin")
+        val refreshToken = generateToken(adminId, "ADMIN", jwtProperties.refreshTokenExpiration, tokenType = "admin")
         return accessToken to refreshToken
     }
 
@@ -55,8 +55,15 @@ class JwtTokenProvider(
             .payload
             .get("role", String::class.java) ?: "USER"
 
+    fun getTokenType(token: String): String =
+        Jwts.parser()
+            .verifyWith(secretKey)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+            .get("type", String::class.java) ?: "user"
+
     fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
-    fun refreshTokenExpiration(): Long = jwtProperties.refreshTokenExpiration
 
     private fun generateToken(userId: UUID, role: String, expirationMillis: Long, tokenType: String = "user"): String {
         val now = Date()

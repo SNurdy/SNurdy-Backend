@@ -15,7 +15,6 @@ import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.constants.CatalogError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
-import java.util.UUID
 
 @Component
 class ChangeRequestBuilder(
@@ -26,16 +25,16 @@ class ChangeRequestBuilder(
     private val objectMapper: ObjectMapper
 ) {
 
-    fun build(request: CreateChangeRequest, entityType: String, operation: String, actorUserId: UUID): ChangeRequestEntity {
+    fun build(request: CreateChangeRequest, entityType: String, operation: String): ChangeRequestEntity {
         return when (entityType) {
-            ChangeRequestEntityType.TERM -> buildTerm(request, entityType, operation, actorUserId)
-            ChangeRequestEntityType.MORPHEME -> buildMorpheme(request, entityType, operation, actorUserId)
+            ChangeRequestEntityType.TERM -> buildTerm(request, entityType, operation)
+            ChangeRequestEntityType.MORPHEME -> buildMorpheme(request, entityType, operation)
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
     }
 
     private fun buildTerm(
-        request: CreateChangeRequest, entityType: String, operation: String, actorUserId: UUID
+        request: CreateChangeRequest, entityType: String, operation: String
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
@@ -56,11 +55,11 @@ class ChangeRequestBuilder(
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
 
-        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson, actorUserId)
+        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
     }
 
     private fun buildMorpheme(
-        request: CreateChangeRequest, entityType: String, operation: String, actorUserId: UUID
+        request: CreateChangeRequest, entityType: String, operation: String
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
@@ -80,7 +79,7 @@ class ChangeRequestBuilder(
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
 
-        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson, actorUserId)
+        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
     }
 
     private fun snapshotTerm(termId: Long): String {
@@ -101,7 +100,7 @@ class ChangeRequestBuilder(
 
     private fun newEntity(
         request: CreateChangeRequest, entityType: String, operation: String,
-        entityPk: String, beforeJson: String?, afterJson: String?, actorUserId: UUID
+        entityPk: String, beforeJson: String?, afterJson: String?
     ) = ChangeRequestEntity(
         title = request.title.trim(),
         description = request.description?.trim()?.takeIf { it.isNotBlank() },
@@ -110,7 +109,6 @@ class ChangeRequestBuilder(
         entityPk = entityPk,
         beforeJson = beforeJson,
         afterJson = afterJson,
-        requestedBy = actorUserId
     )
 
     private fun CreateChangeRequest.toTermPayload() = TermPayload(

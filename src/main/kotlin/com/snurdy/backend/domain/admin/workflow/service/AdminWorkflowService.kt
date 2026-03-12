@@ -20,7 +20,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @Service
 class AdminWorkflowService(
@@ -34,15 +33,15 @@ class AdminWorkflowService(
 ) {
 
     @Transactional
-    fun create(request: CreateChangeRequest, actorUserId: UUID): ChangeRequestDetailResponse {
+    fun create(request: CreateChangeRequest): ChangeRequestDetailResponse {
         val entityType = normalizeEntityType(request.entityType)
         val operation = normalizeOperation(request.operation)
         validateEntityOperation(entityType, operation)
         if (request.title.isBlank()) throw ApiException(CommonError.BAD_REQUEST)
 
-        val entity = builder.build(request, entityType, operation, actorUserId)
+        val entity = builder.build(request, entityType, operation)
         val saved = changeRequestRepository.save(entity)
-        audit(actorUserId, "REQUEST", "change_requests", saved.id.toString(), null, saved)
+        audit("REQUEST", "change_requests", saved.id.toString(), null, saved)
         return mapper.toDetail(saved)
     }
 
@@ -67,7 +66,7 @@ class AdminWorkflowService(
         mapper.toDetail(findRequest(id))
 
     @Transactional
-    fun update(id: Long, request: UpdateChangeRequest, actorUserId: UUID): ChangeRequestDetailResponse {
+    fun update(id: Long, request: UpdateChangeRequest): ChangeRequestDetailResponse {
         val cr = findRequest(id)
         if (!cr.isEditable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
@@ -93,12 +92,12 @@ class AdminWorkflowService(
         cr.resetForRetry()
         changeRequestRepository.save(cr)
 
-        audit(actorUserId, "UPDATE", "change_requests", id.toString(), null, cr)
+        audit("UPDATE", "change_requests", id.toString(), null, cr)
         return mapper.toDetail(cr)
     }
 
     @Transactional
-    fun validate(id: Long, actorUserId: UUID): ChangeRequestActionResponse {
+    fun validate(id: Long): ChangeRequestActionResponse {
         val cr = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
         if (!cr.isValidatable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
@@ -118,13 +117,13 @@ class AdminWorkflowService(
             )
         }
         changeRequestRepository.save(cr)
-        audit(actorUserId, "VALIDATE", "change_requests", id.toString(), null, cr)
+        audit( "VALIDATE", "change_requests", id.toString(), null, cr)
 
         return mapper.toAction(cr)
     }
 
     @Transactional
-    fun apply(id: Long, actorUserId: UUID): ChangeRequestActionResponse {
+    fun apply(id: Long): ChangeRequestActionResponse {
         val cr = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
         if (!cr.isApplicable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
@@ -135,27 +134,27 @@ class AdminWorkflowService(
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
-        cr.markApplied(actorUserId, resolvedPk)
+        cr.markApplied(resolvedPk)
         changeRequestRepository.save(cr)
-        audit(actorUserId, "APPLY", "change_requests", id.toString(), null, cr)
+        audit("APPLY", "change_requests", id.toString(), null, cr)
 
         return mapper.toAction(cr)
     }
 
     @Transactional
-    fun cancel(id: Long, actorUserId: UUID): ChangeRequestActionResponse {
+    fun cancel(id: Long): ChangeRequestActionResponse {
         val cr = findRequest(id)
         if (!cr.isCancelable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
         cr.markCanceled()
         changeRequestRepository.save(cr)
-        audit(actorUserId, "CANCEL", "change_requests", id.toString(), null, cr)
+        audit("CANCEL", "change_requests", id.toString(), null, cr)
 
         return mapper.toAction(cr)
     }
 
     @Transactional
-    fun rollback(id: Long, actorUserId: UUID): ChangeRequestActionResponse {
+    fun rollback(id: Long): ChangeRequestActionResponse {
         val cr = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
         if (!cr.isRollbackable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
@@ -166,9 +165,9 @@ class AdminWorkflowService(
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
-        cr.markRolledBack(actorUserId)
+        cr.markRolledBack()
         changeRequestRepository.save(cr)
-        audit(actorUserId, "ROLLBACK", "change_requests", id.toString(), null, cr)
+        audit("ROLLBACK", "change_requests", id.toString(), null, cr)
 
         return mapper.toAction(cr)
     }
@@ -194,10 +193,9 @@ class AdminWorkflowService(
         }
     }
 
-    private fun audit(actorUserId: UUID, action: String, table: String, pk: String, before: Any?, after: Any?) {
+    private fun audit(action: String, table: String, pk: String, before: Any?, after: Any?) {
         auditLogRepository.save(
             AdminAuditLogEntity(
-                actorUserId = actorUserId,
                 actorRole = "ADMIN",
                 action = action,
                 targetTable = table,

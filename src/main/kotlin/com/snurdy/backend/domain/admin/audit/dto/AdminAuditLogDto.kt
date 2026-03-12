@@ -10,7 +10,6 @@ data class AuditLogPageResponse(
 
 data class AuditLogItem(
     val id: Long,
-    val actorUserId: String?,
     val actorRole: String,
     val action: String,
     val targetTable: String,

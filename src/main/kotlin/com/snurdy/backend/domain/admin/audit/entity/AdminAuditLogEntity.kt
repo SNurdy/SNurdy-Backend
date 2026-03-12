@@ -2,7 +2,6 @@ package com.snurdy.backend.domain.admin.audit.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.UUID
 
 @Entity
 @Table(name = "admin_audit_logs")
@@ -11,9 +10,6 @@ class AdminAuditLogEntity(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
     val id: Long? = null,
-
-    @Column(name = "actor_user_id", columnDefinition = "BINARY(16)")
-    var actorUserId: UUID? = null,
 
     @Column(name = "actor_role", nullable = false, length = 30)
     var actorRole: String,

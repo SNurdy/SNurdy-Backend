@@ -41,7 +41,6 @@ data class ChangeRequestSummary(
     val entityType: String,
     val operation: String,
     val entityPk: String,
-    val requestedBy: String,
     val createdAt: String,
     val errorMessage: String?,
     val warningMessage: String?
@@ -60,10 +59,7 @@ data class ChangeRequestDetailResponse(
     val errorCode: String?,
     val errorMessage: String?,
     val warningMessage: String?,
-    val requestedBy: String,
-    val appliedBy: String?,
     val appliedAt: String?,
-    val rolledBackBy: String?,
     val rolledBackAt: String?,
     val createdAt: String
 )

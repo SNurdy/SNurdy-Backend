@@ -41,7 +41,6 @@ class AdminAuditLogController(
                 items = result.content.map {
                     AuditLogItem(
                         id = it.id!!,
-                        actorUserId = it.actorUserId?.toString(),
                         actorRole = it.actorRole,
                         action = it.action,
                         targetTable = it.targetTable,

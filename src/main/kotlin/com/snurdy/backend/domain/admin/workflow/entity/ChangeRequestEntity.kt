@@ -7,7 +7,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.Instant
-import java.util.UUID
 
 @Entity
 @Table(name = "change_requests")
@@ -50,17 +49,8 @@ class ChangeRequestEntity(
     @Column(name = "warning_message", length = 1000)
     var warningMessage: String? = null,
 
-    @Column(name = "requested_by", nullable = false, columnDefinition = "BINARY(16)")
-    var requestedBy: UUID,
-
-    @Column(name = "applied_by", columnDefinition = "BINARY(16)")
-    var appliedBy: UUID? = null,
-
     @Column(name = "applied_at")
     var appliedAt: Instant? = null,
-
-    @Column(name = "rolled_back_by", columnDefinition = "BINARY(16)")
-    var rolledBackBy: UUID? = null,
 
     @Column(name = "rolled_back_at")
     var rolledBackAt: Instant? = null,
@@ -88,10 +78,9 @@ class ChangeRequestEntity(
         this.updatedAt = Instant.now()
     }
 
-    fun markApplied(actorUserId: UUID, resolvedEntityPk: String? = null) {
+    fun markApplied(resolvedEntityPk: String? = null) {
         val now = Instant.now()
         this.status = ChangeRequestStatus.APPLIED
-        this.appliedBy = actorUserId
         this.appliedAt = now
         this.updatedAt = now
         if (resolvedEntityPk != null) {
@@ -104,10 +93,9 @@ class ChangeRequestEntity(
         this.updatedAt = Instant.now()
     }
 
-    fun markRolledBack(actorUserId: UUID) {
+    fun markRolledBack() {
         val now = Instant.now()
         this.status = ChangeRequestStatus.ROLLED_BACK
-        this.rolledBackBy = actorUserId
         this.rolledBackAt = now
         this.updatedAt = now
     }

@@ -51,6 +51,9 @@ class SecurityConfig(
                 // CMS 정적 페이지
                 authorize("/admin/**", permitAll)
 
+                // 마이그레이션
+                authorize("/v1/migration/**", hasRole("USER"))
+
                 // Swagger
                 authorize("/swagger-ui/**", permitAll)
                 authorize("/swagger-resources/**", permitAll)

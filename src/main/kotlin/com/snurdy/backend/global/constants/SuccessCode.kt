@@ -29,6 +29,17 @@ enum class AuthSuccess(
     MERGE(HttpStatus.OK, "AUTH_005", "데이터 병합에 성공했습니다")
 }
 
+enum class MigrationSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    START(HttpStatus.CREATED, "MIGRATION_001", "마이그레이션이 시작되었습니다"),
+    UPLOAD(HttpStatus.OK, "MIGRATION_002", "업로드가 완료되었습니다"),
+    FINALIZE(HttpStatus.OK, "MIGRATION_003", "마이그레이션이 완료되었습니다"),
+    STATUS(HttpStatus.OK, "MIGRATION_004", "마이그레이션 상태 조회에 성공했습니다")
+}
+
 enum class LearningSuccess (
     override val status: HttpStatus,
     override val code: String,

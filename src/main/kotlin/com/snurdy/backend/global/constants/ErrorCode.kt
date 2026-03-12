@@ -24,6 +24,18 @@ enum class CommonError(
 
 }
 
+// 마이그레이션 에러
+enum class MigrationError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    MIGRATION_ALREADY_COMPLETED(HttpStatus.CONFLICT, "MIGRATION_001", "이미 완료된 마이그레이션입니다"),
+    MIGRATION_DATA_CONFLICT(HttpStatus.CONFLICT, "MIGRATION_002", "서버에 이미 학습 데이터가 존재합니다"),
+    MIGRATION_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MIGRATION_003", "마이그레이션 세션을 찾을 수 없습니다"),
+    MIGRATION_INVALID_STATUS(HttpStatus.CONFLICT, "MIGRATION_004", "유효하지 않은 마이그레이션 상태입니다"),
+    MIGRATION_UPLOAD_REQUIRED(HttpStatus.CONFLICT, "MIGRATION_005", "업로드가 완료되지 않았습니다")
+}
 
 // 인증 관련 에러
 enum class AuthError(

@@ -297,7 +297,7 @@ class AuthServiceTest {
             email = EMAIL,
             name = NAME,
             nickname = NICKNAME,
-            provider = SocialType.KAKAO
+            socialType = SocialType.KAKAO
         )
     )
 

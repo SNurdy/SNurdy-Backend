@@ -15,7 +15,6 @@ import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.global.jwt.JwtTokenProvider
-import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -31,7 +30,6 @@ class AuthService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     fun kakaoLogin(accessToken: String): TokenResponse =
@@ -51,8 +49,6 @@ class AuthService(
             .let(::issueTokens)
 
     fun reissue(refreshToken: String): TokenResponse {
-        validateTokenOrThrow(refreshToken)
-
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
 
@@ -62,8 +58,6 @@ class AuthService(
     }
 
     fun logout(refreshToken: String) {
-        validateTokenOrThrow(refreshToken)
-
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
 
@@ -81,12 +75,6 @@ class AuthService(
                     ?: throw e
             } else throw e
         }.getOrThrow()
-
-    private fun validateTokenOrThrow(token: String) {
-        if (!jwtTokenProvider.validateToken(token)) {
-            throw ApiException(AuthError.INVALID_TOKEN)
-        }
-    }
 
     private fun validateRefreshToken(userId: UUID, refreshToken: String) {
         val savedToken = refreshTokenRepository.findByUserId(userId)

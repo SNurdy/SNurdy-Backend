@@ -12,9 +12,7 @@ data class AdminLoginRequest(
 
 data class AdminTokenResponse(
     val accessToken: String,
-    val refreshToken: String,
     val accessTokenExpiresIn: Long,
-    val refreshTokenExpiresIn: Long,
     val admin: AdminInfo
 )
 

@@ -3,6 +3,7 @@ package com.snurdy.backend.global.jwt
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.dto.toUserInfo
 import com.snurdy.backend.domain.user.entity.UserEntity
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.stereotype.Component
@@ -25,43 +26,28 @@ class JwtTokenProvider(
         user = user.toUserInfo()
     )
 
-    fun createAdminToken(adminId: UUID): Pair<String, String> {
-        val accessToken = generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration, tokenType = "admin")
-        val refreshToken = generateToken(adminId, "ADMIN", jwtProperties.refreshTokenExpiration, tokenType = "admin")
-        return accessToken to refreshToken
-    }
+    fun createAdminAccessToken(adminId: UUID): String =
+        generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration, tokenType = "admin")
 
     fun validateToken(token: String): Boolean = runCatching {
-        Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
+        parseClaims(token)
     }.isSuccess
 
     fun getUserIdFromToken(token: String): UUID =
-        Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
-            .payload
+        parseClaims(token)
             .subject
             .let(UUID::fromString)
 
-    fun getRoleFromToken(token: String): String =
-        Jwts.parser()
-            .verifyWith(secretKey)
-            .build()
-            .parseSignedClaims(token)
-            .payload
-            .get("role", String::class.java) ?: "USER"
-
     fun getTokenType(token: String): String =
+        parseClaims(token)
+            .get("type", String::class.java) ?: "user"
+
+    fun parseClaims(token: String): Claims =
         Jwts.parser()
             .verifyWith(secretKey)
             .build()
             .parseSignedClaims(token)
             .payload
-            .get("type", String::class.java) ?: "user"
 
     fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
 

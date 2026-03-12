@@ -3,8 +3,6 @@ package com.snurdy.backend.domain.admin.auth.service
 import com.snurdy.backend.domain.admin.auth.dto.AdminInfo
 import com.snurdy.backend.domain.admin.auth.dto.AdminTokenResponse
 import com.snurdy.backend.domain.admin.auth.repository.AdminUserRepository
-import com.snurdy.backend.domain.auth.model.RefreshToken
-import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.global.jwt.JwtTokenProvider
@@ -15,8 +13,7 @@ import org.springframework.stereotype.Service
 class AdminAuthService(
     private val adminUserRepository: AdminUserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val refreshTokenRepository: RefreshTokenRepository
+    private val jwtTokenProvider: JwtTokenProvider
 ) {
 
     fun login(email: String, password: String): AdminTokenResponse {
@@ -27,18 +24,12 @@ class AdminAuthService(
             throw ApiException(AuthError.LOGIN_FAILED)
         }
 
-        val (accessToken, _) = jwtTokenProvider.createAdminToken(admin.id)
+        val accessToken = jwtTokenProvider.createAdminAccessToken(admin.id)
 
         return AdminTokenResponse(
             accessToken = accessToken,
-            refreshToken = "",
             accessTokenExpiresIn = jwtTokenProvider.accessTokenExpiration(),
-            refreshTokenExpiresIn = 0,
             admin = AdminInfo(id = admin.id, email = admin.email, name = admin.name)
         )
-    }
-
-    companion object {
-        private const val REFRESH_TOKEN_VALIDITY_DAYS = 30L
     }
 }

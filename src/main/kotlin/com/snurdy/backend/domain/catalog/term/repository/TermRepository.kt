@@ -9,6 +9,8 @@ import java.util.Optional
 
 interface TermRepository : JpaRepository<TermEntity, Long> {
 
+    fun findByIdInAndDeletedAtIsNull(ids: List<Long>): List<TermEntity>
+
     @Query(value = "SELECT spelling FROM terms WHERE deleted_at IS NULL ORDER BY id", nativeQuery = true)
     fun findAllSpellings(): List<String>
 

@@ -86,12 +86,14 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
 
     @Query(
         value = """
-    SELECT gt.term_id AS termId, g.id AS glossaryId, g.category AS category, g.title AS title
-    FROM glossary_terms gt
-    JOIN glossaries g ON g.id = gt.glossary_id
-    WHERE gt.term_id IN :termIds
-    ORDER BY gt.term_id, g.id
-    """,
+        SELECT gt.term_id AS termId, g.id AS glossaryId, g.category AS category, g.title AS title
+        FROM glossary_terms gt
+        JOIN glossaries g ON g.id = gt.glossary_id
+        JOIN terms t ON t.id = gt.term_id 
+        WHERE gt.term_id IN :termIds
+          AND t.deleted_at IS NULL
+        ORDER BY gt.term_id, g.id
+        """,
         nativeQuery = true
     )
     fun findGlossariesByTermIds(@Param("termIds") termIds: List<Long>): List<BulkTermGlossaryProjection>

@@ -34,7 +34,7 @@ class MorphemeVariantGenerator(
                     if (variant.isBlank() || !seen.add(variant)) return@forEach
 
                     val base = when {
-                        isOCombining && variant.endsWith("o") -> variant.dropLast(1)
+                        isOCombining && variant.length > 1 && variant.endsWith("o") -> variant.dropLast(1)
                         else -> variant
                     }
                     results.add(VariantToken(variant = variant, base = base))

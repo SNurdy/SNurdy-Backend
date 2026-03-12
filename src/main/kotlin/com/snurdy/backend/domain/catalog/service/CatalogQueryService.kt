@@ -142,8 +142,7 @@ class CatalogQueryService(
             .groupBy({ it.termId }, { it.morphemeId })
             .mapValues { it.value.toSet() }
 
-        val termEntities = termRepository.findAllById(termIds).associateBy { it.id!! }
-
+        val termEntities = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
         val allMorphemes = termMorphemeRepository.findOrderedMorphemesByTermIds(termIds)
         val morphemesByTermId = allMorphemes.groupBy { it.termId }
 

@@ -16,7 +16,6 @@ class ChangeRequestMapper {
         entityType = entity.entityType,
         operation = entity.operation,
         entityPk = entity.entityPk,
-        requestedBy = entity.requestedBy.toString(),
         createdAt = entity.createdAt.toString(),
         errorMessage = entity.errorMessage,
         warningMessage = entity.warningMessage
@@ -35,10 +34,7 @@ class ChangeRequestMapper {
         errorCode = entity.errorCode,
         errorMessage = entity.errorMessage,
         warningMessage = entity.warningMessage,
-        requestedBy = entity.requestedBy.toString(),
-        appliedBy = entity.appliedBy?.toString(),
         appliedAt = entity.appliedAt?.toString(),
-        rolledBackBy = entity.rolledBackBy?.toString(),
         rolledBackAt = entity.rolledBackAt?.toString(),
         createdAt = entity.createdAt.toString()
     )

@@ -22,15 +22,23 @@ class MorphemeVariantGenerator(
     internal fun parseSpelling(spelling: String): List<VariantToken> {
         val seen = LinkedHashSet<String>()
         val results = mutableListOf<VariantToken>()
+
         spelling.split(";", ",")
             .map { it.trim().lowercase() }
             .filter { it.isNotBlank() }
-            .flatMap { expandOptionalParentheses(it) }
-            .forEach { token ->
-                val variant = token.replace(Regex("[^a-z0-9]"), "").trim()
-                if (variant.isBlank() || !seen.add(variant)) return@forEach
-                val base = if (variant.length > 1 && variant.endsWith("o")) variant.dropLast(1) else variant
-                results.add(VariantToken(variant = variant, base = base))
+            .forEach { segment ->
+                val isOCombining = segment.contains(Regex("\\(o\\)"))
+
+                expandOptionalParentheses(segment).forEach { expanded ->
+                    val variant = expanded.replace(Regex("[^a-z0-9]"), "").trim()
+                    if (variant.isBlank() || !seen.add(variant)) return@forEach
+
+                    val base = when {
+                        isOCombining && variant.endsWith("o") -> variant.dropLast(1)
+                        else -> variant
+                    }
+                    results.add(VariantToken(variant = variant, base = base))
+                }
             }
         return results
     }

@@ -26,6 +26,7 @@ class MigrationConfig {
                     httpRequest.requestURI.contains("/upload")
                 ) {
                     val contentLength = httpRequest.contentLengthLong
+                    if (contentLength > MAX_PAYLOAD_BYTES) {
                         httpResponse.sendError(
                             MigrationError.MIGRATION_PAYLOAD_TOO_LARGE.status.value(),
                             MigrationError.MIGRATION_PAYLOAD_TOO_LARGE.message

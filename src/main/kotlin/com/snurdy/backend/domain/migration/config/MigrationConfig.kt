@@ -1,6 +1,7 @@
 // MigrationConfig.kt
 package com.snurdy.backend.domain.migration.config
 
+import com.snurdy.backend.global.constants.MigrationError
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.boot.web.servlet.FilterRegistrationBean
@@ -22,21 +23,12 @@ class MigrationConfig {
                 val httpResponse = response as HttpServletResponse
 
                 if (httpRequest.requestURI.contains("/migration") &&
-                    httpRequest.requestURI.contains("/upload")) {
+                    httpRequest.requestURI.contains("/upload")
+                ) {
                     val contentLength = httpRequest.contentLengthLong
-
-                    if (contentLength < 0) {
                         httpResponse.sendError(
-                            HttpServletResponse.SC_LENGTH_REQUIRED,
-                            "Content-Length 헤더가 필요합니다"
-                        )
-                        return@Filter
-                    }
-
-                    if (contentLength > MAX_PAYLOAD_BYTES) {
-                        httpResponse.sendError(
-                            HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,
-                            "payload가 10MB를 초과할 수 없습니다"
+                            MigrationError.MIGRATION_PAYLOAD_TOO_LARGE.status.value(),
+                            MigrationError.MIGRATION_PAYLOAD_TOO_LARGE.message
                         )
                         return@Filter
                     }

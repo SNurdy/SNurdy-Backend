@@ -133,12 +133,12 @@ class MigrationService(
 
         val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
         if (missingGlossaryIds.isNotEmpty()) {
-            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 glossaryId가 포함되어 있습니다")
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
         }
 
         val missingTermIds = termIds.filterNot(terms::containsKey)
         if (missingTermIds.isNotEmpty()) {
-            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 termId가 포함되어 있습니다")
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
         }
 
         val entities = payloads.map { payload ->
@@ -149,9 +149,7 @@ class MigrationService(
                 user = user,
                 glossary = glossary,
                 term = term,
-                status = runCatching {
-                    TermProgressStatus.valueOf(payload.status)
-                }.getOrDefault(TermProgressStatus.NEW),
+                status = parseTermProgressStatus(payload.status),
                 easeFactor = payload.easeFactor.toBigDecimal(),
                 intervalDays = payload.intervalDays,
                 reviewCount = payload.reviewCount,
@@ -174,7 +172,7 @@ class MigrationService(
 
         val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
         if (missingGlossaryIds.isNotEmpty()) {
-            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 glossaryId가 포함되어 있습니다")
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
         }
 
         val entities = payloads.map { payload ->
@@ -200,7 +198,7 @@ class MigrationService(
             .filterValues { it > 1 }
             .keys
         if (duplicatedTermKeys.isNotEmpty()) {
-            throw ApiException(CommonError.BAD_REQUEST, "중복된 term progress 항목이 포함되어 있습니다")
+            throw ApiException(MigrationError.MIGRATION_DUPLICATED_TERM_PROGRESS)
         }
 
         val duplicatedGlossaryIds = request.glossaryProgresses
@@ -209,7 +207,7 @@ class MigrationService(
             .filterValues { it > 1 }
             .keys
         if (duplicatedGlossaryIds.isNotEmpty()) {
-            throw ApiException(CommonError.BAD_REQUEST, "중복된 glossary progress 항목이 포함되어 있습니다")
+            throw ApiException(MigrationError.MIGRATION_DUPLICATED_GLOSSARY_PROGRESS)
         }
     }
 
@@ -229,4 +227,8 @@ class MigrationService(
         return migrationSessionRepository.findByIdForUpdate(uuid)
             ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
     }
+
+    private fun parseTermProgressStatus(status: String): TermProgressStatus =
+        runCatching { TermProgressStatus.valueOf(status) }
+            .getOrElse { throw ApiException(MigrationError.MIGRATION_INVALID_TERM_STATUS) }
 }

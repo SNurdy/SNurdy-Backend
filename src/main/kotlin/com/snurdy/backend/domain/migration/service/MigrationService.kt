@@ -69,11 +69,11 @@ class MigrationService(
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
         if (session.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
 
-        if (session.isUploaded()) {
+        if (session.isUploaded() || session.isCompleted()) {
             return MigrationUploadResponse(
                 migrationId = migrationId,
-                termProgressCount = request.termProgresses.size,
-                glossaryProgressCount = request.glossaryProgresses.size
+                termProgressCount = termProgressRepository.countByUserId(userId).toInt(),
+                glossaryProgressCount = glossaryProgressRepository.countByUserId(userId).toInt()
             )
         }
 

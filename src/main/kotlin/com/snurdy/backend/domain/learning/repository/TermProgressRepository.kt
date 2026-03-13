@@ -6,4 +6,6 @@ import java.util.UUID
 
 interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
     fun existsByUserId(userId: UUID): Boolean
+
+    fun countByUserId(userId: UUID): Long
 }

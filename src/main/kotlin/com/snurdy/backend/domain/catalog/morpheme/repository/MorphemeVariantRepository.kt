@@ -41,10 +41,14 @@ interface MorphemeVariantRepository : JpaRepository<MorphemeVariantEntity, Long>
     WHERE mv.variant LIKE CONCAT(:keyword, '%')
       AND t.deleted_at IS NULL
     ORDER BY tm.term_id
+    LIMIT :limit
     """,
         nativeQuery = true
     )
-    fun findTermIdsByVariantPrefix(@Param("keyword") keyword: String): List<MorphemeSearchHitProjection>
+    fun findTermIdsByVariantPrefix(
+        @Param("keyword") keyword: String,
+        @Param("limit") limit: Int
+    ): List<MorphemeSearchHitProjection>
 
 }
 

@@ -7,4 +7,6 @@ import java.util.UUID
 
 interface GlossaryProgressRepository : JpaRepository<GlossaryProgressEntity, GlossaryProgressId> {
     fun existsByUserId(userId: UUID): Boolean
+
+    fun countByUserId(userId: UUID): Long
 }

@@ -34,6 +34,10 @@ class CatalogQueryService(
 
 ) {
 
+    companion object {
+        private const val MAX_SEARCH_RESULTS = 200
+    }
+
     fun getGlossaries(): GlossaryListResponse {
         val glossaries = glossaryRepository.findGlossaryTermCounts()
             .map {
@@ -132,7 +136,10 @@ class CatalogQueryService(
             return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
         }
 
-        val searchHits = morphemeVariantRepository.findTermIdsByVariantPrefix(normalizedKeyword)
+        val searchHits = morphemeVariantRepository.findTermIdsByVariantPrefix(
+            normalizedKeyword,
+            MAX_SEARCH_RESULTS
+        )
         if (searchHits.isEmpty()) {
             return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
         }

@@ -21,7 +21,7 @@ data class TermProgressPayload(
     @field:NotBlank
     val status: String,
     @field:Min(1)
-    @field:Max(300)
+    @field:Max(9)  // SM-2 알고리즘 실용 범위
     val easeFactor: Double,
     @field:Min(0)
     val intervalDays: Int,

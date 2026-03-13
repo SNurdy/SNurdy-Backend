@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.migration.service
 
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
@@ -35,6 +36,7 @@ class MigrationService(
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val userRepository: UserRepository,
     private val termRepository: TermRepository,
+    private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository
 ) {
 
@@ -70,17 +72,19 @@ class MigrationService(
         if (session.isUploaded()) {
             return MigrationUploadResponse(
                 migrationId = migrationId,
-                termProgressCount = 0,
-                glossaryProgressCount = 0
+                termProgressCount = request.termProgresses.size,
+                glossaryProgressCount = request.glossaryProgresses.size
             )
         }
 
-        if (termProgressRepository.existsByUserId(userId)) {
+        if (termProgressRepository.existsByUserId(userId) ||
+            glossaryProgressRepository.existsByUserId(userId)) {
             throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
         }
 
-        val savedTermCount = saveTermProgresses(userId, request.termProgresses)
-        val savedGlossaryCount = saveGlossaryProgresses(userId, request.glossaryProgresses)
+        val user = findUser(userId)
+        val savedTermCount = saveTermProgresses(user, request.termProgresses)
+        val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
 
         session.markUploaded()
         migrationSessionRepository.save(session)
@@ -94,11 +98,10 @@ class MigrationService(
 
     @Transactional
     fun finalize(userId: UUID, migrationId: String): MigrationStatusResponse {
-        val session = findSession(migrationId)
+        val session = findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
         if (session.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
 
-        // upload 완료(UPLOADED) 상태가 아니면 finalize 불가
         if (!session.isUploaded()) throw ApiException(MigrationError.MIGRATION_UPLOAD_REQUIRED)
 
         session.complete()
@@ -122,9 +125,7 @@ class MigrationService(
         )
     }
 
-    private fun saveTermProgresses(userId: UUID, payloads: List<TermProgressPayload>): Int {
-        val user = findUser(userId)
-
+    private fun saveTermProgresses(user: UserEntity, payloads: List<TermProgressPayload>): Int {
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val termIds = payloads.map { it.termId }.distinct()
 
@@ -138,7 +139,20 @@ class MigrationService(
 
         val missingTermIds = termIds.filterNot(terms::containsKey)
         if (missingTermIds.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
+            throw ApiException(MigrationError.MIGRATION_INVALID_TERM_ID)
+        }
+
+        val validPairs = glossaryTermRepository
+            .findGlossariesByTermIds(termIds)
+            .map { it.termId to it.glossaryId }
+            .toSet()
+
+        val invalidPairs = payloads
+            .filter { (it.termId to it.glossaryId) !in validPairs }
+            .map { it.termId to it.glossaryId }
+
+        if (invalidPairs.isNotEmpty()) {
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_TERM_PAIR)
         }
 
         val entities = payloads.map { payload ->
@@ -164,9 +178,7 @@ class MigrationService(
         return entities.size
     }
 
-    private fun saveGlossaryProgresses(userId: UUID, payloads: List<GlossaryProgressPayload>): Int {
-        val user = findUser(userId)
-
+    private fun saveGlossaryProgresses(user: UserEntity, payloads: List<GlossaryProgressPayload>): Int {
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
 
@@ -179,7 +191,7 @@ class MigrationService(
             val glossary = glossaries[payload.glossaryId]!!
 
             GlossaryProgressEntity(
-                id = GlossaryProgressId(userId = userId, glossaryId = payload.glossaryId),
+                id = GlossaryProgressId(userId = user.id, glossaryId = payload.glossaryId),
                 user = user,
                 glossary = glossary,
                 learnedCount = payload.learnedCount,

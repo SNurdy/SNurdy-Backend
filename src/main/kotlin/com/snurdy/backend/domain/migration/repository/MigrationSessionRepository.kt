@@ -16,4 +16,3 @@ interface MigrationSessionRepository : JpaRepository<MigrationSessionEntity, UUI
     @Query("select ms from MigrationSessionEntity ms where ms.id = :id")
     fun findByIdForUpdate(@Param("id") id: UUID): MigrationSessionEntity?
 }
-}

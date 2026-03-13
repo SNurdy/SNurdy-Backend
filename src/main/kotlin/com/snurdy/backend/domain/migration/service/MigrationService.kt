@@ -1,13 +1,19 @@
 package com.snurdy.backend.domain.migration.service
 
-import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.term.entity.TermEntity
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.entity.*
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.domain.migration.dto.*
+import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
+import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
+import com.snurdy.backend.domain.learning.entity.TermProgressEntity
+import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.migration.dto.GlossaryProgressPayload
+import com.snurdy.backend.domain.migration.dto.MigrationStartResponse
+import com.snurdy.backend.domain.migration.dto.MigrationStatusResponse
+import com.snurdy.backend.domain.migration.dto.MigrationUploadRequest
+import com.snurdy.backend.domain.migration.dto.MigrationUploadResponse
+import com.snurdy.backend.domain.migration.dto.TermProgressPayload
 import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
 import com.snurdy.backend.domain.migration.entity.MigrationStatus
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
@@ -16,6 +22,7 @@ import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -35,50 +42,53 @@ class MigrationService(
     fun start(userId: UUID): MigrationStartResponse {
         val user = findUser(userId)
 
-        // 동일 userId로 재호출 시 기존 migrationId 반환
         val existing = migrationSessionRepository.findByUserId(userId)
         if (existing != null) {
-            // COMPLETED면 재시도 불가
             if (existing.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
             return MigrationStartResponse(migrationId = existing.id.toString())
         }
 
-        val session = migrationSessionRepository.save(
-            MigrationSessionEntity(user = user)
-        )
-        return MigrationStartResponse(migrationId = session.id.toString())
+        return try {
+            val session = migrationSessionRepository.save(MigrationSessionEntity(user = user))
+            MigrationStartResponse(migrationId = session.id.toString())
+        } catch (_: DataIntegrityViolationException) {
+            val conflicted = migrationSessionRepository.findByUserId(userId)
+                ?: throw ApiException(CommonError.INTERNAL_ERROR)
+            if (conflicted.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
+            MigrationStartResponse(migrationId = conflicted.id.toString())
+        }
     }
 
     @Transactional
     fun upload(userId: UUID, migrationId: String, request: MigrationUploadRequest): MigrationUploadResponse {
-        val session = findSession(migrationId)
+        validateDuplicateEntries(request)
+
+        val session = findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
         if (session.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
 
-        // 멱등성: 이미 업로드 완료된 세션이면 저장 없이 즉시 반환
         if (session.isUploaded()) {
             return MigrationUploadResponse(
                 migrationId = migrationId,
-                termProgressCount = request.termProgresses.size,
-                glossaryProgressCount = request.glossaryProgresses.size
+                termProgressCount = 0,
+                glossaryProgressCount = 0
             )
         }
 
-        // 서버에 이미 학습 데이터 존재 시 409
         if (termProgressRepository.existsByUserId(userId)) {
             throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
         }
 
-        saveTermProgresses(userId, request.termProgresses)
-        saveGlossaryProgresses(userId, request.glossaryProgresses)
+        val savedTermCount = saveTermProgresses(userId, request.termProgresses)
+        val savedGlossaryCount = saveGlossaryProgresses(userId, request.glossaryProgresses)
 
-        session.markUploaded()  // IN_PROGRESS → UPLOADED
+        session.markUploaded()
         migrationSessionRepository.save(session)
 
         return MigrationUploadResponse(
             migrationId = migrationId,
-            termProgressCount = request.termProgresses.size,
-            glossaryProgressCount = request.glossaryProgresses.size
+            termProgressCount = savedTermCount,
+            glossaryProgressCount = savedGlossaryCount
         )
     }
 
@@ -112,7 +122,7 @@ class MigrationService(
         )
     }
 
-    private fun saveTermProgresses(userId: UUID, payloads: List<TermProgressPayload>) {
+    private fun saveTermProgresses(userId: UUID, payloads: List<TermProgressPayload>): Int {
         val user = findUser(userId)
 
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
@@ -121,9 +131,19 @@ class MigrationService(
         val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
         val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
 
-        val entities = payloads.mapNotNull { payload ->
-            val glossary = glossaries[payload.glossaryId] ?: return@mapNotNull null
-            val term = terms[payload.termId] ?: return@mapNotNull null
+        val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
+        if (missingGlossaryIds.isNotEmpty()) {
+            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 glossaryId가 포함되어 있습니다")
+        }
+
+        val missingTermIds = termIds.filterNot(terms::containsKey)
+        if (missingTermIds.isNotEmpty()) {
+            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 termId가 포함되어 있습니다")
+        }
+
+        val entities = payloads.map { payload ->
+            val glossary = glossaries[payload.glossaryId]!!
+            val term = terms[payload.termId]!!
 
             TermProgressEntity(
                 user = user,
@@ -143,16 +163,22 @@ class MigrationService(
         }
 
         termProgressRepository.saveAll(entities)
+        return entities.size
     }
 
-    private fun saveGlossaryProgresses(userId: UUID, payloads: List<GlossaryProgressPayload>) {
+    private fun saveGlossaryProgresses(userId: UUID, payloads: List<GlossaryProgressPayload>): Int {
         val user = findUser(userId)
 
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
 
-        val entities = payloads.mapNotNull { payload ->
-            val glossary = glossaries[payload.glossaryId] ?: return@mapNotNull null
+        val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
+        if (missingGlossaryIds.isNotEmpty()) {
+            throw ApiException(CommonError.BAD_REQUEST, "유효하지 않은 glossaryId가 포함되어 있습니다")
+        }
+
+        val entities = payloads.map { payload ->
+            val glossary = glossaries[payload.glossaryId]!!
 
             GlossaryProgressEntity(
                 id = GlossaryProgressId(userId = userId, glossaryId = payload.glossaryId),
@@ -164,6 +190,27 @@ class MigrationService(
         }
 
         glossaryProgressRepository.saveAll(entities)
+        return entities.size
+    }
+
+    private fun validateDuplicateEntries(request: MigrationUploadRequest) {
+        val duplicatedTermKeys = request.termProgresses
+            .groupingBy { it.glossaryId to it.termId }
+            .eachCount()
+            .filterValues { it > 1 }
+            .keys
+        if (duplicatedTermKeys.isNotEmpty()) {
+            throw ApiException(CommonError.BAD_REQUEST, "중복된 term progress 항목이 포함되어 있습니다")
+        }
+
+        val duplicatedGlossaryIds = request.glossaryProgresses
+            .groupingBy { it.glossaryId }
+            .eachCount()
+            .filterValues { it > 1 }
+            .keys
+        if (duplicatedGlossaryIds.isNotEmpty()) {
+            throw ApiException(CommonError.BAD_REQUEST, "중복된 glossary progress 항목이 포함되어 있습니다")
+        }
     }
 
     private fun findUser(userId: UUID): UserEntity =
@@ -173,6 +220,13 @@ class MigrationService(
         val uuid = runCatching { UUID.fromString(migrationId) }
             .getOrElse { throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND) }
         return migrationSessionRepository.findByIdOrNull(uuid)
+            ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
+    }
+
+    private fun findSessionForUpdate(migrationId: String): MigrationSessionEntity {
+        val uuid = runCatching { UUID.fromString(migrationId) }
+            .getOrElse { throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND) }
+        return migrationSessionRepository.findByIdForUpdate(uuid)
             ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
     }
 }

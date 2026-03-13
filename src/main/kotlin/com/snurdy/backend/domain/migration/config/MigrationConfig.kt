@@ -24,6 +24,15 @@ class MigrationConfig {
                 if (httpRequest.requestURI.contains("/migration") &&
                     httpRequest.requestURI.contains("/upload")) {
                     val contentLength = httpRequest.contentLengthLong
+
+                    if (contentLength < 0) {
+                        httpResponse.sendError(
+                            HttpServletResponse.SC_LENGTH_REQUIRED,
+                            "Content-Length 헤더가 필요합니다"
+                        )
+                        return@Filter
+                    }
+
                     if (contentLength > MAX_PAYLOAD_BYTES) {
                         httpResponse.sendError(
                             HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE,

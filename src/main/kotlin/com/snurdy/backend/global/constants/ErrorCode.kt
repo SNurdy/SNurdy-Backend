@@ -24,6 +24,25 @@ enum class CommonError(
 
 }
 
+// 마이그레이션 에러
+enum class MigrationError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    MIGRATION_ALREADY_COMPLETED(HttpStatus.CONFLICT, "MIGRATION_001", "이미 완료된 마이그레이션입니다"),
+    MIGRATION_DATA_CONFLICT(HttpStatus.CONFLICT, "MIGRATION_002", "서버에 이미 학습 데이터가 존재합니다"),
+    MIGRATION_SESSION_NOT_FOUND(HttpStatus.NOT_FOUND, "MIGRATION_003", "마이그레이션 세션을 찾을 수 없습니다"),
+    MIGRATION_INVALID_STATUS(HttpStatus.CONFLICT, "MIGRATION_004", "유효하지 않은 마이그레이션 상태입니다"),
+    MIGRATION_UPLOAD_REQUIRED(HttpStatus.CONFLICT, "MIGRATION_005", "업로드가 완료되지 않았습니다"),
+    MIGRATION_INVALID_TERM_STATUS(HttpStatus.BAD_REQUEST, "MIGRATION_006", "유효하지 않은 term progress 상태값입니다"),
+    MIGRATION_INVALID_GLOSSARY_ID(HttpStatus.BAD_REQUEST, "MIGRATION_007", "유효하지 않은 glossaryId가 포함되어 있습니다"),
+    MIGRATION_INVALID_TERM_ID(HttpStatus.BAD_REQUEST, "MIGRATION_008", "유효하지 않은 termId가 포함되어 있습니다"),
+    MIGRATION_DUPLICATED_TERM_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_009", "중복된 term progress 항목이 포함되어 있습니다"),
+    MIGRATION_DUPLICATED_GLOSSARY_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_010", "중복된 glossary progress 항목이 포함되어 있습니다"),
+    MIGRATION_PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "MIGRATION_011", "payload가 10MB를 초과할 수 없습니다"),
+    MIGRATION_INVALID_GLOSSARY_TERM_PAIR(HttpStatus.BAD_REQUEST, "MIGRATION_012", "용어장과 용어의 조합이 유효하지 않습니다")
+}
 
 // 인증 관련 에러
 enum class AuthError(

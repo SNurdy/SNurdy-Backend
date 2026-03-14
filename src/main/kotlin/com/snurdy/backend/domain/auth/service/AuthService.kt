@@ -49,18 +49,18 @@ class AuthService(
             .let(::issueTokens)
 
     fun reissue(refreshToken: String): TokenResponse {
+        if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
-
         return userRepository.findByIdOrNull(userId)
             ?.let(::issueTokens)
             ?: throw ApiException(UserError.NOT_FOUND)
     }
 
     fun logout(refreshToken: String) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
-
         refreshTokenRepository.deleteByUserId(userId)
     }
 

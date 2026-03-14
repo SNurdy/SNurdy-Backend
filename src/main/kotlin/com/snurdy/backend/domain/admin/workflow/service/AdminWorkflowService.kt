@@ -67,14 +67,14 @@ class AdminWorkflowService(
 
     @Transactional
     fun update(id: Long, request: UpdateChangeRequest): ChangeRequestDetailResponse {
-        val cr = findRequest(id)
-        if (!cr.isEditable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+        val changeRequest = findRequest(id)
+        if (!changeRequest.isEditable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        val currentPayload: MutableMap<String, Any?> = cr.afterJson
+        val currentPayload: MutableMap<String, Any?> = changeRequest.afterJson
             ?.let { objectMapper.readValue(it) }
             ?: mutableMapOf()
 
-        request.title?.trim()?.takeIf { it.isNotBlank() }?.let { cr.title = it }
+        request.title?.trim()?.takeIf { it.isNotBlank() }?.let { changeRequest.title = it }
         request.spelling?.let { currentPayload["spelling"] = it.trim() }
         request.meaning?.let { currentPayload["meaning"] = it.trim() }
         request.abbreviation?.let { currentPayload["abbreviation"] = it.trim().takeIf { v -> v.isNotBlank() } }
@@ -88,88 +88,89 @@ class AdminWorkflowService(
             currentPayload["glossaryIds"] = listOf(it)
         }
 
-        cr.afterJson = objectMapper.writeValueAsString(currentPayload)
-        cr.resetForRetry()
-        changeRequestRepository.save(cr)
+        changeRequest.afterJson = objectMapper.writeValueAsString(currentPayload)
+        changeRequest.resetForRetry()
+        changeRequestRepository.save(changeRequest)
 
-        audit("UPDATE", "change_requests", id.toString(), null, cr)
-        return mapper.toDetail(cr)
+        audit("UPDATE", "change_requests", id.toString(), null, changeRequest)
+        return mapper.toDetail(changeRequest)
     }
 
     @Transactional
     fun validate(id: Long): ChangeRequestActionResponse {
-        val cr = changeRequestRepository.findByIdForUpdate(id)
+        val changeRequest = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
-        if (!cr.isValidatable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+        if (!changeRequest.isValidatable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        val result = when (cr.entityType) {
-            ChangeRequestEntityType.TERM -> termHandler.validate(cr)
-            ChangeRequestEntityType.MORPHEME -> morphemeHandler.validate(cr)
+        val result = when (changeRequest.entityType) {
+            ChangeRequestEntityType.TERM -> termHandler.validate(changeRequest)
+            ChangeRequestEntityType.MORPHEME -> morphemeHandler.validate(changeRequest)
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
         if (result.passed) {
-            cr.markValidated(warning = result.warningMessages())
+            changeRequest.markValidated(warning = result.warningMessages())
         } else {
-            cr.markFailed(
+            changeRequest.markFailed(
                 errorCode = result.errorCodes() ?: AdminError.WORKFLOW_VALIDATION_FAILED.code,
                 errorMessage = result.errorMessages() ?: "검증 실패"
             )
         }
-        changeRequestRepository.save(cr)
-        audit( "VALIDATE", "change_requests", id.toString(), null, cr)
+        changeRequestRepository.save(changeRequest)
+        audit( "VALIDATE", "change_requests", id.toString(), null, changeRequest)
 
-        return mapper.toAction(cr)
+        return mapper.toAction(changeRequest)
     }
 
     @Transactional
     fun apply(id: Long): ChangeRequestActionResponse {
-        val cr = changeRequestRepository.findByIdForUpdate(id)
+        val changeRequest = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
-        if (!cr.isApplicable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+        if (!changeRequest.isApplicable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        val resolvedPk = when (cr.entityType) {
-            ChangeRequestEntityType.TERM -> termHandler.apply(cr)
-            ChangeRequestEntityType.MORPHEME -> morphemeHandler.apply(cr)
+        val resolvedPk = when (changeRequest.entityType) {
+            ChangeRequestEntityType.TERM -> termHandler.apply(changeRequest)
+            ChangeRequestEntityType.MORPHEME -> morphemeHandler.apply(changeRequest)
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
-        cr.markApplied(resolvedPk)
-        changeRequestRepository.save(cr)
-        audit("APPLY", "change_requests", id.toString(), null, cr)
+        changeRequest.markApplied(resolvedPk)
+        changeRequestRepository.save(changeRequest)
+        audit("APPLY", "change_requests", id.toString(), null, changeRequest)
 
-        return mapper.toAction(cr)
+        return mapper.toAction(changeRequest)
     }
 
     @Transactional
     fun cancel(id: Long): ChangeRequestActionResponse {
-        val cr = findRequest(id)
-        if (!cr.isCancelable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+        val changeRequest = changeRequestRepository.findByIdForUpdate(id)
+            ?: throw ApiException(CommonError.NOT_FOUND)
+        if (!changeRequest.isCancelable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        cr.markCanceled()
-        changeRequestRepository.save(cr)
-        audit("CANCEL", "change_requests", id.toString(), null, cr)
+        changeRequest.markCanceled()
+        changeRequestRepository.save(changeRequest)
+        audit("CANCEL", "change_requests", id.toString(), null, changeRequest)
 
-        return mapper.toAction(cr)
+        return mapper.toAction(changeRequest)
     }
 
     @Transactional
     fun rollback(id: Long): ChangeRequestActionResponse {
-        val cr = changeRequestRepository.findByIdForUpdate(id)
+        val changeRequest = changeRequestRepository.findByIdForUpdate(id)
             ?: throw ApiException(CommonError.NOT_FOUND)
-        if (!cr.isRollbackable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
+        if (!changeRequest.isRollbackable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        when (cr.entityType) {
-            ChangeRequestEntityType.TERM -> termHandler.rollback(cr)
-            ChangeRequestEntityType.MORPHEME -> morphemeHandler.rollback(cr)
+        when (changeRequest.entityType) {
+            ChangeRequestEntityType.TERM -> termHandler.rollback(changeRequest)
+            ChangeRequestEntityType.MORPHEME -> morphemeHandler.rollback(changeRequest)
             else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
-        cr.markRolledBack()
-        changeRequestRepository.save(cr)
-        audit("ROLLBACK", "change_requests", id.toString(), null, cr)
+        changeRequest.markRolledBack()
+        changeRequestRepository.save(changeRequest)
+        audit("ROLLBACK", "change_requests", id.toString(), null, changeRequest)
 
-        return mapper.toAction(cr)
+        return mapper.toAction(changeRequest)
     }
 
     private fun findRequest(id: Long): ChangeRequestEntity =

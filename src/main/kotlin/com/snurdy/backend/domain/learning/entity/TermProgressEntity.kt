@@ -53,6 +53,12 @@ class TermProgressEntity(
     @Column(name = "status", nullable = false, length = 20)
     var status: TermProgressStatus = TermProgressStatus.NEW,
 
+    @Column(name = "client_generated_id", length = 36)
+    var clientGeneratedId: String? = null,
+
+    @Column(name = "occurred_at")
+    var occurredAt: Instant? = null,
+
     @Column(name = "ease_factor", nullable = false, precision = 4, scale = 2)
     var easeFactor: BigDecimal = DEFAULT_EASE_FACTOR,
 

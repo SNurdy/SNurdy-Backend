@@ -56,7 +56,7 @@ data class UserInfo(
     val nickname: String,
 
     @Schema(description = "소셜 로그인 제공자")
-    val provider: SocialType
+    val socialType: SocialType
 )
 
 fun UserEntity.toUserInfo() = UserInfo(
@@ -64,5 +64,5 @@ fun UserEntity.toUserInfo() = UserInfo(
     email = email,
     name = name,
     nickname = nickname,
-    provider = socialType
+    socialType = socialType
 )

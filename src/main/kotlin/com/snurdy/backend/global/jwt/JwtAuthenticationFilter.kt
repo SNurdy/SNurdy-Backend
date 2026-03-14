@@ -1,7 +1,5 @@
 package com.snurdy.backend.global.jwt
 
-import com.snurdy.backend.domain.admin.auth.repository.AdminUserRepository
-import com.snurdy.backend.domain.user.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,9 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val userRepository: UserRepository,
-    private val adminUserRepository: AdminUserRepository
+    private val jwtTokenProvider: JwtTokenProvider
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -28,33 +24,19 @@ class JwtAuthenticationFilter(
         if (token != null && jwtTokenProvider.validateToken(token)) {
             val userId = jwtTokenProvider.getUserIdFromToken(token)
             val tokenType = jwtTokenProvider.getTokenType(token)
+            val role = jwtTokenProvider.getRoleFromToken(token)
 
-            val authentication = when (tokenType) {
-                "admin" -> {
-                    val admin = adminUserRepository.findById(userId).orElse(null)
-                    if (admin != null) {
-                        UsernamePasswordAuthenticationToken(
-                            admin.id,
-                            null,
-                            listOf(SimpleGrantedAuthority("ROLE_ADMIN"))
-                        )
-                    } else null
-                }
-                else -> {
-                    val user = userRepository.findById(userId).orElse(null)
-                    if (user != null) {
-                        UsernamePasswordAuthenticationToken(
-                            userId,
-                            null,
-                            listOf(SimpleGrantedAuthority("ROLE_${user.role.name}"))
-                        )
-                    } else null
-                }
+            val authority = when (tokenType) {
+                "admin" -> "ROLE_ADMIN"
+                else -> "ROLE_$role"
             }
 
-            if (authentication != null) {
-                SecurityContextHolder.getContext().authentication = authentication
-            }
+            val authentication = UsernamePasswordAuthenticationToken(
+                userId,
+                null,
+                listOf(SimpleGrantedAuthority(authority))
+            )
+            SecurityContextHolder.getContext().authentication = authentication
         }
 
         filterChain.doFilter(request, response)

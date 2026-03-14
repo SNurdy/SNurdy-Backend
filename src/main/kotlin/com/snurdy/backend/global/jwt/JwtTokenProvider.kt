@@ -42,6 +42,10 @@ class JwtTokenProvider(
         parseClaims(token)
             .get("type", String::class.java) ?: "user"
 
+    fun getRoleFromToken(token: String): String =
+        parseClaims(token)
+            .get("role", String::class.java) ?: "USER"
+
     fun parseClaims(token: String): Claims =
         Jwts.parser()
             .verifyWith(secretKey)

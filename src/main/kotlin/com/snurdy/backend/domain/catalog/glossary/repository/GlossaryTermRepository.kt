@@ -10,6 +10,8 @@ import org.springframework.data.repository.query.Param
 
 interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTermId> {
     fun deleteByIdTermId(termId: Long)
+    fun existsByIdGlossaryIdAndIdTermId(glossaryId: Long, termId: Long): Boolean
+    fun findFirstByIdTermIdOrderByIdGlossaryIdAsc(termId: Long): GlossaryTermEntity?
 
     @Query(
         value = """
@@ -24,7 +26,7 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
 
     @Query(
         value = """
-        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning
+        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning, NULL AS abbreviation
         FROM terms t
         LEFT JOIN glossary_terms gt ON gt.term_id = t.id
         WHERE gt.term_id IS NULL
@@ -38,7 +40,7 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
 
     @Query(
         value = """
-        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning
+        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning, t.abbreviation AS abbreviation
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
@@ -116,6 +118,7 @@ interface TermSummaryProjection {
     val termId: Long
     val spelling: String
     val meaning: String
+    val abbreviation: String?
 }
 
 interface GlossaryTermPageProjection {

@@ -9,4 +9,8 @@ interface GlossaryProgressRepository : JpaRepository<GlossaryProgressEntity, Glo
     fun existsByUserId(userId: UUID): Boolean
 
     fun countByUserId(userId: UUID): Long
+
+    fun findByIdUserIdAndIdGlossaryId(userId: UUID, glossaryId: Long): GlossaryProgressEntity?
+
+    fun findAllByIdUserId(userId: UUID): List<GlossaryProgressEntity>
 }

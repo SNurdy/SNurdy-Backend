@@ -3,6 +3,8 @@ package com.snurdy.backend.domain.migration.service
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.migration.dto.MigrationUploadRequest
@@ -32,6 +34,8 @@ class MigrationServiceTest {
     private lateinit var migrationSessionRepository: MigrationSessionRepository
     private lateinit var termProgressRepository: TermProgressRepository
     private lateinit var glossaryProgressRepository: GlossaryProgressRepository
+    private lateinit var bookmarkRepository: BookmarkRepository
+    private lateinit var dailyProgressRepository: DailyProgressRepository
     private lateinit var userRepository: UserRepository
     private lateinit var termRepository: TermRepository
     private lateinit var glossaryTermRepository: GlossaryTermRepository
@@ -45,6 +49,8 @@ class MigrationServiceTest {
         migrationSessionRepository = mockk()
         termProgressRepository = mockk()
         glossaryProgressRepository = mockk()
+        bookmarkRepository = mockk()
+        dailyProgressRepository = mockk()
         userRepository = mockk()
         termRepository = mockk()
         glossaryTermRepository = mockk()
@@ -55,6 +61,8 @@ class MigrationServiceTest {
             migrationSessionRepository = migrationSessionRepository,
             termProgressRepository = termProgressRepository,
             glossaryProgressRepository = glossaryProgressRepository,
+            bookmarkRepository = bookmarkRepository,
+            dailyProgressRepository = dailyProgressRepository,
             userRepository = userRepository,
             termRepository = termRepository,
             glossaryTermRepository = glossaryTermRepository,
@@ -70,6 +78,8 @@ class MigrationServiceTest {
         every { migrationSessionRepository.findByUserId(USER_ID) } returns null
         every { termProgressRepository.existsByUserId(USER_ID) } returns true
         every { glossaryProgressRepository.existsByUserId(USER_ID) } returns false
+        every { bookmarkRepository.existsByIdUserId(USER_ID) } returns false
+        every { dailyProgressRepository.existsByIdUserId(USER_ID) } returns false
 
         // when
         val exception = assertThrows(ApiException::class.java) {
@@ -89,6 +99,8 @@ class MigrationServiceTest {
         every { migrationSessionRepository.findByIdForUpdate(SESSION_ID) } returns session
         every { termProgressRepository.countByUserId(USER_ID) } returns 12L
         every { glossaryProgressRepository.countByUserId(USER_ID) } returns 4L
+        every { bookmarkRepository.countByIdUserId(USER_ID) } returns 2L
+        every { dailyProgressRepository.countByIdUserId(USER_ID) } returns 3L
 
         // when
         val response = migrationService.upload(USER_ID, SESSION_ID.toString(), request)
@@ -97,6 +109,8 @@ class MigrationServiceTest {
         assertEquals(SESSION_ID.toString(), response.migrationId)
         assertEquals(12, response.termProgressCount)
         assertEquals(4, response.glossaryProgressCount)
+        assertEquals(2, response.bookmarkCount)
+        assertEquals(3, response.dailyProgressCount)
     }
 
     @Test
@@ -115,6 +129,25 @@ class MigrationServiceTest {
         assertEquals(MigrationStatus.COMPLETED.name, response.status)
         assertEquals(completedAt, response.completedAt)
         verify(exactly = 0) { migrationSessionRepository.save(any()) }
+    }
+
+    @Test
+    fun `start 호출 시 북마크 데이터가 있으면 409 충돌을 반환한다`() {
+        // given
+        every { userRepository.findById(USER_ID) } returns Optional.of(createUser())
+        every { migrationSessionRepository.findByUserId(USER_ID) } returns null
+        every { termProgressRepository.existsByUserId(USER_ID) } returns false
+        every { glossaryProgressRepository.existsByUserId(USER_ID) } returns false
+        every { bookmarkRepository.existsByIdUserId(USER_ID) } returns true
+        every { dailyProgressRepository.existsByIdUserId(USER_ID) } returns false
+
+        // when
+        val exception = assertThrows(ApiException::class.java) {
+            migrationService.start(USER_ID)
+        }
+
+        // then
+        assertEquals(MigrationError.MIGRATION_DATA_CONFLICT, exception.error)
     }
 
     private fun createSession(status: MigrationStatus, completedAt: Instant? = null): MigrationSessionEntity =

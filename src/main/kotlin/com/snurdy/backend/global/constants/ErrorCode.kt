@@ -41,7 +41,9 @@ enum class MigrationError(
     MIGRATION_DUPLICATED_TERM_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_009", "중복된 term progress 항목이 포함되어 있습니다"),
     MIGRATION_DUPLICATED_GLOSSARY_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_010", "중복된 glossary progress 항목이 포함되어 있습니다"),
     MIGRATION_PAYLOAD_TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "MIGRATION_011", "payload가 10MB를 초과할 수 없습니다"),
-    MIGRATION_INVALID_GLOSSARY_TERM_PAIR(HttpStatus.BAD_REQUEST, "MIGRATION_012", "용어장과 용어의 조합이 유효하지 않습니다")
+    MIGRATION_INVALID_GLOSSARY_TERM_PAIR(HttpStatus.BAD_REQUEST, "MIGRATION_012", "용어장과 용어의 조합이 유효하지 않습니다"),
+    MIGRATION_DUPLICATED_BOOKMARK(HttpStatus.BAD_REQUEST, "MIGRATION_013", "중복된 bookmark 항목이 포함되어 있습니다"),
+    MIGRATION_DUPLICATED_DAILY_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_014", "중복된 daily progress 항목이 포함되어 있습니다")
 }
 
 // 인증 관련 에러

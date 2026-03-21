@@ -3,18 +3,27 @@ package com.snurdy.backend.domain.migration.service
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.bookmark.entity.BookmarkEntity
+import com.snurdy.backend.domain.bookmark.entity.BookmarkId
+import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
+import com.snurdy.backend.domain.learning.entity.DailyProgressId
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
 import com.snurdy.backend.domain.learning.entity.TermProgressEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.migration.dto.BookmarkPayload
+import com.snurdy.backend.domain.migration.dto.DailyProgressPayload
 import com.snurdy.backend.domain.migration.dto.GlossaryProgressPayload
 import com.snurdy.backend.domain.migration.dto.MigrationStartResponse
 import com.snurdy.backend.domain.migration.dto.MigrationStatusResponse
 import com.snurdy.backend.domain.migration.dto.MigrationUploadRequest
 import com.snurdy.backend.domain.migration.dto.MigrationUploadResponse
 import com.snurdy.backend.domain.migration.dto.TermProgressPayload
+import com.snurdy.backend.domain.migration.dto.UserSummaryPayload
 import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
 import com.snurdy.backend.domain.migration.entity.MigrationStatus
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
@@ -33,6 +42,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 @Service
@@ -40,6 +50,8 @@ class MigrationService(
     private val migrationSessionRepository: MigrationSessionRepository,
     private val termProgressRepository: TermProgressRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
+    private val bookmarkRepository: BookmarkRepository,
+    private val dailyProgressRepository: DailyProgressRepository,
     private val userRepository: UserRepository,
     private val termRepository: TermRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
@@ -100,6 +112,9 @@ class MigrationService(
             val user = findUser(userId)
             val savedTermCount = saveTermProgresses(user, request.termProgresses)
             val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
+            val savedBookmarkCount = saveBookmarks(user, request.bookmarks)
+            val savedDailyProgressCount = saveDailyProgresses(user, request.dailyProgresses)
+            applyUserSummary(user, request.userSummary)
 
             session.markUploaded()
             migrationSessionRepository.save(session)
@@ -107,7 +122,9 @@ class MigrationService(
             MigrationUploadResponse(
                 migrationId = migrationId,
                 termProgressCount = savedTermCount,
-                glossaryProgressCount = savedGlossaryCount
+                glossaryProgressCount = savedGlossaryCount,
+                bookmarkCount = savedBookmarkCount,
+                dailyProgressCount = savedDailyProgressCount
             )
         } catch (e: ApiException) {
             scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
@@ -180,18 +197,10 @@ class MigrationService(
             throw ApiException(MigrationError.MIGRATION_INVALID_TERM_ID)
         }
 
-        val validPairs = glossaryTermRepository
-            .findGlossariesByTermIds(termIds)
-            .map { it.termId to it.glossaryId }
-            .toSet()
-
-        val invalidPairs = payloads
-            .filter { (it.termId to it.glossaryId) !in validPairs }
-            .map { it.termId to it.glossaryId }
-
-        if (invalidPairs.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_TERM_PAIR)
-        }
+        validateGlossaryTermPairs(
+            termIds = termIds,
+            pairs = payloads.map { it.termId to it.glossaryId }
+        )
 
         val migratedAt = Instant.now()
         val entities = payloads.map { payload ->
@@ -247,6 +256,92 @@ class MigrationService(
         return entities.size
     }
 
+    private fun saveBookmarks(user: UserEntity, payloads: List<BookmarkPayload>): Int {
+        if (payloads.isEmpty()) return 0
+
+        val glossaryIds = payloads.map { it.glossaryId }.distinct()
+        val termIds = payloads.map { it.termId }.distinct()
+
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
+        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
+
+        val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
+        if (missingGlossaryIds.isNotEmpty()) {
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
+        }
+
+        val missingTermIds = termIds.filterNot(terms::containsKey)
+        if (missingTermIds.isNotEmpty()) {
+            throw ApiException(MigrationError.MIGRATION_INVALID_TERM_ID)
+        }
+
+        validateGlossaryTermPairs(
+            termIds = termIds,
+            pairs = payloads.map { it.termId to it.glossaryId }
+        )
+
+        val entities = payloads.map { payload ->
+            val glossary = glossaries[payload.glossaryId]!!
+            val term = terms[payload.termId]!!
+            BookmarkEntity(
+                id = BookmarkId(
+                    userId = user.id,
+                    glossaryId = payload.glossaryId,
+                    termId = payload.termId
+                ),
+                user = user,
+                glossary = glossary,
+                term = term
+            )
+        }
+
+        bookmarkRepository.saveAll(entities)
+        return entities.size
+    }
+
+    private fun saveDailyProgresses(user: UserEntity, payloads: List<DailyProgressPayload>): Int {
+        if (payloads.isEmpty()) return 0
+
+        val entities = payloads.map { payload ->
+            DailyProgressEntity(
+                id = DailyProgressId(userId = user.id, date = payload.date),
+                user = user,
+                learnedCount = payload.learnedCount.coerceAtLeast(0),
+                reviewedCount = payload.reviewedCount.coerceAtLeast(0)
+            )
+        }
+        dailyProgressRepository.saveAll(entities)
+        return entities.size
+    }
+
+    private fun applyUserSummary(user: UserEntity, payload: UserSummaryPayload?) {
+        if (payload == null) return
+
+        val currentStreak = payload.currentStreak.coerceAtLeast(0)
+        val longestStreak = payload.longestStreak.coerceAtLeast(0)
+
+        user.currentStreak = currentStreak
+        user.longestStreak = maxOf(longestStreak, currentStreak)
+        user.totalLearningTerms = payload.totalLearningTerms.coerceAtLeast(0)
+    }
+
+    private fun validateGlossaryTermPairs(
+        termIds: List<Long>,
+        pairs: List<Pair<Long, Long>>
+    ) {
+        if (pairs.isEmpty()) return
+
+        val validPairs = glossaryTermRepository
+            .findGlossariesByTermIds(termIds)
+            .map { it.termId to it.glossaryId }
+            .toSet()
+
+        val hasInvalidPair = pairs.any { it !in validPairs }
+        if (hasInvalidPair) {
+            throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_TERM_PAIR)
+        }
+    }
+
     private fun validateDuplicateEntries(request: MigrationUploadRequest) {
         val duplicatedTermKeys = request.termProgresses
             .groupingBy { it.glossaryId to it.termId }
@@ -264,6 +359,24 @@ class MigrationService(
             .keys
         if (duplicatedGlossaryIds.isNotEmpty()) {
             throw ApiException(MigrationError.MIGRATION_DUPLICATED_GLOSSARY_PROGRESS)
+        }
+
+        val duplicatedBookmarkKeys = request.bookmarks
+            .groupingBy { it.glossaryId to it.termId }
+            .eachCount()
+            .filterValues { it > 1 }
+            .keys
+        if (duplicatedBookmarkKeys.isNotEmpty()) {
+            throw ApiException(MigrationError.MIGRATION_DUPLICATED_BOOKMARK)
+        }
+
+        val duplicatedDates = request.dailyProgresses
+            .groupingBy(DailyProgressPayload::date)
+            .eachCount()
+            .filterValues { it > 1 }
+            .keys
+        if (duplicatedDates.isNotEmpty()) {
+            throw ApiException(MigrationError.MIGRATION_DUPLICATED_DAILY_PROGRESS)
         }
     }
 
@@ -288,13 +401,18 @@ class MigrationService(
             .setScale(2, RoundingMode.HALF_UP)
 
     private fun hasExistingLearningData(userId: UUID): Boolean =
-        termProgressRepository.existsByUserId(userId) || glossaryProgressRepository.existsByUserId(userId)
+        termProgressRepository.existsByUserId(userId) ||
+            glossaryProgressRepository.existsByUserId(userId) ||
+            bookmarkRepository.existsByIdUserId(userId) ||
+            dailyProgressRepository.existsByIdUserId(userId)
 
     private fun loadUploadCounts(migrationId: String, userId: UUID): MigrationUploadResponse =
         MigrationUploadResponse(
             migrationId = migrationId,
             termProgressCount = termProgressRepository.countByUserId(userId).toInt(),
-            glossaryProgressCount = glossaryProgressRepository.countByUserId(userId).toInt()
+            glossaryProgressCount = glossaryProgressRepository.countByUserId(userId).toInt(),
+            bookmarkCount = bookmarkRepository.countByIdUserId(userId).toInt(),
+            dailyProgressCount = dailyProgressRepository.countByIdUserId(userId).toInt()
         )
 
     private fun scheduleFailureRecordAfterRollback(sessionId: UUID, reason: String) {

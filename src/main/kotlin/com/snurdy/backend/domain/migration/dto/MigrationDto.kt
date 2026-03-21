@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.time.Instant
+import java.time.LocalDate
 
 data class MigrationUploadRequest(
     @field:Valid
@@ -15,7 +16,15 @@ data class MigrationUploadRequest(
     val termProgresses: List<TermProgressPayload>,
     @field:Valid
     @field:Size(max = 1000)
-    val glossaryProgresses: List<GlossaryProgressPayload>
+    val glossaryProgresses: List<GlossaryProgressPayload>,
+    @field:Valid
+    @field:Size(max = 5000)
+    val bookmarks: List<BookmarkPayload> = emptyList(),
+    @field:Valid
+    @field:Size(max = 3650)
+    val dailyProgresses: List<DailyProgressPayload> = emptyList(),
+    @field:Valid
+    val userSummary: UserSummaryPayload? = null
 )
 
 data class TermProgressPayload(
@@ -49,6 +58,30 @@ data class GlossaryProgressPayload(
     val lastLearnedAt: Instant?
 )
 
+data class BookmarkPayload(
+    @field:Positive
+    val glossaryId: Long,
+    @field:Positive
+    val termId: Long
+)
+
+data class DailyProgressPayload(
+    val date: LocalDate,
+    @field:Min(0)
+    val learnedCount: Int,
+    @field:Min(0)
+    val reviewedCount: Int
+)
+
+data class UserSummaryPayload(
+    @field:Min(0)
+    val currentStreak: Int,
+    @field:Min(0)
+    val longestStreak: Int,
+    @field:Min(0)
+    val totalLearningTerms: Int
+)
+
 data class MigrationStartResponse(
     val migrationId: String
 )
@@ -62,5 +95,7 @@ data class MigrationStatusResponse(
 data class MigrationUploadResponse(
     val migrationId: String,
     val termProgressCount: Int,
-    val glossaryProgressCount: Int
+    val glossaryProgressCount: Int,
+    val bookmarkCount: Int,
+    val dailyProgressCount: Int
 )

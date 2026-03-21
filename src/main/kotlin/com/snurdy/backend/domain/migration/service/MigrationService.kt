@@ -23,10 +23,16 @@ import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.Instant
 import java.util.UUID
 
 @Service
@@ -37,8 +43,10 @@ class MigrationService(
     private val userRepository: UserRepository,
     private val termRepository: TermRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
-    private val glossaryRepository: GlossaryRepository
+    private val glossaryRepository: GlossaryRepository,
+    private val migrationSessionFailureService: MigrationSessionFailureService
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
     fun start(userId: UUID): MigrationStartResponse {
@@ -48,6 +56,10 @@ class MigrationService(
         if (existing != null) {
             if (existing.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
             return MigrationStartResponse(migrationId = existing.id.toString())
+        }
+
+        if (hasExistingLearningData(userId)) {
+            throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
         }
 
         return try {
@@ -67,45 +79,69 @@ class MigrationService(
 
         val session = findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
-        if (session.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
 
         if (session.isUploaded() || session.isCompleted()) {
-            return MigrationUploadResponse(
+            return loadUploadCounts(migrationId, userId)
+        }
+
+        if (!session.isInProgress() && !session.isFailed()) {
+            throw ApiException(MigrationError.MIGRATION_INVALID_STATUS)
+        }
+        if (session.isFailed()) {
+            session.retry()
+            migrationSessionRepository.save(session)
+        }
+
+        return try {
+            if (hasExistingLearningData(userId)) {
+                throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
+            }
+
+            val user = findUser(userId)
+            val savedTermCount = saveTermProgresses(user, request.termProgresses)
+            val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
+
+            session.markUploaded()
+            migrationSessionRepository.save(session)
+
+            MigrationUploadResponse(
                 migrationId = migrationId,
-                termProgressCount = termProgressRepository.countByUserId(userId).toInt(),
-                glossaryProgressCount = glossaryProgressRepository.countByUserId(userId).toInt()
+                termProgressCount = savedTermCount,
+                glossaryProgressCount = savedGlossaryCount
             )
+        } catch (e: ApiException) {
+            scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
+            throw e
+        } catch (e: Exception) {
+            scheduleFailureRecordAfterRollback(session.id, "마이그레이션 업로드 처리 중 서버 오류가 발생했습니다")
+            throw e
         }
-
-        if (termProgressRepository.existsByUserId(userId) ||
-            glossaryProgressRepository.existsByUserId(userId)) {
-            throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
-        }
-
-        val user = findUser(userId)
-        val savedTermCount = saveTermProgresses(user, request.termProgresses)
-        val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
-
-        session.markUploaded()
-        migrationSessionRepository.save(session)
-
-        return MigrationUploadResponse(
-            migrationId = migrationId,
-            termProgressCount = savedTermCount,
-            glossaryProgressCount = savedGlossaryCount
-        )
     }
 
     @Transactional
     fun finalize(userId: UUID, migrationId: String): MigrationStatusResponse {
         val session = findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
-        if (session.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
+
+        if (session.isCompleted()) {
+            return MigrationStatusResponse(
+                status = MigrationStatus.COMPLETED.name,
+                completedAt = session.completedAt
+            )
+        }
 
         if (!session.isUploaded()) throw ApiException(MigrationError.MIGRATION_UPLOAD_REQUIRED)
 
-        session.complete()
-        migrationSessionRepository.save(session)
+        try {
+            session.complete()
+            migrationSessionRepository.save(session)
+        } catch (e: ApiException) {
+            scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
+            throw e
+        } catch (e: Exception) {
+            scheduleFailureRecordAfterRollback(session.id, "마이그레이션 완료 처리 중 서버 오류가 발생했습니다")
+            throw e
+        }
 
         return MigrationStatusResponse(
             status = MigrationStatus.COMPLETED.name,
@@ -126,6 +162,8 @@ class MigrationService(
     }
 
     private fun saveTermProgresses(user: UserEntity, payloads: List<TermProgressPayload>): Int {
+        if (payloads.isEmpty()) return 0
+
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val termIds = payloads.map { it.termId }.distinct()
 
@@ -155,22 +193,26 @@ class MigrationService(
             throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_TERM_PAIR)
         }
 
+        val migratedAt = Instant.now()
         val entities = payloads.map { payload ->
             val glossary = glossaries[payload.glossaryId]!!
             val term = terms[payload.termId]!!
+            val reviewCount = payload.reviewCount.coerceAtLeast(0)
+            val intervalDays = payload.intervalDays.coerceAtLeast(0)
+            val lastReviewedAt = payload.lastReviewedAt ?: if (reviewCount > 0) migratedAt else null
 
             TermProgressEntity(
                 user = user,
                 glossary = glossary,
                 term = term,
                 status = parseTermProgressStatus(payload.status),
-                easeFactor = payload.easeFactor.toBigDecimal(),
-                intervalDays = payload.intervalDays,
-                reviewCount = payload.reviewCount,
-                lastReviewedAt = payload.lastReviewedAt,
+                easeFactor = normalizeEaseFactor(payload.easeFactor),
+                intervalDays = intervalDays,
+                reviewCount = reviewCount,
+                lastReviewedAt = lastReviewedAt,
                 nextReviewAt = payload.nextReviewAt,
                 clientGeneratedId = payload.clientGeneratedId,
-                occurredAt = payload.occurredAt
+                occurredAt = payload.occurredAt ?: migratedAt
             )
         }
 
@@ -179,6 +221,8 @@ class MigrationService(
     }
 
     private fun saveGlossaryProgresses(user: UserEntity, payloads: List<GlossaryProgressPayload>): Int {
+        if (payloads.isEmpty()) return 0
+
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
 
@@ -226,13 +270,6 @@ class MigrationService(
     private fun findUser(userId: UUID): UserEntity =
         userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.NOT_FOUND)
 
-    private fun findSession(migrationId: String): MigrationSessionEntity {
-        val uuid = runCatching { UUID.fromString(migrationId) }
-            .getOrElse { throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND) }
-        return migrationSessionRepository.findByIdOrNull(uuid)
-            ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
-    }
-
     private fun findSessionForUpdate(migrationId: String): MigrationSessionEntity {
         val uuid = runCatching { UUID.fromString(migrationId) }
             .getOrElse { throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND) }
@@ -241,6 +278,47 @@ class MigrationService(
     }
 
     private fun parseTermProgressStatus(status: String): TermProgressStatus =
-        runCatching { TermProgressStatus.valueOf(status) }
+        runCatching { TermProgressStatus.valueOf(status.trim().uppercase()) }
             .getOrElse { throw ApiException(MigrationError.MIGRATION_INVALID_TERM_STATUS) }
+
+    private fun normalizeEaseFactor(value: Double): BigDecimal =
+        value
+            .coerceAtLeast(MIN_EASE_FACTOR)
+            .toBigDecimal()
+            .setScale(2, RoundingMode.HALF_UP)
+
+    private fun hasExistingLearningData(userId: UUID): Boolean =
+        termProgressRepository.existsByUserId(userId) || glossaryProgressRepository.existsByUserId(userId)
+
+    private fun loadUploadCounts(migrationId: String, userId: UUID): MigrationUploadResponse =
+        MigrationUploadResponse(
+            migrationId = migrationId,
+            termProgressCount = termProgressRepository.countByUserId(userId).toInt(),
+            glossaryProgressCount = glossaryProgressRepository.countByUserId(userId).toInt()
+        )
+
+    private fun scheduleFailureRecordAfterRollback(sessionId: UUID, reason: String) {
+        val normalizedReason = reason.ifBlank { DEFAULT_FAILURE_REASON }
+
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            migrationSessionFailureService.markFailed(sessionId, normalizedReason)
+            return
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
+            override fun afterCompletion(status: Int) {
+                if (status != TransactionSynchronization.STATUS_ROLLED_BACK) return
+                runCatching {
+                    migrationSessionFailureService.markFailed(sessionId, normalizedReason)
+                }.onFailure { throwable ->
+                    log.error("migration failure 상태 저장 실패: sessionId={}", sessionId, throwable)
+                }
+            }
+        })
+    }
+
+    companion object {
+        private const val MIN_EASE_FACTOR = 1.3
+        private const val DEFAULT_FAILURE_REASON = "마이그레이션 처리 중 오류가 발생했습니다"
+    }
 }

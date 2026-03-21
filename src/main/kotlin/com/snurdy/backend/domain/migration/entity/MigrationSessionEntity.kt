@@ -35,22 +35,35 @@ class MigrationSessionEntity(
 ) {
     fun complete() {
         this.status = MigrationStatus.COMPLETED
+        this.errorMessage = null
         this.completedAt = Instant.now()
         this.updatedAt = Instant.now()
     }
 
     fun fail(reason: String) {
         this.status = MigrationStatus.FAILED
-        this.errorMessage = reason
+        this.errorMessage = reason.take(MAX_ERROR_MESSAGE_LENGTH)
+        this.updatedAt = Instant.now()
+    }
+
+    fun retry() {
+        this.status = MigrationStatus.IN_PROGRESS
+        this.errorMessage = null
         this.updatedAt = Instant.now()
     }
 
     fun markUploaded() {
         this.status = MigrationStatus.UPLOADED
+        this.errorMessage = null
         this.updatedAt = Instant.now()
     }
 
     fun isUploaded() = status == MigrationStatus.UPLOADED
     fun isCompleted() = status == MigrationStatus.COMPLETED
     fun isInProgress() = status == MigrationStatus.IN_PROGRESS
+    fun isFailed() = status == MigrationStatus.FAILED
+
+    companion object {
+        private const val MAX_ERROR_MESSAGE_LENGTH = 500
+    }
 }

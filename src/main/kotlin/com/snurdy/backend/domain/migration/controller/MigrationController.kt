@@ -6,16 +6,13 @@ import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.exception.ApiException
-import com.snurdy.backend.global.jwt.JwtTokenProvider
-import jakarta.servlet.http.HttpServletRequest
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
 class MigrationController(
-    private val migrationService: MigrationService,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val migrationService: MigrationService
 ) : MigrationApi {
     private fun currentUserId(): UUID =
         (SecurityContextHolder.getContext().authentication?.principal as? UUID)

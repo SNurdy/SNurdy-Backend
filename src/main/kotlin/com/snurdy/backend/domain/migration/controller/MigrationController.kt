@@ -21,6 +21,9 @@ class MigrationController(
     override fun start(): ApiResponse<MigrationStartResponse> =
         ApiResponse.success(MigrationSuccess.START, migrationService.start(currentUserId()))
 
+    override fun decline(): ApiResponse<MigrationStatusResponse> =
+        ApiResponse.success(MigrationSuccess.STATUS, migrationService.decline(currentUserId()))
+
     override fun upload(
         migrationId: String,
         request: MigrationUploadRequest

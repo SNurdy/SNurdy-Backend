@@ -150,6 +150,22 @@ class MigrationServiceTest {
         assertEquals(MigrationError.MIGRATION_DATA_CONFLICT, exception.error)
     }
 
+    @Test
+    fun `start 호출 시 사용자가 마이그레이션을 거부했으면 409 충돌을 반환한다`() {
+        // given
+        every { userRepository.findById(USER_ID) } returns Optional.of(
+            createUser(migrationDeclinedAt = Instant.parse("2026-03-22T00:00:00Z"))
+        )
+
+        // when
+        val exception = assertThrows(ApiException::class.java) {
+            migrationService.start(USER_ID)
+        }
+
+        // then
+        assertEquals(MigrationError.MIGRATION_DECLINED, exception.error)
+    }
+
     private fun createSession(status: MigrationStatus, completedAt: Instant? = null): MigrationSessionEntity =
         MigrationSessionEntity(
             id = SESSION_ID,
@@ -158,11 +174,12 @@ class MigrationServiceTest {
             completedAt = completedAt
         )
 
-    private fun createUser(): UserEntity = UserEntity(
+    private fun createUser(migrationDeclinedAt: Instant? = null): UserEntity = UserEntity(
         id = USER_ID,
         socialId = "social-id",
         socialType = SocialType.KAKAO,
-        nickname = "migrator"
+        nickname = "migrator",
+        migrationDeclinedAt = migrationDeclinedAt
     )
 
     companion object {

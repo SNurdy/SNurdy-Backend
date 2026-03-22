@@ -28,9 +28,6 @@ data class MigrationUploadRequest(
 )
 
 data class TermProgressPayload(
-    @field:NotBlank
-    @field:Size(max = 64)
-    val clientGeneratedId: String,
     @field:Positive
     val glossaryId: Long,
     @field:Positive
@@ -46,8 +43,7 @@ data class TermProgressPayload(
     @field:Min(0)
     val reviewCount: Int,
     val lastReviewedAt: Instant?,
-    val nextReviewAt: Instant?,
-    val occurredAt: Instant?
+    val nextReviewAt: Instant?
 )
 
 data class GlossaryProgressPayload(

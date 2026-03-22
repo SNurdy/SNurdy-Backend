@@ -143,7 +143,7 @@ class LearningService(
         val nowByDate = mutableMapOf<LocalDate, Pair<Int, Int>>()
 
         request.events.forEach { event ->
-            val now = event.occurredAt ?: Instant.now()
+            val now = Instant.now()
             val dailyDate = now.atZone(ZoneOffset.UTC).toLocalDate()
 
             val progress = findOrCreateProgress(user, event)

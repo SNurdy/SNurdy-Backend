@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -53,7 +54,10 @@ class UserEntity(
     var totalLearningTerms: Int = 0,
 
     @Column(nullable = false)
-    var longestStreak: Int = 0
+    var longestStreak: Int = 0,
+
+    @Column(name = "migration_declined_at")
+    var migrationDeclinedAt: Instant? = null
 ) : BaseTimeEntity() {
 
     companion object {

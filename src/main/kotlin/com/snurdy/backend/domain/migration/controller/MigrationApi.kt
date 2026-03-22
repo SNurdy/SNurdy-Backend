@@ -15,6 +15,10 @@ interface MigrationApi {
     @PostMapping("/start")
     fun start(): ApiResponse<MigrationStartResponse>
 
+    @Operation(summary = "마이그레이션 거부 처리")
+    @PostMapping("/decline")
+    fun decline(): ApiResponse<MigrationStatusResponse>
+
     @Operation(summary = "학습 데이터 업로드 — 전체 payload 1회 전송")
     @PostMapping("/{migrationId}/upload")
     fun upload(

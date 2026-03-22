@@ -43,8 +43,7 @@ data class LearningAnswerEvent(
     val glossaryId: Long,
     @field:Positive
     val termId: Long,
-    val correct: Boolean,
-    val occurredAt: Instant? = null
+    val correct: Boolean
 )
 
 data class LearningSubmitResponse(

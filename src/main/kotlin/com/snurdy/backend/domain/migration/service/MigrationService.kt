@@ -63,6 +63,9 @@ class MigrationService(
     @Transactional
     fun start(userId: UUID): MigrationStartResponse {
         val user = findUser(userId)
+        if (user.migrationDeclinedAt != null) {
+            throw ApiException(MigrationError.MIGRATION_DECLINED)
+        }
 
         val existing = migrationSessionRepository.findByUserId(userId)
         if (existing != null) {
@@ -83,6 +86,25 @@ class MigrationService(
             if (conflicted.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
             MigrationStartResponse(migrationId = conflicted.id.toString())
         }
+    }
+
+    @Transactional
+    fun decline(userId: UUID): MigrationStatusResponse {
+        val user = findUser(userId)
+        val session = migrationSessionRepository.findByUserId(userId)
+
+        if (session?.isCompleted() == true) {
+            return MigrationStatusResponse(
+                status = MigrationStatus.COMPLETED.name,
+                completedAt = session.completedAt
+            )
+        }
+
+        if (user.migrationDeclinedAt == null) {
+            user.migrationDeclinedAt = Instant.now()
+        }
+
+        return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
     }
 
     @Transactional
@@ -168,8 +190,14 @@ class MigrationService(
 
     @Transactional(readOnly = true)
     fun getStatus(userId: UUID): MigrationStatusResponse {
+        val user = findUser(userId)
         val session = migrationSessionRepository.findByUserId(userId)
-            ?: return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
+        if (session == null) {
+            if (user.migrationDeclinedAt != null) {
+                return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
+            }
+            return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
+        }
 
         return MigrationStatusResponse(
             status = session.status.name,
@@ -220,8 +248,8 @@ class MigrationService(
                 reviewCount = reviewCount,
                 lastReviewedAt = lastReviewedAt,
                 nextReviewAt = payload.nextReviewAt,
-                clientGeneratedId = payload.clientGeneratedId,
-                occurredAt = payload.occurredAt ?: migratedAt
+                clientGeneratedId = null,
+                occurredAt = migratedAt
             )
         }
 

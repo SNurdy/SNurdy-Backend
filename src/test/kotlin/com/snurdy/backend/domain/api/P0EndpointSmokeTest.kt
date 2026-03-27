@@ -92,7 +92,7 @@ class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
             jsonPath("$.data.bookmarked") { value(false) }
         }
 
-        mockMvc.post("/v1/study/glossaries/${pairA.glossaryId}/next-terms") {
+        mockMvc.post("/v1/learning/glossaries/${pairA.glossaryId}/next-terms") {
             with(userAuth())
             param("size", "5")
         }.andExpect {
@@ -100,7 +100,7 @@ class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
             jsonPath("$.success") { value(true) }
         }
 
-        mockMvc.get("/v1/review/glossaries/${pairB.glossaryId}/due-terms") {
+        mockMvc.get("/v1/learning/glossaries/${pairB.glossaryId}/review-terms") {
             with(userAuth())
             param("size", "5")
         }.andExpect {

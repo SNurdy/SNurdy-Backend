@@ -22,14 +22,14 @@ import org.springframework.web.bind.annotation.RequestParam
 interface LearningApi {
 
     @Operation(summary = "학습 카드 시작")
-    @PostMapping("/v1/study/glossaries/{glossaryId}/next-terms")
+    @PostMapping("/v1/learning/glossaries/{glossaryId}/next-terms")
     fun getNextTerms(
         @PathVariable glossaryId: Long,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<StudyNextTermsResponse>
 
     @Operation(summary = "복습 대상 조회")
-    @GetMapping("/v1/review/glossaries/{glossaryId}/due-terms")
+    @GetMapping("/v1/learning/glossaries/{glossaryId}/review-terms")
     fun getDueTerms(
         @PathVariable glossaryId: Long,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int

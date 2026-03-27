@@ -6,9 +6,9 @@ import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
 import com.snurdy.backend.domain.admin.workflow.service.support.MorphemeVariantGenerator
-import com.snurdy.backend.domain.catalog.morpheme.entity.MorphemeEntity
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
+import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component

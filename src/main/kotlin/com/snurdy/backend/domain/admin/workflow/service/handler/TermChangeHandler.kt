@@ -5,18 +5,18 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
-import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryTermEntity
-import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryTermId
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
-import com.snurdy.backend.domain.catalog.term.entity.TermEntity
-import com.snurdy.backend.domain.catalog.term.entity.TermMorphemeEntity
-import com.snurdy.backend.domain.catalog.term.entity.TermMorphemeId
-import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermEntity
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
+import com.snurdy.backend.domain.dictionary.term.entity.TermMorphemeEntity
+import com.snurdy.backend.domain.dictionary.term.entity.TermMorphemeId
+import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.global.constants.AdminError
-import com.snurdy.backend.global.constants.CatalogError
+import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -124,7 +124,7 @@ class TermChangeHandler(
             )
         )
         replaceMorphemeMappings(term.id!!, payload.morphemes)
-        val glossaryIds = resolveGlossaryIds(payload) ?: throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
+        val glossaryIds = resolveGlossaryIds(payload) ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         replaceGlossaryMappings(term.id, glossaryIds)
         return term.id.toString()
     }
@@ -132,7 +132,7 @@ class TermChangeHandler(
     private fun applyUpdate(cr: ChangeRequestEntity): String? {
         val termId = cr.entityPk.toLong()
         val payload = parsePayload(cr.afterJson)!!
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
         term.spelling = payload.spelling.trim()
         term.meaning = payload.meaning.trim()
@@ -148,7 +148,7 @@ class TermChangeHandler(
         val termId = cr.entityPk.toLong()
         termMorphemeRepository.deleteByIdTermId(termId)
         glossaryTermRepository.deleteByIdTermId(termId)
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         term.deletedAt = Instant.now()
         termRepository.save(term)
         return null
@@ -228,7 +228,7 @@ class TermChangeHandler(
     private fun replaceMorphemeMappings(termId: Long, morphemeIds: List<Long>) {
         termMorphemeRepository.deleteByIdTermId(termId)
         if (morphemeIds.isEmpty()) return
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         val morphemes = morphemeRepository.findAllById(morphemeIds).associateBy { it.id!! }
         val mappings = morphemeIds.mapIndexed { index, morphemeId ->
             val morpheme = morphemes[morphemeId] ?: throw ApiException(AdminError.MORPHEME_NOT_FOUND)
@@ -240,14 +240,14 @@ class TermChangeHandler(
     private fun replaceGlossaryMappings(termId: Long, glossaryIds: List<Long>) {
         val normalizedGlossaryIds = glossaryIds.distinct()
         val glossaries = glossaryRepository.findAllById(normalizedGlossaryIds).associateBy { it.id!! }
-        if (glossaries.size != normalizedGlossaryIds.size) throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        if (glossaries.size != normalizedGlossaryIds.size) throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
         glossaryTermRepository.deleteByIdTermId(termId)
         if (normalizedGlossaryIds.isEmpty()) return
 
         val mappings = normalizedGlossaryIds.map { glossaryId ->
-            val glossary = glossaries[glossaryId] ?: throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
+            val glossary = glossaries[glossaryId] ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
             GlossaryTermEntity(
                 id = GlossaryTermId(glossaryId = glossaryId, termId = termId),
                 glossary = glossary,

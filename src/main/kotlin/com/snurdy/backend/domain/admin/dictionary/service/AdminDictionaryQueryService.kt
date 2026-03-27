@@ -1,13 +1,13 @@
 package com.snurdy.backend.domain.admin.dictionary.service
 
 import com.snurdy.backend.domain.admin.dictionary.dto.*
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
-import com.snurdy.backend.global.constants.CatalogError
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
+import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -73,7 +73,7 @@ class AdminDictionaryQueryService(
 
     @Transactional(readOnly = true)
     fun getTerm(termId: Long): TermDetailResponse {
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map {
             TermMorphemeMappingResponse(

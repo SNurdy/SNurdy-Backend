@@ -71,14 +71,14 @@ enum class UserError(
     DUPLICATED(HttpStatus.CONFLICT, "USER_E002", "이미 존재하는 사용자입니다")
 }
 
-enum class CatalogError(
+enum class DictionaryError(
     override val status: HttpStatus,
     override val code: String,
     override val message: String
 ) : ErrorCode {
-    GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_E001", "단어장을 찾을 수 없습니다"),
-    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "CATALOG_E002", "단어를 찾을 수 없습니다"),
-    INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "CATALOG_E003", "키워드는 2자 이상 50자 이하여야 합니다")
+    GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DICTIONARY_E001", "단어장을 찾을 수 없습니다"),
+    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "DICTIONARY_E002", "단어를 찾을 수 없습니다"),
+    INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "DICTIONARY_E003", "키워드는 2자 이상 50자 이하여야 합니다")
 }
 
 enum class AdminError(

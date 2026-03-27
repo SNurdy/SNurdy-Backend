@@ -1,8 +1,8 @@
 package com.snurdy.backend.internal.seed
 
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

@@ -1,11 +1,11 @@
 package com.snurdy.backend.domain.learning.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.catalog.glossary.entity.GlossaryEntity
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.term.entity.TermEntity
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.dto.CalendarDailyItem
 import com.snurdy.backend.domain.learning.dto.CalendarStatsResponse
 import com.snurdy.backend.domain.learning.dto.LearningAnswerEvent
@@ -26,7 +26,7 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CatalogError
+import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -336,11 +336,11 @@ class LearningService(
 
     private fun findGlossary(glossaryId: Long): GlossaryEntity =
         glossaryRepository.findByIdOrNull(glossaryId)
-            ?: throw ApiException(CatalogError.GLOSSARY_NOT_FOUND)
+            ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
 
     private fun findTerm(termId: Long): TermEntity =
         termRepository.findByIdAndDeletedAtIsNull(termId)
-            .orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+            .orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
     companion object {
         private val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")

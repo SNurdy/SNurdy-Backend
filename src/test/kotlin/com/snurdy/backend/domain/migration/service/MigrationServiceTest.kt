@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.migration.service
 
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository

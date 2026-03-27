@@ -7,12 +7,12 @@ import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntityType
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.MorphemePayload
 import com.snurdy.backend.domain.admin.workflow.service.model.TermPayload
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.global.constants.AdminError
-import com.snurdy.backend.global.constants.CatalogError
+import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 
@@ -83,7 +83,7 @@ class ChangeRequestBuilder(
     }
 
     private fun snapshotTerm(termId: Long): String {
-        val term = termRepository.findById(termId).orElseThrow { ApiException(CatalogError.TERM_NOT_FOUND) }
+        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         val morphemeIds = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map { it.morphemeId }
         val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
         val payload = TermPayload(

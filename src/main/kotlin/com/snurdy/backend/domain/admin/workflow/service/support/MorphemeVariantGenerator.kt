@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.admin.workflow.service.support
 
-import com.snurdy.backend.domain.catalog.morpheme.entity.MorphemeEntity
-import com.snurdy.backend.domain.catalog.morpheme.entity.MorphemeVariantEntity
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeVariantRepository
+import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
+import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeVariantEntity
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import org.springframework.stereotype.Component
 
 @Component

@@ -48,12 +48,12 @@ enum class LearningSuccess (
     SEARCH(HttpStatus.OK, "LEARNING_S001", "조회에 성공했습니다")
 }
 
-enum class CatalogSuccess(
+enum class DictionarySuccess(
     override val status: HttpStatus,
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    SEARCH(HttpStatus.OK, "CATALOG_S001", "조회에 성공했습니다")
+    SEARCH(HttpStatus.OK, "DICTIONARY_S001", "조회에 성공했습니다")
 }
 
 enum class AdminSuccess(

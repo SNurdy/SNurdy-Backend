@@ -1,10 +1,10 @@
 package com.snurdy.backend.internal.seed.service
 
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.catalog.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.catalog.morpheme.repository.MorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermMorphemeRepository
-import com.snurdy.backend.domain.catalog.term.repository.TermRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.internal.seed.dto.GlossaryDistribution
 import com.snurdy.backend.internal.seed.dto.GlossaryInfo
 import com.snurdy.backend.internal.seed.dto.MappedGlossaryCount

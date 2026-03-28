@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.dictionary.morpheme.dto
 
-import com.snurdy.backend.domain.dictionary.dto.MorphemeHighlight
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
 import io.swagger.v3.oas.annotations.media.Schema
 
@@ -25,23 +24,5 @@ data class MorphemeSearchTermItem(
     @field:Schema(description = "약어")
     val abbreviation: String?,
     @field:Schema(description = "용어가 포함된 용어집 목록")
-    val glossaries: List<TermGlossaryTag>,
-    @field:Schema(description = "순서가 보장된 어근어미 목록")
-    val morphemes: List<SearchOrderedMorpheme>
-)
-
-@Schema(description = "검색 결과용 어근어미 (매칭 여부 포함)")
-data class SearchOrderedMorpheme(
-    @field:Schema(description = "어근어미 ID", example = "361")
-    val id: Long,
-    @field:Schema(description = "어근어미 철자", example = "hepat(o)-")
-    val spelling: String,
-    @field:Schema(description = "어근어미 의미", example = "간")
-    val meaning: String,
-    @field:Schema(description = "용어 내 순서", example = "0")
-    val order: Int,
-    @field:Schema(description = "하이라이팅 범위")
-    val highlight: MorphemeHighlight? = null,
-    @field:Schema(description = "이 검색에서 매칭된 어근어미 여부", example = "true")
-    val matched: Boolean = false
+    val glossaries: List<TermGlossaryTag>
 )

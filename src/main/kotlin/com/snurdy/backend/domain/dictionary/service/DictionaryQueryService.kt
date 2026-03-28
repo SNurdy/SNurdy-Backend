@@ -13,7 +13,6 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchTermItem
-import com.snurdy.backend.domain.dictionary.morpheme.dto.SearchOrderedMorpheme
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.domain.dictionary.morpheme.service.HighlightCalculator
 import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
@@ -145,43 +144,12 @@ class DictionaryQueryService(
         }
 
         val termIds = searchHits.map { it.termId }.distinct()
-        val matchedMorphemeIdsByTermId = searchHits
-            .groupBy({ it.termId }, { it.morphemeId })
-            .mapValues { it.value.toSet() }
-
         val termEntities = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
-        val allMorphemes = termMorphemeRepository.findOrderedMorphemesByTermIds(termIds)
-        val morphemesByTermId = allMorphemes.groupBy { it.termId }
-
-        val allMorphemeIds = allMorphemes.map { it.morphemeId }.distinct()
-        val variantsByMorphemeId = if (allMorphemeIds.isNotEmpty()) {
-            morphemeVariantRepository.findByMorphemeIds(allMorphemeIds).groupBy { it.morphemeId }
-        } else {
-            emptyMap()
-        }
-
         val glossaryProjections = glossaryTermRepository.findGlossariesByTermIds(termIds)
         val glossariesByTermId = glossaryProjections.groupBy { it.termId }
 
         val resultTerms = termIds.mapNotNull { termId ->
             val term = termEntities[termId] ?: return@mapNotNull null
-            val matchedMorphemeIds = matchedMorphemeIdsByTermId[termId] ?: emptySet()
-            val morphemes = morphemesByTermId[termId] ?: emptyList()
-
-            val orderedMorphemes = morphemes.map { m ->
-                val variants = variantsByMorphemeId[m.morphemeId] ?: emptyList()
-                val range = highlightCalculator.calculate(term.spelling, variants)
-
-                SearchOrderedMorpheme(
-                    id = m.morphemeId,
-                    spelling = m.spelling,
-                    meaning = m.meaning,
-                    order = m.position,
-                    highlight = range?.let { MorphemeHighlight(start = it.start, length = it.length) },
-                    matched = m.morphemeId in matchedMorphemeIds
-                )
-            }
-
             val glossaries = (glossariesByTermId[termId] ?: emptyList()).map {
                 TermGlossaryTag(id = it.glossaryId, category = it.category, title = it.title)
             }
@@ -191,8 +159,7 @@ class DictionaryQueryService(
                 spelling = term.spelling,
                 meaning = term.meaning,
                 abbreviation = term.abbreviation,
-                glossaries = glossaries,
-                morphemes = orderedMorphemes
+                glossaries = glossaries
             )
         }
 

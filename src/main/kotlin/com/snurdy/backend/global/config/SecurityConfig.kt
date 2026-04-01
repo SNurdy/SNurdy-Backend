@@ -45,6 +45,9 @@ class SecurityConfig(
                 // 관리자 로그인
                 authorize("/v1/admin/auth/**", permitAll)
 
+                //  버전 체크
+                authorize("/v1/app/version/**", permitAll)
+
                 // 관리자 APIㄷㄷㄷㄷ
                 authorize("/v1/admin/**", hasRole("ADMIN"))
 

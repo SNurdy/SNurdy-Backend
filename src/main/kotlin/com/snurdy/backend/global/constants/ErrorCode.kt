@@ -103,3 +103,13 @@ enum class AdminError(
     INVALID_WORKFLOW_ENTITY_TYPE(HttpStatus.BAD_REQUEST, "ADMIN_E025", "지원하지 않는 요청 엔티티 유형입니다"),
     WORKFLOW_ROLLBACK_FAILED(HttpStatus.CONFLICT, "ADMIN_E026", "현재 상태에서 워크플로우를 롤백할 수 없습니다"),
 }
+
+enum class VersionError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    UNSUPPORTED_PLATFORM(HttpStatus.BAD_REQUEST, "VERSION_E001", "지원하지 않는 플랫폼입니다"),
+    INVALID_VERSION_FORMAT(HttpStatus.BAD_REQUEST, "VERSION_E002", "올바르지 않은 버전 형식입니다"),
+    VERSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "VERSION_E003", "버전 정보를 찾을 수 없습니다");
+}

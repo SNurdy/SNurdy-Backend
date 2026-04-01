@@ -6,7 +6,7 @@ on:
 jobs:
   guard:
     name: 브랜치 검증
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: main 브랜치 확인
         if: github.ref != 'refs/heads/main'
@@ -17,7 +17,7 @@ jobs:
   build-and-push:
     name: 빌드 및 이미지 푸시
     needs: guard
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -55,7 +55,7 @@ jobs:
   deploy:
     name: Prod 배포
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: GitHub Actions IP 조회
         id: ip

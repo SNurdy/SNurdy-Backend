@@ -4,8 +4,19 @@ on:
   workflow_dispatch:
 
 jobs:
+  guard:
+    name: 브랜치 검증
+    runs-on: ubuntu-latest
+    steps:
+      - name: main 브랜치 확인
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Prod 배포는 main 브랜치에서만 가능합니다. 현재: ${{ github.ref }}"
+          exit 1
+
   build-and-push:
     name: 빌드 및 이미지 푸시
+    needs: guard
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +50,6 @@ jobs:
           file: ./deployment/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/snurdy-app-prod:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/snurdy-app-prod:${{ github.sha }}
 
   deploy:
@@ -72,7 +82,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PROD_SSH_PRIVATE_KEY }}
           script: |
-            /app/shared/deploy.sh
+            /app/shared/deploy.sh ${{ github.sha }}
 
       - name: 보안 그룹에서 IP 제거
         if: always()

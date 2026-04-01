@@ -93,9 +93,11 @@ class MigrationServiceTest {
     @Test
     fun `upload 호출 시 세션이 COMPLETED면 기존 반영 건수를 멱등 응답한다`() {
         // given
+
         val session = createSession(status = MigrationStatus.COMPLETED, completedAt = Instant.parse("2026-03-21T00:00:00Z"))
         val request = MigrationUploadRequest(termProgresses = emptyList(), glossaryProgresses = emptyList())
 
+        every { userRepository.findById(USER_ID) } returns Optional.of(createUser())
         every { migrationSessionRepository.findByIdForUpdate(SESSION_ID) } returns session
         every { termProgressRepository.countByUserId(USER_ID) } returns 12L
         every { glossaryProgressRepository.countByUserId(USER_ID) } returns 4L
@@ -119,6 +121,7 @@ class MigrationServiceTest {
         val completedAt = Instant.parse("2026-03-21T01:00:00Z")
         val session = createSession(status = MigrationStatus.COMPLETED, completedAt = completedAt)
 
+        every { userRepository.findById(USER_ID) } returns Optional.of(createUser())
         every { migrationSessionRepository.findByIdForUpdate(SESSION_ID) } returns session
         every { migrationSessionFailureService.markFailed(any(), any()) } just runs
 

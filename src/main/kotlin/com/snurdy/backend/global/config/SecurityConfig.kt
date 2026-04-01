@@ -63,6 +63,10 @@ class SecurityConfig(
                 authorize("/v3/api-docs/**", permitAll)
                 authorize("/webjars/**", permitAll)
 
+                // Actuator
+                authorize("/actuator/health", permitAll)
+                authorize("/actuator/prometheus", permitAll)
+
                 // Internal
                 authorize("/internal/**", denyAll)
 

@@ -58,3 +58,16 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true

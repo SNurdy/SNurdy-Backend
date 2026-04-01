@@ -22,8 +22,14 @@ class JwtAuthenticationFilter(
         val token = extractToken(request)
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            val userId = jwtTokenProvider.getUserIdFromToken(token)
             val tokenType = jwtTokenProvider.getTokenType(token)
+
+            if (tokenType != "ACCESS" && tokenType != "admin") {
+                filterChain.doFilter(request, response)
+                return
+            }
+
+            val userId = jwtTokenProvider.getUserIdFromToken(token)
             val role = jwtTokenProvider.getRoleFromToken(token)
 
             val authority = when (tokenType) {

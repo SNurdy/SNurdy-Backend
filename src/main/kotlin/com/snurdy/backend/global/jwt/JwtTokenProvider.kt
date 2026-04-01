@@ -19,8 +19,8 @@ class JwtTokenProvider(
     )
 
     fun createToken(user: UserEntity) = TokenResponse(
-        accessToken = generateToken(user.id, user.role.name, jwtProperties.accessTokenExpiration),
-        refreshToken = generateToken(user.id, user.role.name, jwtProperties.refreshTokenExpiration),
+        accessToken = generateToken(user.id, user.role.name, jwtProperties.accessTokenExpiration, tokenType = "ACCESS"),
+        refreshToken = generateToken(user.id, user.role.name, jwtProperties.refreshTokenExpiration, tokenType = "REFRESH"),
         accessTokenExpiresIn = jwtProperties.accessTokenExpiration,
         refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration,
         user = user.toUserInfo()

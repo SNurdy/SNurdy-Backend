@@ -1,0 +1,174 @@
+/* ============================================
+   SNurdy CMS — 요청 페이지 (request.css)
+   ============================================ */
+
+/* --- Tabs --- */
+.tabs {
+    display: flex;
+    gap: 2px;
+    padding: 0 20px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.tabs__btn {
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    height: 36px;
+    padding: 0 12px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+}
+
+.tabs__btn:hover {
+    color: var(--text);
+}
+
+.tabs__btn--active {
+    color: var(--text);
+    font-weight: 600;
+    border-bottom-color: var(--gray-900);
+}
+
+/* --- Content Grid --- */
+.content-grid {
+    display: grid;
+    grid-template-columns: 56% 1fr;
+    gap: 16px;
+    padding: 20px;
+}
+
+/* --- Toolbar --- */
+.toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.toolbar .input { flex: 1; }
+.toolbar__search { flex-shrink: 0; }
+.toolbar__size { width: 70px; flex: none; }
+
+/* --- Form Grid --- */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.form-grid__full { grid-column: 1 / -1; }
+
+/* --- Actions --- */
+.actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* --- Glossary Picker --- */
+.glossary-picker {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    background: var(--gray-50);
+}
+
+.glossary-picker__title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin: 0 0 8px;
+}
+
+.glossary-picker__list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 4px;
+    max-height: 160px;
+    overflow: auto;
+}
+
+.glossary-picker__item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 6px 8px;
+    background: var(--bg);
+    font-size: 12px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.glossary-picker__item:hover { background: var(--gray-50); }
+.glossary-picker__item input { width: auto; margin: 0; }
+
+/* --- Morpheme Box --- */
+.morpheme-box {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    background: var(--gray-50);
+}
+
+.morpheme-box__search {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.morpheme-box__search .input { flex: 1; }
+
+.morpheme-box__results,
+.morpheme-box__selected {
+    max-height: 120px;
+    overflow: auto;
+    border-top: 1px solid var(--border-light);
+    padding-top: 8px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+
+/* --- Morpheme Row --- */
+.morpheme-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    cursor: grab;
+    font-size: 12px;
+}
+
+.morpheme-row > div:first-child { flex: 1; }
+
+.morpheme-row__btn {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all var(--transition);
+    font-family: var(--font);
+}
+
+.morpheme-row__btn:hover {
+    background: var(--gray-100);
+    color: var(--text);
+}
+
+.morpheme-row--dragging { opacity: 0.4; }
+.morpheme-row--drag-over { border-top: 2px solid var(--gray-900); }

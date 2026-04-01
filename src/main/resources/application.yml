@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: snurdy-api
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    time-zone: UTC
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USERNAME}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  tomcat:
+    max-http-form-post-size: 10MB
+    max-swallow-size: 10MB
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
+  apple:
+    team-id: ${APPLE_TEAM_ID}
+    client-id: ${APPLE_CLIENT_ID}
+    key-id: ${APPLE_KEY_ID}
+    redirect-uri: ${APPLE_REDIRECT_URI}
+    key-path: ${APPLE_KEY_PATH}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  prometheus:
+    metrics:
+      export:
+        enabled: true

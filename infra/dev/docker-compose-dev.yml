@@ -1,0 +1,66 @@
+services:
+  app-dev:
+    image: yo0oni/snurdy-app-dev:latest
+    container_name: snurdy-app-dev
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - TZ=Asia/Seoul
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      redis-dev:
+        condition: service_healthy
+    volumes:
+      - ${APPLE_KEY_HOST_PATH}:/app/keys/apple-auth-key.p8:ro
+    networks:
+      - snurdy-network
+
+  db-dev:
+    image: mysql:8.0
+    container_name: snurdy-db-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: snurdy_dev
+      MYSQL_USER: ${MYSQL_USERNAME}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u\"$${MYSQL_USER}\" -p\"$${MYSQL_PASSWORD}\"" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - snurdy-network
+
+  redis-dev:
+    image: redis:7-alpine
+    container_name: snurdy-redis-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - snurdy-network
+
+networks:
+  snurdy-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:

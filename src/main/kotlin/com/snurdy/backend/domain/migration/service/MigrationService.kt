@@ -109,6 +109,11 @@ class MigrationService(
 
     @Transactional
     fun upload(userId: UUID, migrationId: String, request: MigrationUploadRequest): MigrationUploadResponse {
+        val user = findUser(userId)
+        if (user.migrationDeclinedAt != null) {
+            throw ApiException(MigrationError.MIGRATION_DECLINED)
+        }
+
         validateDuplicateEntries(request)
 
         val session = findSessionForUpdate(migrationId)
@@ -159,6 +164,11 @@ class MigrationService(
 
     @Transactional
     fun finalize(userId: UUID, migrationId: String): MigrationStatusResponse {
+        val user = findUser(userId)
+        if (user.migrationDeclinedAt != null) {
+            throw ApiException(MigrationError.MIGRATION_DECLINED)
+        }
+
         val session = findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
 

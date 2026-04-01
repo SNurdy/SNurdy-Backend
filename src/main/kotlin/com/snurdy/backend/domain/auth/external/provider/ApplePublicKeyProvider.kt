@@ -37,7 +37,7 @@ class ApplePublicKeyProvider(
                 key.kid to generatePublicKey(key)
             }
         }.onFailure {
-            throw ApiException(AuthError.INVALID_TOKEN)
+            throw ApiException(AuthError.APPLE_API_ERROR)
         }
     }
 

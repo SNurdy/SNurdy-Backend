@@ -201,13 +201,13 @@ class MigrationService(
     @Transactional(readOnly = true)
     fun getStatus(userId: UUID): MigrationStatusResponse {
         val user = findUser(userId)
-        val session = migrationSessionRepository.findByUserId(userId)
-        if (session == null) {
-            if (user.migrationDeclinedAt != null) {
-                return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
-            }
-            return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
+
+        if (user.migrationDeclinedAt != null) {
+            return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
         }
+
+        val session = migrationSessionRepository.findByUserId(userId)
+            ?: return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
 
         return MigrationStatusResponse(
             status = session.status.name,

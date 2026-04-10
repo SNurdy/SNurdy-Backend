@@ -1,10 +1,10 @@
 package com.snurdy.backend.domain.migration.dto
 
+import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.time.Instant
@@ -32,9 +32,7 @@ data class TermProgressPayload(
     val glossaryId: Long,
     @field:Positive
     val termId: Long,
-    @field:NotBlank
-    @field:Size(max = 20)
-    val status: String,
+    val status: TermProgressStatus,
     @field:DecimalMin("1.0")
     @field:DecimalMax("9.0")  // SM-2 알고리즘 실용 범위
     val easeFactor: Double,

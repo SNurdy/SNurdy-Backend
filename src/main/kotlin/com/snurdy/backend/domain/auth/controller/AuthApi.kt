@@ -40,6 +40,6 @@ interface AuthApi {
     @PostMapping("/logout")
     fun logout(
         @RequestHeader("Authorization-Refresh") refreshToken: String,
-        @RequestHeader(name = "Authorization", required = false) accessToken: String?
+        @RequestHeader("Authorization") accessToken: String
     ): ApiResponse<Unit>
 }

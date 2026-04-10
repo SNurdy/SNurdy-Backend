@@ -16,7 +16,7 @@ interface UserAccountApi {
     @Operation(summary = "회원 탈퇴")
     @DeleteMapping
     fun withdraw(
-        @RequestHeader(name = "Authorization", required = false) accessToken: String?
+        @RequestHeader("Authorization") accessToken: String
     ): ApiResponse<Unit>
 
     @Operation(summary = "탈퇴 계정 복구")

@@ -14,10 +14,10 @@ class UserAccountController(
     private val userAccountService: UserAccountService
 ) : UserAccountApi {
 
-    override fun withdraw(accessToken: String?): ApiResponse<Unit> {
+    override fun withdraw(accessToken: String): ApiResponse<Unit> {
         userAccountService.withdraw(
             userId = currentUserId(),
-            accessToken = accessToken?.extractBearerToken()
+            accessToken = accessToken.extractBearerToken()
         )
         return ApiResponse.success(UserSuccess.WITHDRAW)
     }

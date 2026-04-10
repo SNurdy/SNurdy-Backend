@@ -69,8 +69,6 @@ enum class UserError(
 ) : ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "USER_E001", "사용자를 찾을 수 없습니다"),
     DUPLICATED(HttpStatus.CONFLICT, "USER_E002", "이미 존재하는 사용자입니다"),
-    NOT_DELETED(HttpStatus.BAD_REQUEST, "USER_E003", "탈퇴하지 않은 사용자입니다"),
-    RECOVERY_EXPIRED(HttpStatus.GONE, "USER_E004", "계정 복구 기간이 만료되었습니다"),
     ALREADY_DELETED(HttpStatus.CONFLICT, "USER_E005", "이미 탈퇴한 사용자입니다")
 }
 

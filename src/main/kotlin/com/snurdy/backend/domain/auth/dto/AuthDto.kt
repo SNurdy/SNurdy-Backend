@@ -4,7 +4,6 @@ import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
-import java.time.Instant
 import java.util.*
 
 @Schema(description = "카카오 로그인 요청")
@@ -39,9 +38,7 @@ data class TokenResponse(
     val refreshToken: String,
     val accessTokenExpiresIn: Long,
     val refreshTokenExpiresIn: Long,
-    val user: UserInfo,
-    val accountRecoverable: Boolean = false,
-    val recoverableUntil: Instant? = null
+    val user: UserInfo
 )
 
 @Schema(description = "유저 정보")

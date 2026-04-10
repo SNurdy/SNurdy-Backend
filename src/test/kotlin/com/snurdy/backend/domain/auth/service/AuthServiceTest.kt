@@ -135,8 +135,6 @@ class AuthServiceTest {
 
         // Then
         assertEquals(issuedToken, result)
-        assertEquals(false, result.accountRecoverable)
-        assertEquals(null, result.recoverableUntil)
         assertEquals(recreatedUser.id, savedRefreshToken.captured.userId)
         verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
     }

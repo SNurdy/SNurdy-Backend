@@ -69,16 +69,8 @@ class UserEntity(
         deletedAt = Instant.now()
     }
 
-    fun recover() {
-        deletedAt = null
-    }
-
-    fun isRecoverable(): Boolean =
-        isDeleted() && deletedAt!!.plusSeconds(RECOVERY_PERIOD_DAYS * 86400).isAfter(Instant.now())
-
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20
-        const val RECOVERY_PERIOD_DAYS = 30L
 
         fun from(info: SocialUserInfo, type: SocialType) = UserEntity(
             socialId = info.socialId,

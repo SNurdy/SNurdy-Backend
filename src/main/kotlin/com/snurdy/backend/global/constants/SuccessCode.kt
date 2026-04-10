@@ -34,8 +34,7 @@ enum class UserSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    WITHDRAW(HttpStatus.OK, "USER_S002", "회원탈퇴에 성공했습니다"),
-    RECOVER(HttpStatus.OK, "USER_S003", "회원복구에 성공했습니다")
+    WITHDRAW(HttpStatus.OK, "USER_S002", "회원탈퇴에 성공했습니다")
 }
 
 enum class MigrationSuccess(

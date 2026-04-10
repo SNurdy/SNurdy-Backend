@@ -40,7 +40,7 @@ class UserEntityTest {
         val user = UserEntity.from(socialUserInfo, SocialType.APPLE)
 
         // Then
-        assertEquals(MAX_NICKNAME_LENGTH, user.nickname.length)
+        assertEquals(MAX_NICKNAME_LENGTH, requireNotNull(user.nickname).length)
         assertEquals(longNickname.take(MAX_NICKNAME_LENGTH), user.nickname)
     }
 
@@ -56,7 +56,7 @@ class UserEntityTest {
         val user = UserEntity.from(socialUserInfo, SocialType.KAKAO)
 
         // Then
-        assertEquals("", user.nickname)
+        assertEquals(null, user.nickname)
     }
 
     companion object {

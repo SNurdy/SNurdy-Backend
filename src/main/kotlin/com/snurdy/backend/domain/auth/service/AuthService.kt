@@ -28,7 +28,8 @@ class AuthService(
     private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) {
 
     @Transactional
@@ -52,11 +53,12 @@ class AuthService(
             ?: throw ApiException(UserError.NOT_FOUND)
     }
 
-    fun logout(refreshToken: String) {
+    fun logout(refreshToken: String, accessToken: String? = null) {
         if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
         refreshTokenRepository.deleteByUserId(userId)
+        accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
     fun issueTokens(user: UserEntity): TokenResponse =
@@ -72,15 +74,6 @@ class AuthService(
         val activeUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
         if (activeUser != null) {
             return issueTokens(activeUser)
-        }
-
-        val deletedUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(socialType, userInfo.socialId)
-        if (deletedUser != null && deletedUser.isRecoverable()) {
-            val tokenResponse = jwtTokenProvider.createToken(deletedUser)
-            return tokenResponse.copy(
-                accountRecoverable = true,
-                recoverableUntil = deletedUser.deletedAt?.plusSeconds(UserEntity.RECOVERY_PERIOD_DAYS * 86400)
-            )
         }
 
         return createNewUser(userInfo, socialType)

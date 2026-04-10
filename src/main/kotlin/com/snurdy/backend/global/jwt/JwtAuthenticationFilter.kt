@@ -1,8 +1,11 @@
 package com.snurdy.backend.global.jwt
 
+import com.snurdy.backend.domain.auth.service.AccessTokenBlacklistService
+import com.snurdy.backend.domain.user.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -11,7 +14,9 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val userRepository: UserRepository,
+    private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -20,6 +25,11 @@ class JwtAuthenticationFilter(
         filterChain: FilterChain
     ) {
         val token = extractToken(request)
+        if (accessTokenBlacklistService.isBlacklisted(token)) {
+            SecurityContextHolder.clearContext()
+            filterChain.doFilter(request, response)
+            return
+        }
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             val tokenType = jwtTokenProvider.getTokenType(token)
@@ -30,6 +40,17 @@ class JwtAuthenticationFilter(
             }
 
             val userId = jwtTokenProvider.getUserIdFromToken(token)
+
+            // Soft delete된 사용자는 기존 ACCESS 토큰이 남아 있어도 인증하지 않는다.
+            if (tokenType == "ACCESS") {
+                val user = userRepository.findByIdOrNull(userId)
+                if (user == null || user.isDeleted()) {
+                    SecurityContextHolder.clearContext()
+                    filterChain.doFilter(request, response)
+                    return
+                }
+            }
+
             val role = jwtTokenProvider.getRoleFromToken(token)
 
             val authority = when (tokenType) {

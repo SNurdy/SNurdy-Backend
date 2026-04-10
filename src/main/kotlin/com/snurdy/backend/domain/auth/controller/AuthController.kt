@@ -27,8 +27,11 @@ class AuthController(
     override fun reissue(refreshToken: String): ApiResponse<TokenResponse> =
         ApiResponse.success(AuthSuccess.REISSUE, authService.reissue(refreshToken.extractBearerToken()))
 
-    override fun logout(refreshToken: String): ApiResponse<Unit> {
-        authService.logout(refreshToken.extractBearerToken())
+    override fun logout(refreshToken: String, accessToken: String?): ApiResponse<Unit> {
+        authService.logout(
+            refreshToken = refreshToken.extractBearerToken(),
+            accessToken = accessToken?.extractBearerToken()
+        )
         return ApiResponse.success(AuthSuccess.LOGOUT)
     }
 }

@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.user.service
 
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
+import com.snurdy.backend.domain.auth.service.AccessTokenBlacklistService
 import com.snurdy.backend.domain.auth.service.AuthService
 import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.UserError
@@ -15,17 +16,19 @@ import java.util.UUID
 class UserAccountService(
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) {
 
     @Transactional
-    fun withdraw(userId: UUID) {
+    fun withdraw(userId: UUID, accessToken: String? = null) {
         val user = userRepository.findByIdOrNull(userId)
             ?: throw ApiException(UserError.NOT_FOUND)
         if (user.isDeleted()) throw ApiException(UserError.ALREADY_DELETED)
 
         user.softDelete()
         refreshTokenRepository.deleteByUserId(userId)
+        accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
     @Transactional

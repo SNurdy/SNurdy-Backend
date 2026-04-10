@@ -6,8 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder
 import java.util.UUID
 
 fun currentUserId(): UUID {
-    val principal = SecurityContextHolder.getContext().authentication?.principal
-    return when (principal) {
+    return when (val principal = SecurityContextHolder.getContext().authentication?.principal) {
         is UUID -> principal
         is String -> principal.toUUIDOrNull() ?: throw ApiException(CommonError.UNAUTHORIZED)
         else -> throw ApiException(CommonError.UNAUTHORIZED)

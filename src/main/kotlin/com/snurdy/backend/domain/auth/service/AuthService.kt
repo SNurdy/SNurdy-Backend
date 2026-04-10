@@ -33,20 +33,15 @@ class AuthService(
 
     @Transactional
     fun kakaoLogin(accessToken: String): TokenResponse =
-        findOrCreateUser(kakaoSocialProvider.getUserInfo(accessToken), SocialType.KAKAO)
-            .let(::issueTokens)
+        processLogin(kakaoSocialProvider.getUserInfo(accessToken), SocialType.KAKAO)
 
     @Transactional
     fun appleLogin(identityToken: String, appleUser: AppleUser?): TokenResponse =
-        appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser)
-            .let { findOrCreateUser(it, SocialType.APPLE) }
-            .let(::issueTokens)
+        processLogin(appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser), SocialType.APPLE)
 
     @Transactional
     fun googleLogin(idToken: String): TokenResponse =
-        googleSocialProvider.verifyAndGetUserInfo(idToken)
-            .let { findOrCreateUser(it, SocialType.GOOGLE) }
-            .let(::issueTokens)
+        processLogin(googleSocialProvider.verifyAndGetUserInfo(idToken), SocialType.GOOGLE)
 
     fun reissue(refreshToken: String): TokenResponse {
         if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
@@ -64,29 +59,7 @@ class AuthService(
         refreshTokenRepository.deleteByUserId(userId)
     }
 
-    private fun findOrCreateUser(userInfo: SocialUserInfo, socialType: SocialType): UserEntity =
-        runCatching {
-            userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-                ?: userRepository.save(UserEntity.from(userInfo, socialType))
-        }.recoverCatching { e ->
-            // 동시성 이슈로 인한 중복 생성 시 재조회
-            if (e is DataIntegrityViolationException) {
-                userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-                    ?: throw e
-            } else throw e
-        }.getOrThrow()
-
-    private fun validateRefreshToken(userId: UUID, refreshToken: String) {
-        val savedToken = refreshTokenRepository.findByUserId(userId)
-            ?: throw ApiException(AuthError.EXPIRED_TOKEN)
-
-        if (savedToken != refreshToken) {
-            refreshTokenRepository.deleteByUserId(userId)
-            throw ApiException(AuthError.INVALID_TOKEN)
-        }
-    }
-
-    private fun issueTokens(user: UserEntity): TokenResponse =
+    fun issueTokens(user: UserEntity): TokenResponse =
         jwtTokenProvider.createToken(user).also { response ->
             RefreshToken.create(
                 userId = user.id,
@@ -94,6 +67,43 @@ class AuthService(
                 ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
             ).let { refreshTokenRepository.save(it) }
         }
+
+    private fun processLogin(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse {
+        val activeUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
+        if (activeUser != null) {
+            return issueTokens(activeUser)
+        }
+
+        val deletedUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(socialType, userInfo.socialId)
+        if (deletedUser != null && deletedUser.isRecoverable()) {
+            val tokenResponse = jwtTokenProvider.createToken(deletedUser)
+            return tokenResponse.copy(
+                accountRecoverable = true,
+                recoverableUntil = deletedUser.deletedAt?.plusSeconds(UserEntity.RECOVERY_PERIOD_DAYS * 86400)
+            )
+        }
+
+        return createNewUser(userInfo, socialType)
+    }
+
+    private fun createNewUser(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse =
+        runCatching {
+            userRepository.save(UserEntity.from(userInfo, socialType))
+        }.recoverCatching { e ->
+            if (e is DataIntegrityViolationException) {
+                userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
+                    ?: throw e
+            } else throw e
+        }.getOrThrow().let(::issueTokens)
+
+    private fun validateRefreshToken(userId: UUID, refreshToken: String) {
+        val savedToken = refreshTokenRepository.findByUserId(userId)
+            ?: throw ApiException(AuthError.EXPIRED_TOKEN)
+        if (savedToken != refreshToken) {
+            refreshTokenRepository.deleteByUserId(userId)
+            throw ApiException(AuthError.INVALID_TOKEN)
+        }
+    }
 
     companion object {
         private const val REFRESH_TOKEN_VALIDITY_DAYS = 30L

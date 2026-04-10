@@ -68,7 +68,8 @@ class AuthServiceTest {
         val savedRefreshToken = slot<RefreshToken>()
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
-        every { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) } returns existingUser
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returns existingUser
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(SocialType.KAKAO, SOCIAL_ID) } returns null
         every { jwtTokenProvider.createToken(existingUser) } returns issuedToken
         every { refreshTokenRepository.save(capture(savedRefreshToken)) } just runs
 
@@ -81,8 +82,8 @@ class AuthServiceTest {
         assertEquals(issuedToken.refreshToken, savedRefreshToken.captured.token)
         assertEquals(THIRTY_DAYS_IN_SECONDS, savedRefreshToken.captured.ttlSeconds)
 
-        verify(exactly = 1) { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) }
-        verify(exactly = 0) { userRepository.save(existingUser) }
+        verify(exactly = 1) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
+        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -94,7 +95,8 @@ class AuthServiceTest {
         val savedUserCandidate = slot<UserEntity>()
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
-        every { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) } returnsMany listOf(null, reloadedUser)
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returnsMany listOf(null, reloadedUser)
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(SocialType.KAKAO, SOCIAL_ID) } returns null
         every { userRepository.save(capture(savedUserCandidate)) } throws DataIntegrityViolationException("duplicated")
         every { jwtTokenProvider.createToken(reloadedUser) } returns issuedToken
         every { refreshTokenRepository.save(RefreshToken.create(reloadedUser.id, NEW_REFRESH_TOKEN, REFRESH_TOKEN_VALIDITY_DAYS)) } just runs
@@ -106,7 +108,7 @@ class AuthServiceTest {
         assertEquals(issuedToken, result)
         assertEquals(SOCIAL_ID, savedUserCandidate.captured.socialId)
         assertEquals(SocialType.KAKAO, savedUserCandidate.captured.socialType)
-        verify(exactly = 2) { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) }
+        verify(exactly = 2) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
         verify(exactly = 1) { jwtTokenProvider.createToken(reloadedUser) }
     }
 

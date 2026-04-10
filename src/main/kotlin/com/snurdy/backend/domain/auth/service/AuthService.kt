@@ -28,25 +28,21 @@ class AuthService(
     private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) {
 
     @Transactional
     fun kakaoLogin(accessToken: String): TokenResponse =
-        findOrCreateUser(kakaoSocialProvider.getUserInfo(accessToken), SocialType.KAKAO)
-            .let(::issueTokens)
+        processLogin(kakaoSocialProvider.getUserInfo(accessToken), SocialType.KAKAO)
 
     @Transactional
     fun appleLogin(identityToken: String, appleUser: AppleUser?): TokenResponse =
-        appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser)
-            .let { findOrCreateUser(it, SocialType.APPLE) }
-            .let(::issueTokens)
+        processLogin(appleSocialProvider.verifyAndGetUserInfo(identityToken, appleUser), SocialType.APPLE)
 
     @Transactional
     fun googleLogin(idToken: String): TokenResponse =
-        googleSocialProvider.verifyAndGetUserInfo(idToken)
-            .let { findOrCreateUser(it, SocialType.GOOGLE) }
-            .let(::issueTokens)
+        processLogin(googleSocialProvider.verifyAndGetUserInfo(idToken), SocialType.GOOGLE)
 
     fun reissue(refreshToken: String): TokenResponse {
         if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
@@ -57,36 +53,15 @@ class AuthService(
             ?: throw ApiException(UserError.NOT_FOUND)
     }
 
-    fun logout(refreshToken: String) {
+    fun logout(refreshToken: String, accessToken: String? = null) {
         if (!jwtTokenProvider.validateToken(refreshToken)) throw ApiException(AuthError.INVALID_TOKEN)
         val userId = jwtTokenProvider.getUserIdFromToken(refreshToken)
         validateRefreshToken(userId, refreshToken)
         refreshTokenRepository.deleteByUserId(userId)
+        accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
-    private fun findOrCreateUser(userInfo: SocialUserInfo, socialType: SocialType): UserEntity =
-        runCatching {
-            userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-                ?: userRepository.save(UserEntity.from(userInfo, socialType))
-        }.recoverCatching { e ->
-            // 동시성 이슈로 인한 중복 생성 시 재조회
-            if (e is DataIntegrityViolationException) {
-                userRepository.findBySocialTypeAndSocialId(socialType, userInfo.socialId)
-                    ?: throw e
-            } else throw e
-        }.getOrThrow()
-
-    private fun validateRefreshToken(userId: UUID, refreshToken: String) {
-        val savedToken = refreshTokenRepository.findByUserId(userId)
-            ?: throw ApiException(AuthError.EXPIRED_TOKEN)
-
-        if (savedToken != refreshToken) {
-            refreshTokenRepository.deleteByUserId(userId)
-            throw ApiException(AuthError.INVALID_TOKEN)
-        }
-    }
-
-    private fun issueTokens(user: UserEntity): TokenResponse =
+    fun issueTokens(user: UserEntity): TokenResponse =
         jwtTokenProvider.createToken(user).also { response ->
             RefreshToken.create(
                 userId = user.id,
@@ -94,6 +69,34 @@ class AuthService(
                 ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
             ).let { refreshTokenRepository.save(it) }
         }
+
+    private fun processLogin(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse {
+        val activeUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
+        if (activeUser != null) {
+            return issueTokens(activeUser)
+        }
+
+        return createNewUser(userInfo, socialType)
+    }
+
+    private fun createNewUser(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse =
+        runCatching {
+            userRepository.save(UserEntity.from(userInfo, socialType))
+        }.recoverCatching { e ->
+            if (e is DataIntegrityViolationException) {
+                userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
+                    ?: throw e
+            } else throw e
+        }.getOrThrow().let(::issueTokens)
+
+    private fun validateRefreshToken(userId: UUID, refreshToken: String) {
+        val savedToken = refreshTokenRepository.findByUserId(userId)
+            ?: throw ApiException(AuthError.EXPIRED_TOKEN)
+        if (savedToken != refreshToken) {
+            refreshTokenRepository.deleteByUserId(userId)
+            throw ApiException(AuthError.INVALID_TOKEN)
+        }
+    }
 
     companion object {
         private const val REFRESH_TOKEN_VALIDITY_DAYS = 30L

@@ -68,7 +68,8 @@ enum class UserError(
     override val message: String
 ) : ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "USER_E001", "사용자를 찾을 수 없습니다"),
-    DUPLICATED(HttpStatus.CONFLICT, "USER_E002", "이미 존재하는 사용자입니다")
+    DUPLICATED(HttpStatus.CONFLICT, "USER_E002", "이미 존재하는 사용자입니다"),
+    ALREADY_DELETED(HttpStatus.CONFLICT, "USER_E005", "이미 탈퇴한 사용자입니다")
 }
 
 enum class DictionaryError(

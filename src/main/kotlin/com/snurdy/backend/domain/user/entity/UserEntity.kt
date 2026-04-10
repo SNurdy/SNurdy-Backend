@@ -17,8 +17,8 @@ import java.util.UUID
     name = "users",
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_user_social_id_type",
-            columnNames = ["social_id", "social_type"]
+            name = "uk_user_social_active",
+            columnNames = ["active_social_id", "social_type"]
         )
     ]
 )
@@ -40,8 +40,8 @@ class UserEntity(
     @Column(nullable = true, length = 50)
     var name: String? = null,
 
-    @Column(nullable = false, length = 20)
-    var nickname: String = "",
+    @Column(nullable = true, length = 20)
+    var nickname: String? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -57,8 +57,17 @@ class UserEntity(
     var longestStreak: Int = 0,
 
     @Column(name = "migration_declined_at")
-    var migrationDeclinedAt: Instant? = null
+    var migrationDeclinedAt: Instant? = null,
+
+    @Column(name = "deleted_at")
+    var deletedAt: Instant? = null
 ) : BaseTimeEntity() {
+
+    fun isDeleted(): Boolean = deletedAt != null
+
+    fun softDelete() {
+        deletedAt = Instant.now()
+    }
 
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20
@@ -68,7 +77,7 @@ class UserEntity(
             socialType = type,
             email = info.email,
             name = info.name,
-            nickname = info.nickname?.take(MAX_NICKNAME_LENGTH) ?: ""
+            nickname = info.nickname?.take(MAX_NICKNAME_LENGTH)
         )
     }
 }

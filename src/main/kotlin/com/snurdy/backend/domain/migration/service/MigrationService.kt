@@ -252,7 +252,7 @@ class MigrationService(
                 user = user,
                 glossary = glossary,
                 term = term,
-                status = parseTermProgressStatus(payload.status),
+                status = payload.status,
                 easeFactor = normalizeEaseFactor(payload.easeFactor),
                 intervalDays = intervalDays,
                 reviewCount = reviewCount,
@@ -427,10 +427,6 @@ class MigrationService(
         return migrationSessionRepository.findByIdForUpdate(uuid)
             ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
     }
-
-    private fun parseTermProgressStatus(status: String): TermProgressStatus =
-        runCatching { TermProgressStatus.valueOf(status.trim().uppercase()) }
-            .getOrElse { throw ApiException(MigrationError.MIGRATION_INVALID_TERM_STATUS) }
 
     private fun normalizeEaseFactor(value: Double): BigDecimal =
         value

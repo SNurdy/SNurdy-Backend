@@ -94,12 +94,12 @@ abstract class AbstractP0ApiTestSupport {
                 {
                   "glossaryId": ${pairB.glossaryId},
                   "termId": ${pairB.termId},
-                  "status": "REVIEW",
+                  "status": "MASTERED",
                   "easeFactor": 2.3,
                   "intervalDays": 3,
                   "reviewCount": 2,
                   "lastReviewedAt": "$now",
-                  "nextReviewAt": "2024-01-01T00:00:00Z"
+                  "nextReviewAt": null
                 }
               ],
               "glossaryProgresses": [

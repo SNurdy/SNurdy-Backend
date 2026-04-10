@@ -53,7 +53,7 @@ data class UserInfo(
     val name: String?,
 
     @Schema(description = "닉네임")
-    val nickname: String,
+    val nickname: String?,
 
     @Schema(description = "소셜 로그인 제공자")
     val socialType: SocialType

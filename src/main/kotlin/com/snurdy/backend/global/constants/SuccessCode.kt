@@ -29,6 +29,14 @@ enum class AuthSuccess(
     MERGE(HttpStatus.OK, "AUTH_S005", "데이터 병합에 성공했습니다")
 }
 
+enum class UserSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    WITHDRAW(HttpStatus.OK, "USER_S002", "회원탈퇴에 성공했습니다")
+}
+
 enum class MigrationSuccess(
     override val status: HttpStatus,
     override val code: String,

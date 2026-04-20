@@ -44,7 +44,10 @@ enum class MigrationError(
     MIGRATION_INVALID_GLOSSARY_TERM_PAIR(HttpStatus.BAD_REQUEST, "MIGRATION_E012", "용어장과 용어의 조합이 유효하지 않습니다"),
     MIGRATION_DUPLICATED_BOOKMARK(HttpStatus.BAD_REQUEST, "MIGRATION_E013", "중복된 bookmark 항목이 포함되어 있습니다"),
     MIGRATION_DUPLICATED_DAILY_PROGRESS(HttpStatus.BAD_REQUEST, "MIGRATION_E014", "중복된 daily progress 항목이 포함되어 있습니다"),
-    MIGRATION_DECLINED(HttpStatus.CONFLICT, "MIGRATION_E015", "사용자가 데이터 마이그레이션을 거부했습니다")
+    MIGRATION_DECLINED(HttpStatus.CONFLICT, "MIGRATION_E015", "사용자가 데이터 마이그레이션을 거부했습니다"),
+    MIGRATION_UPLOAD_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E016", "마이그레이션 업로드 처리 중 서버 오류가 발생했습니다"),
+    MIGRATION_FINALIZE_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E017", "마이그레이션 완료 처리 중 서버 오류가 발생했습니다"),
+    MIGRATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E018", "마이그레이션 처리 중 오류가 발생했습니다")
 }
 
 // 인증 관련 에러

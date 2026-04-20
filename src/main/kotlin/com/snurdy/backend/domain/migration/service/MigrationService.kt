@@ -157,7 +157,7 @@ class MigrationService(
             scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
             throw e
         } catch (e: Exception) {
-            scheduleFailureRecordAfterRollback(session.id, "마이그레이션 업로드 처리 중 서버 오류가 발생했습니다")
+            scheduleFailureRecordAfterRollback(session.id, MigrationError.MIGRATION_UPLOAD_INTERNAL_ERROR.message)
             throw e
         }
     }
@@ -188,7 +188,7 @@ class MigrationService(
             scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
             throw e
         } catch (e: Exception) {
-            scheduleFailureRecordAfterRollback(session.id, "마이그레이션 완료 처리 중 서버 오류가 발생했습니다")
+            scheduleFailureRecordAfterRollback(session.id, MigrationError.MIGRATION_FINALIZE_INTERNAL_ERROR.message)
             throw e
         }
 
@@ -450,7 +450,7 @@ class MigrationService(
         )
 
     private fun scheduleFailureRecordAfterRollback(sessionId: UUID, reason: String) {
-        val normalizedReason = reason.ifBlank { DEFAULT_FAILURE_REASON }
+        val normalizedReason = reason.ifBlank { MigrationError.MIGRATION_PROCESSING_ERROR.message }
 
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             migrationSessionFailureService.markFailed(sessionId, normalizedReason)
@@ -471,6 +471,5 @@ class MigrationService(
 
     companion object {
         private const val MIN_EASE_FACTOR = 1.3
-        private const val DEFAULT_FAILURE_REASON = "마이그레이션 처리 중 오류가 발생했습니다"
     }
 }

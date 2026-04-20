@@ -38,7 +38,7 @@ import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 import kotlin.math.ceil
@@ -135,38 +135,17 @@ class LearningService(
     @Transactional
     fun submitLearning(userId: UUID, request: LearningSubmitRequest): LearningSubmitResponse {
         val user = findUser(userId)
-
-        var learnedTotal = 0
-        var reviewedTotal = 0
-
-        val learnedByGlossary = mutableMapOf<Long, Int>()
-        val nowByDate = mutableMapOf<LocalDate, Pair<Int, Int>>()
+        val aggregation = LearningAggregation()
 
         request.events.forEach { event ->
-            val now = Instant.now()
-            val dailyDate = now.atZone(ZoneOffset.UTC).toLocalDate()
-
-            val progress = findOrCreateProgress(user, event)
-            val wasFirstLearned = applyAnswer(progress, event, now)
-
-            reviewedTotal += 1
-            if (wasFirstLearned) {
-                learnedTotal += 1
-                learnedByGlossary[event.glossaryId] = (learnedByGlossary[event.glossaryId] ?: 0) + 1
-            }
-
-            val previous = nowByDate[dailyDate] ?: (0 to 0)
-            nowByDate[dailyDate] = (previous.first + if (wasFirstLearned) 1 else 0) to (previous.second + 1)
+            processLearningEvent(user, event, aggregation)
         }
-
-        updateGlossaryProgresses(user, learnedByGlossary)
-        updateDailyProgresses(user, nowByDate)
-        updateUserSummary(user, learnedTotal)
+        applyLearningAggregation(user, aggregation)
 
         return LearningSubmitResponse(
             processedCount = request.events.size,
-            learnedCount = learnedTotal,
-            reviewedCount = reviewedTotal
+            learnedCount = aggregation.learnedTotal,
+            reviewedCount = aggregation.reviewedTotal
         )
     }
 
@@ -299,15 +278,39 @@ class LearningService(
             .mapNotNull { if (it.learnedCount + it.reviewedCount > 0) it.id.date else null }
             .toSet()
 
+        val streak = calculateCurrentStreak(activeDates)
+
+        user.currentStreak = streak
+        user.longestStreak = maxOf(user.longestStreak, streak)
+    }
+
+    private fun processLearningEvent(
+        user: UserEntity,
+        event: LearningAnswerEvent,
+        aggregation: LearningAggregation
+    ) {
+        val now = Instant.now()
+        val dailyDate = now.atZone(APP_ZONE_ID).toLocalDate()
+
+        val progress = findOrCreateProgress(user, event)
+        val wasFirstLearned = applyAnswer(progress, event, now)
+        aggregation.accumulate(event.glossaryId, dailyDate, wasFirstLearned)
+    }
+
+    private fun applyLearningAggregation(user: UserEntity, aggregation: LearningAggregation) {
+        updateGlossaryProgresses(user, aggregation.learnedByGlossary)
+        updateDailyProgresses(user, aggregation.byDate)
+        updateUserSummary(user, aggregation.learnedTotal)
+    }
+
+    private fun calculateCurrentStreak(activeDates: Set<LocalDate>): Int {
         var streak = 0
-        var cursor = LocalDate.now(ZoneOffset.UTC)
+        var cursor = LocalDate.now(APP_ZONE_ID)
         while (activeDates.contains(cursor)) {
             streak += 1
             cursor = cursor.minusDays(1)
         }
-
-        user.currentStreak = streak
-        user.longestStreak = maxOf(user.longestStreak, streak)
+        return streak
     }
 
     private fun toLearningCard(progress: TermProgressEntity, term: TermEntity, bookmarked: Boolean): LearningTermCard =
@@ -343,8 +346,27 @@ class LearningService(
             .orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
     companion object {
+        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
         private val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
         private val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
         private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
+    }
+
+    private class LearningAggregation {
+        var learnedTotal: Int = 0
+        var reviewedTotal: Int = 0
+        val learnedByGlossary: MutableMap<Long, Int> = mutableMapOf()
+        val byDate: MutableMap<LocalDate, Pair<Int, Int>> = mutableMapOf()
+
+        fun accumulate(glossaryId: Long, dailyDate: LocalDate, wasFirstLearned: Boolean) {
+            reviewedTotal += 1
+            if (wasFirstLearned) {
+                learnedTotal += 1
+                learnedByGlossary[glossaryId] = (learnedByGlossary[glossaryId] ?: 0) + 1
+            }
+
+            val previous = byDate[dailyDate] ?: (0 to 0)
+            byDate[dailyDate] = (previous.first + if (wasFirstLearned) 1 else 0) to (previous.second + 1)
+        }
     }
 }

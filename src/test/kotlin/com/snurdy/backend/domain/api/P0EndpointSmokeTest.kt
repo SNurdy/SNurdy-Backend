@@ -14,7 +14,7 @@ import org.testcontainers.containers.MySQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.ZoneId
 
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest
@@ -127,8 +127,8 @@ class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
             jsonPath("$.data.processedCount") { value(2) }
         }
 
-        val year = LocalDate.now(ZoneOffset.UTC).year
-        val month = LocalDate.now(ZoneOffset.UTC).monthValue
+        val year = LocalDate.now(APP_ZONE_ID).year
+        val month = LocalDate.now(APP_ZONE_ID).monthValue
         mockMvc.get("/v1/stats/calendar") {
             with(userAuth())
             param("year", year.toString())
@@ -147,6 +147,8 @@ class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
     }
 
     companion object {
+        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
+
         @Container
         @JvmStatic
         private val mysql = MySQLContainer<Nothing>("mysql:8.0.36").apply {

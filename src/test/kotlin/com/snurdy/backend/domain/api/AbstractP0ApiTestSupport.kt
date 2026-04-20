@@ -18,7 +18,7 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.util.UUID
 
 abstract class AbstractP0ApiTestSupport {
@@ -76,7 +76,7 @@ abstract class AbstractP0ApiTestSupport {
 
     protected fun migrationPayload(): String {
         val now = Instant.now().toString()
-        val today = LocalDate.now(ZoneOffset.UTC).toString()
+        val today = LocalDate.now(APP_ZONE_ID).toString()
 
         return """
             {
@@ -173,4 +173,8 @@ abstract class AbstractP0ApiTestSupport {
         val glossaryId: Long,
         val termId: Long
     )
+
+    companion object {
+        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
+    }
 }

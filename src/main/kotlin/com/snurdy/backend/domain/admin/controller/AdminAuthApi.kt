@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 
 @Tag(name = "Admin-Auth", description = "관리자 인증 API")
@@ -19,4 +20,8 @@ interface AdminAuthApi {
     @SecurityRequirements
     @PostMapping("/login")
     fun login(@RequestBody @Valid request: AdminLoginRequest): ApiResponse<AdminTokenResponse>
+
+    @Operation(summary = "관리자 로그아웃 (access token 블랙리스트 등록)")
+    @PostMapping("/logout")
+    fun logout(@RequestHeader("Authorization") accessToken: String): ApiResponse<Unit>
 }

@@ -61,7 +61,9 @@ enum class AuthError(
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_E003", "카카오 API 오류가 발생했습니다"),
     APPLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_E004", "애플 API 오류가 발생했습니다"),
     GOOGLE_API_ERROR(HttpStatus.BAD_GATEWAY, "AUTH_E005", "구글 API 오류가 발생했습니다"),
-    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_E010", "이메일 또는 비밀번호가 올바르지 않습니다")
+    LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "AUTH_E010", "이메일 또는 비밀번호가 올바르지 않습니다"),
+    LOGIN_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "AUTH_E011", "로그인 시도 횟수를 초과했습니다. 잠시 후 다시 시도해주세요"),
+    TOKEN_OWNER_MISMATCH(HttpStatus.FORBIDDEN, "AUTH_E012", "토큰 소유자가 일치하지 않습니다")
 }
 
 // 유저 관련 에러

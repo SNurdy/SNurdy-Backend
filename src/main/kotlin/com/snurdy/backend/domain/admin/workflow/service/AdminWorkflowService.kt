@@ -2,12 +2,15 @@ package com.snurdy.backend.domain.admin.workflow.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditTarget
 import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
 import com.snurdy.backend.domain.admin.workflow.dto.*
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntityType
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
+import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestStatus
 import com.snurdy.backend.domain.admin.workflow.repository.ChangeRequestRepository
 import com.snurdy.backend.domain.admin.workflow.service.handler.MorphemeChangeHandler
 import com.snurdy.backend.domain.admin.workflow.service.handler.TermChangeHandler
@@ -34,21 +37,22 @@ class AdminWorkflowService(
 
     @Transactional
     fun create(request: CreateChangeRequest): ChangeRequestDetailResponse {
-        val entityType = normalizeEntityType(request.entityType)
-        val operation = normalizeOperation(request.operation)
+        val entityType = ChangeRequestEntityType.fromRequest(request.entityType)
+        val operation = ChangeRequestOperation.fromRequest(request.operation)
         validateEntityOperation(entityType, operation)
         if (request.title.isBlank()) throw ApiException(CommonError.BAD_REQUEST)
 
         val entity = builder.build(request, entityType, operation)
         val saved = changeRequestRepository.save(entity)
-        audit("REQUEST", "change_requests", saved.id.toString(), null, saved)
+        audit(AdminAuditAction.REQUEST, saved.requireId(), null, saved)
         return mapper.toDetail(saved)
     }
 
     @Transactional(readOnly = true)
     fun list(status: String?, page: Int, size: Int): ChangeRequestPageResponse {
         val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"))
-        val result = status?.trim()?.takeIf { it.isNotBlank() }
+        val parsedStatus = ChangeRequestStatus.fromRequestOrNull(status)
+        val result = parsedStatus
             ?.let { changeRequestRepository.findByStatusOrderByIdDesc(it, pageable) }
             ?: changeRequestRepository.findAll(pageable)
 
@@ -92,7 +96,7 @@ class AdminWorkflowService(
         changeRequest.resetForRetry()
         changeRequestRepository.save(changeRequest)
 
-        audit("UPDATE", "change_requests", id.toString(), null, changeRequest)
+        audit(AdminAuditAction.UPDATE, id, null, changeRequest)
         return mapper.toDetail(changeRequest)
     }
 
@@ -105,7 +109,6 @@ class AdminWorkflowService(
         val result = when (changeRequest.entityType) {
             ChangeRequestEntityType.TERM -> termHandler.validate(changeRequest)
             ChangeRequestEntityType.MORPHEME -> morphemeHandler.validate(changeRequest)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
         if (result.passed) {
@@ -117,7 +120,7 @@ class AdminWorkflowService(
             )
         }
         changeRequestRepository.save(changeRequest)
-        audit( "VALIDATE", "change_requests", id.toString(), null, changeRequest)
+        audit(AdminAuditAction.VALIDATE, id, null, changeRequest)
 
         return mapper.toAction(changeRequest)
     }
@@ -131,12 +134,11 @@ class AdminWorkflowService(
         val resolvedPk = when (changeRequest.entityType) {
             ChangeRequestEntityType.TERM -> termHandler.apply(changeRequest)
             ChangeRequestEntityType.MORPHEME -> morphemeHandler.apply(changeRequest)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
         changeRequest.markApplied(resolvedPk)
         changeRequestRepository.save(changeRequest)
-        audit("APPLY", "change_requests", id.toString(), null, changeRequest)
+        audit(AdminAuditAction.APPLY, id, null, changeRequest)
 
         return mapper.toAction(changeRequest)
     }
@@ -149,7 +151,7 @@ class AdminWorkflowService(
 
         changeRequest.markCanceled()
         changeRequestRepository.save(changeRequest)
-        audit("CANCEL", "change_requests", id.toString(), null, changeRequest)
+        audit(AdminAuditAction.CANCEL, id, null, changeRequest)
 
         return mapper.toAction(changeRequest)
     }
@@ -163,12 +165,11 @@ class AdminWorkflowService(
         when (changeRequest.entityType) {
             ChangeRequestEntityType.TERM -> termHandler.rollback(changeRequest)
             ChangeRequestEntityType.MORPHEME -> morphemeHandler.rollback(changeRequest)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
         }
 
         changeRequest.markRolledBack()
         changeRequestRepository.save(changeRequest)
-        audit("ROLLBACK", "change_requests", id.toString(), null, changeRequest)
+        audit(AdminAuditAction.ROLLBACK, id, null, changeRequest)
 
         return mapper.toAction(changeRequest)
     }
@@ -176,34 +177,32 @@ class AdminWorkflowService(
     private fun findRequest(id: Long): ChangeRequestEntity =
         changeRequestRepository.findById(id).orElseThrow { ApiException(CommonError.NOT_FOUND) }
 
-    private fun normalizeEntityType(raw: String): String {
-        val normalized = raw.trim().uppercase()
-        if (normalized !in ChangeRequestEntityType.ALL) throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
-        return normalized
-    }
-
-    private fun normalizeOperation(raw: String): String {
-        val normalized = raw.trim().uppercase()
-        if (normalized !in ChangeRequestOperation.ALL) throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
-        return normalized
-    }
-
-    private fun validateEntityOperation(entityType: String, operation: String) {
+    private fun validateEntityOperation(
+        entityType: ChangeRequestEntityType,
+        operation: ChangeRequestOperation
+    ) {
         if (entityType == ChangeRequestEntityType.MORPHEME && operation == ChangeRequestOperation.DELETE) {
             throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
     }
 
-    private fun audit(action: String, table: String, pk: String, before: Any?, after: Any?) {
+    private fun audit(action: AdminAuditAction, pk: Long, before: Any?, after: Any?) {
         auditLogRepository.save(
             AdminAuditLogEntity(
-                actorRole = "ADMIN",
-                action = action,
-                targetTable = table,
-                targetPk = pk,
+                actorRole = ACTOR_ROLE,
+                action = action.name,
+                targetTable = AdminAuditTarget.CHANGE_REQUESTS,
+                targetPk = pk.toString(),
                 beforeJson = before?.let { objectMapper.writeValueAsString(it) },
                 afterJson = after?.let { objectMapper.writeValueAsString(it) }
             )
         )
+    }
+
+    private fun ChangeRequestEntity.requireId(): Long =
+        id ?: throw ApiException(CommonError.INTERNAL_ERROR)
+
+    companion object {
+        private const val ACTOR_ROLE = "ADMIN"
     }
 }

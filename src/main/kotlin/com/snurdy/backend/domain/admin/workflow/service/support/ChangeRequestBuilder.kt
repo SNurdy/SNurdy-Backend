@@ -25,20 +25,23 @@ class ChangeRequestBuilder(
     private val objectMapper: ObjectMapper
 ) {
 
-    fun build(request: CreateChangeRequest, entityType: String, operation: String): ChangeRequestEntity {
-        return when (entityType) {
-            ChangeRequestEntityType.TERM -> buildTerm(request, entityType, operation)
-            ChangeRequestEntityType.MORPHEME -> buildMorpheme(request, entityType, operation)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
-        }
+    fun build(
+        request: CreateChangeRequest,
+        entityType: ChangeRequestEntityType,
+        operation: ChangeRequestOperation
+    ): ChangeRequestEntity = when (entityType) {
+        ChangeRequestEntityType.TERM -> buildTerm(request, entityType, operation)
+        ChangeRequestEntityType.MORPHEME -> buildMorpheme(request, entityType, operation)
     }
 
     private fun buildTerm(
-        request: CreateChangeRequest, entityType: String, operation: String
+        request: CreateChangeRequest,
+        entityType: ChangeRequestEntityType,
+        operation: ChangeRequestOperation
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
-                Triple("NEW", null, objectMapper.writeValueAsString(request.toTermPayload()))
+                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, objectMapper.writeValueAsString(request.toTermPayload()))
 
             ChangeRequestOperation.UPDATE -> {
                 val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
@@ -51,19 +54,19 @@ class ChangeRequestBuilder(
                 val before = snapshotTerm(termId)
                 Triple(termId.toString(), before, null)
             }
-
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
 
         return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
     }
 
     private fun buildMorpheme(
-        request: CreateChangeRequest, entityType: String, operation: String
+        request: CreateChangeRequest,
+        entityType: ChangeRequestEntityType,
+        operation: ChangeRequestOperation
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
-                Triple("NEW", null, objectMapper.writeValueAsString(request.toMorphemePayload()))
+                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, objectMapper.writeValueAsString(request.toMorphemePayload()))
 
             ChangeRequestOperation.UPDATE -> {
                 val morphemeId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
@@ -76,7 +79,7 @@ class ChangeRequestBuilder(
                 )
             }
 
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+            ChangeRequestOperation.DELETE -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
 
         return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
@@ -99,8 +102,12 @@ class ChangeRequestBuilder(
     }
 
     private fun newEntity(
-        request: CreateChangeRequest, entityType: String, operation: String,
-        entityPk: String, beforeJson: String?, afterJson: String?
+        request: CreateChangeRequest,
+        entityType: ChangeRequestEntityType,
+        operation: ChangeRequestOperation,
+        entityPk: String,
+        beforeJson: String?,
+        afterJson: String?
     ) = ChangeRequestEntity(
         title = request.title.trim(),
         description = request.description?.trim()?.takeIf { it.isNotBlank() },

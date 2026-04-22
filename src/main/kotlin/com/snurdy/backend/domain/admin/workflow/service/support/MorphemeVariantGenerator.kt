@@ -3,6 +3,8 @@ package com.snurdy.backend.domain.admin.workflow.service.support
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeVariantEntity
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
+import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 
 @Component
@@ -11,7 +13,8 @@ class MorphemeVariantGenerator(
 ) {
 
     fun regenerate(morpheme: MorphemeEntity) {
-        morphemeVariantRepository.deleteByMorphemeId(morpheme.id!!)
+        val morphemeId = morpheme.id ?: throw ApiException(CommonError.INTERNAL_ERROR)
+        morphemeVariantRepository.deleteByMorphemeId(morphemeId)
         val tokens = parseSpelling(morpheme.spelling)
         if (tokens.isEmpty()) return
         morphemeVariantRepository.saveAll(
@@ -27,10 +30,10 @@ class MorphemeVariantGenerator(
             .map { it.trim().lowercase() }
             .filter { it.isNotBlank() }
             .forEach { segment ->
-                val isOCombining = segment.contains(Regex("\\(o\\)"))
+                val isOCombining = segment.contains(O_COMBINING_REGEX)
 
                 expandOptionalParentheses(segment).forEach { expanded ->
-                    val variant = expanded.replace(Regex("[^a-z0-9]"), "").trim()
+                    val variant = expanded.replace(NON_ALPHANUMERIC_REGEX, "").trim()
                     if (variant.isBlank() || !seen.add(variant)) return@forEach
 
                     val base = when {
@@ -44,12 +47,17 @@ class MorphemeVariantGenerator(
     }
 
     private fun expandOptionalParentheses(token: String): List<String> {
-        val regex = Regex("^(.*)\\(([^)]+)\\)(.*)$")
-        val match = regex.matchEntire(token.trim()) ?: return listOf(token)
+        val match = OPTIONAL_PARENS_REGEX.matchEntire(token.trim()) ?: return listOf(token)
         val prefix = match.groupValues[1]
         val optional = match.groupValues[2]
         val suffix = match.groupValues[3]
         return listOf((prefix + suffix).trim(), (prefix + optional + suffix).trim())
+    }
+
+    companion object {
+        private val O_COMBINING_REGEX = Regex("\\(o\\)")
+        private val NON_ALPHANUMERIC_REGEX = Regex("[^a-z0-9]")
+        private val OPTIONAL_PARENS_REGEX = Regex("^(.*)\\(([^)]+)\\)(.*)$")
     }
 }
 

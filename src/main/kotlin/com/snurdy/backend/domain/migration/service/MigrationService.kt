@@ -242,8 +242,10 @@ class MigrationService(
 
         val migratedAt = Instant.now()
         val entities = payloads.map { payload ->
-            val glossary = glossaries[payload.glossaryId]!!
-            val term = terms[payload.termId]!!
+            val glossary = glossaries[payload.glossaryId]
+                ?: throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
+            val term = terms[payload.termId]
+                ?: throw ApiException(MigrationError.MIGRATION_INVALID_TERM_ID)
             val reviewCount = payload.reviewCount.coerceAtLeast(0)
             val intervalDays = payload.intervalDays.coerceAtLeast(0)
             val lastReviewedAt = payload.lastReviewedAt ?: if (reviewCount > 0) migratedAt else null
@@ -279,7 +281,8 @@ class MigrationService(
         }
 
         val entities = payloads.map { payload ->
-            val glossary = glossaries[payload.glossaryId]!!
+            val glossary = glossaries[payload.glossaryId]
+                ?: throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
 
             GlossaryProgressEntity(
                 id = GlossaryProgressId(userId = user.id, glossaryId = payload.glossaryId),
@@ -319,8 +322,10 @@ class MigrationService(
         )
 
         val entities = payloads.map { payload ->
-            val glossary = glossaries[payload.glossaryId]!!
-            val term = terms[payload.termId]!!
+            val glossary = glossaries[payload.glossaryId]
+                ?: throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
+            val term = terms[payload.termId]
+                ?: throw ApiException(MigrationError.MIGRATION_INVALID_TERM_ID)
             BookmarkEntity(
                 id = BookmarkId(
                     userId = user.id,

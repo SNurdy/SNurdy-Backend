@@ -14,6 +14,7 @@ import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
+import com.snurdy.backend.global.jwt.JwtProperties
 import com.snurdy.backend.global.jwt.JwtTokenProvider
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
@@ -29,7 +30,8 @@ class AuthService(
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider,
-    private val accessTokenBlacklistService: AccessTokenBlacklistService
+    private val accessTokenBlacklistService: AccessTokenBlacklistService,
+    private val jwtProperties: JwtProperties
 ) {
 
     @Transactional
@@ -66,7 +68,7 @@ class AuthService(
             RefreshToken.create(
                 userId = user.id,
                 token = response.refreshToken,
-                ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
+                ttlDays = jwtProperties.refreshTokenValidityDays
             ).let { refreshTokenRepository.save(it) }
         }
 
@@ -98,7 +100,4 @@ class AuthService(
         }
     }
 
-    companion object {
-        private const val REFRESH_TOKEN_VALIDITY_DAYS = 30L
-    }
 }

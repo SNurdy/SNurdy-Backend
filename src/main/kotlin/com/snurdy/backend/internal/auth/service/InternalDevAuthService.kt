@@ -6,6 +6,7 @@ import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.entity.SocialType
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
+import com.snurdy.backend.global.jwt.JwtProperties
 import com.snurdy.backend.global.jwt.JwtTokenProvider
 import org.springframework.context.annotation.Profile
 import org.springframework.dao.DataIntegrityViolationException
@@ -17,7 +18,8 @@ import org.springframework.transaction.annotation.Transactional
 class InternalDevAuthService(
     private val userRepository: UserRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val jwtProperties: JwtProperties
 ) {
 
     @Transactional
@@ -29,7 +31,7 @@ class InternalDevAuthService(
             RefreshToken.create(
                 userId = user.id,
                 token = token.refreshToken,
-                ttlDays = REFRESH_TOKEN_VALIDITY_DAYS
+                ttlDays = jwtProperties.refreshTokenValidityDays
             )
         )
 
@@ -63,6 +65,5 @@ class InternalDevAuthService(
         private const val DEV_EMAIL = "internal-dev@snurdy.local"
         private const val DEV_NAME = "Internal Dev"
         private const val DEV_NICKNAME = "internal-dev"
-        private const val REFRESH_TOKEN_VALIDITY_DAYS = 30L
     }
 }

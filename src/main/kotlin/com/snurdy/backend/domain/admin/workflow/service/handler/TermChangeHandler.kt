@@ -13,6 +13,7 @@ import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeReposito
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermMorphemeEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermMorphemeId
+import com.snurdy.backend.domain.dictionary.term.entity.TermTextLimits
 import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.global.constants.AdminError
@@ -32,9 +33,9 @@ class TermChangeHandler(
 ) {
 
     companion object {
-        private const val SPELLING_MAX = 100
-        private const val MEANING_MAX = 255
-        private const val ABBREVIATION_MAX = 50
+        private val SPELLING_MAX = TermTextLimits.SPELLING_MAX
+        private val MEANING_MAX = TermTextLimits.MEANING_MAX
+        private val ABBREVIATION_MAX = TermTextLimits.ABBREVIATION_MAX
     }
 
     fun validate(cr: ChangeRequestEntity): ValidationResult {
@@ -87,20 +88,15 @@ class TermChangeHandler(
                 if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "용어"); return v.build() }
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
             }
-
-            else -> v.error(ValidationCode.UNSUPPORTED_OPERATION, cr.operation, "CREATE, UPDATE, DELETE")
         }
 
         return v.build()
     }
 
-    fun apply(cr: ChangeRequestEntity): String? {
-        return when (cr.operation) {
-            ChangeRequestOperation.CREATE -> applyCreate(cr)
-            ChangeRequestOperation.UPDATE -> applyUpdate(cr)
-            ChangeRequestOperation.DELETE -> applyDelete(cr)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
-        }
+    fun apply(cr: ChangeRequestEntity): String? = when (cr.operation) {
+        ChangeRequestOperation.CREATE -> applyCreate(cr)
+        ChangeRequestOperation.UPDATE -> applyUpdate(cr)
+        ChangeRequestOperation.DELETE -> applyDelete(cr)
     }
 
     fun rollback(cr: ChangeRequestEntity) {
@@ -108,12 +104,12 @@ class TermChangeHandler(
             ChangeRequestOperation.CREATE -> rollbackCreate(cr)
             ChangeRequestOperation.UPDATE -> rollbackUpdate(cr)
             ChangeRequestOperation.DELETE -> rollbackDelete(cr)
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
     }
 
     private fun applyCreate(cr: ChangeRequestEntity): String {
-        val payload = parsePayload(cr.afterJson)!!
+        val payload = parsePayload(cr.afterJson)
+            ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
 
         val term = termRepository.save(
             TermEntity(
@@ -123,15 +119,17 @@ class TermChangeHandler(
                 explanation = payload.explanation?.trim()?.takeIf { it.isNotBlank() }
             )
         )
-        replaceMorphemeMappings(term.id!!, payload.morphemes)
+        val termId = term.id ?: throw ApiException(DictionaryError.TERM_NOT_FOUND)
+        replaceMorphemeMappings(termId, payload.morphemes)
         val glossaryIds = resolveGlossaryIds(payload) ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        replaceGlossaryMappings(term.id, glossaryIds)
-        return term.id.toString()
+        replaceGlossaryMappings(termId, glossaryIds)
+        return termId.toString()
     }
 
     private fun applyUpdate(cr: ChangeRequestEntity): String? {
         val termId = cr.entityPk.toLong()
-        val payload = parsePayload(cr.afterJson)!!
+        val payload = parsePayload(cr.afterJson)
+            ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
         val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
         term.spelling = payload.spelling.trim()
@@ -229,7 +227,9 @@ class TermChangeHandler(
         termMorphemeRepository.deleteByIdTermId(termId)
         if (morphemeIds.isEmpty()) return
         val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
-        val morphemes = morphemeRepository.findAllById(morphemeIds).associateBy { it.id!! }
+        val morphemes = morphemeRepository.findAllById(morphemeIds)
+            .mapNotNull { m -> m.id?.let { id -> id to m } }
+            .toMap()
         val mappings = morphemeIds.mapIndexed { index, morphemeId ->
             val morpheme = morphemes[morphemeId] ?: throw ApiException(AdminError.MORPHEME_NOT_FOUND)
             TermMorphemeEntity(id = TermMorphemeId(termId = termId, position = index), term = term, morpheme = morpheme)
@@ -239,7 +239,9 @@ class TermChangeHandler(
 
     private fun replaceGlossaryMappings(termId: Long, glossaryIds: List<Long>) {
         val normalizedGlossaryIds = glossaryIds.distinct()
-        val glossaries = glossaryRepository.findAllById(normalizedGlossaryIds).associateBy { it.id!! }
+        val glossaries = glossaryRepository.findAllById(normalizedGlossaryIds)
+            .mapNotNull { g -> g.id?.let { id -> id to g } }
+            .toMap()
         if (glossaries.size != normalizedGlossaryIds.size) throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 

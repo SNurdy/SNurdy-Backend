@@ -2,14 +2,22 @@ package com.snurdy.backend.domain.admin.workflow.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import jakarta.persistence.Version
+import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
 
 @Entity
 @Table(name = "change_requests")
+@EntityListeners(AuditingEntityListener::class)
 class ChangeRequestEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,17 +30,20 @@ class ChangeRequestEntity(
     @Column(name = "description", length = 1000)
     var description: String? = null,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30)
-    var status: String = ChangeRequestStatus.REQUESTED,
+    var status: ChangeRequestStatus = ChangeRequestStatus.REQUESTED,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 50)
-    var entityType: String,
+    var entityType: ChangeRequestEntityType,
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "operation", nullable = false, length = 20)
-    var operation: String,
+    var operation: ChangeRequestOperation,
 
     @Column(name = "entity_pk", nullable = false, length = 100)
-    var entityPk: String = "NEW",
+    var entityPk: String = NEW_ENTITY_PK,
 
     @Column(name = "before_json", columnDefinition = "JSON")
     var beforeJson: String? = null,
@@ -53,21 +64,29 @@ class ChangeRequestEntity(
     var appliedAt: Instant? = null,
 
     @Column(name = "rolled_back_at")
-    var rolledBackAt: Instant? = null,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: Instant = Instant.now(),
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = Instant.now()
+    var rolledBackAt: Instant? = null
 ) {
+
+    @Version
+    @Column(name = "version", nullable = false)
+    var version: Long = 0
+        protected set
+
+    @CreatedDate
+    @Column(name = "created_at", nullable = false, updatable = false)
+    var createdAt: Instant? = null
+        protected set
+
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: Instant? = null
+        protected set
 
     fun markValidated(warning: String? = null) {
         this.status = ChangeRequestStatus.VALIDATED
         this.errorCode = null
         this.errorMessage = null
         this.warningMessage = warning
-        this.updatedAt = Instant.now()
     }
 
     fun markFailed(errorCode: String, errorMessage: String) {
@@ -75,14 +94,11 @@ class ChangeRequestEntity(
         this.errorCode = errorCode
         this.errorMessage = errorMessage
         this.warningMessage = null
-        this.updatedAt = Instant.now()
     }
 
     fun markApplied(resolvedEntityPk: String? = null) {
-        val now = Instant.now()
         this.status = ChangeRequestStatus.APPLIED
-        this.appliedAt = now
-        this.updatedAt = now
+        this.appliedAt = Instant.now()
         if (resolvedEntityPk != null) {
             this.entityPk = resolvedEntityPk
         }
@@ -90,14 +106,11 @@ class ChangeRequestEntity(
 
     fun markCanceled() {
         this.status = ChangeRequestStatus.CANCELED
-        this.updatedAt = Instant.now()
     }
 
     fun markRolledBack() {
-        val now = Instant.now()
         this.status = ChangeRequestStatus.ROLLED_BACK
-        this.rolledBackAt = now
-        this.updatedAt = now
+        this.rolledBackAt = Instant.now()
     }
 
     fun resetForRetry() {
@@ -105,11 +118,10 @@ class ChangeRequestEntity(
         this.errorCode = null
         this.errorMessage = null
         this.warningMessage = null
-        this.updatedAt = Instant.now()
     }
 
     fun isEditable(): Boolean =
-        status in setOf(ChangeRequestStatus.REQUESTED, ChangeRequestStatus.FAILED)
+        status == ChangeRequestStatus.REQUESTED || status == ChangeRequestStatus.FAILED
 
     fun isValidatable(): Boolean =
         status == ChangeRequestStatus.REQUESTED
@@ -118,12 +130,14 @@ class ChangeRequestEntity(
         status == ChangeRequestStatus.VALIDATED
 
     fun isCancelable(): Boolean =
-        status in setOf(
-            ChangeRequestStatus.REQUESTED,
-            ChangeRequestStatus.FAILED,
-            ChangeRequestStatus.VALIDATED
-        )
+        status == ChangeRequestStatus.REQUESTED ||
+                status == ChangeRequestStatus.FAILED ||
+                status == ChangeRequestStatus.VALIDATED
 
     fun isRollbackable(): Boolean =
         status == ChangeRequestStatus.APPLIED
+
+    companion object {
+        const val NEW_ENTITY_PK = "NEW"
+    }
 }

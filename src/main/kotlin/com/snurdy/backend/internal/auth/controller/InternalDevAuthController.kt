@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Hidden
-@Profile("local", "dev")
+@Profile("(local | dev) & !prod")
 @RestController
 @RequestMapping("/internal/auth")
 class InternalDevAuthController(

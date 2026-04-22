@@ -12,7 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
-@Profile("local", "dev")
+@Profile("(local | dev) & !prod")
 @Service
 class InternalDevAuthService(
     private val userRepository: UserRepository,

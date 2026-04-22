@@ -12,3 +12,8 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+cors:
+  allowed-origins:
+    - "http://localhost:5173"
+    - "http://localhost:8081"

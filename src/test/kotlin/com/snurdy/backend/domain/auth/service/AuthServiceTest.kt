@@ -14,6 +14,7 @@ import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
+import com.snurdy.backend.global.jwt.JwtProperties
 import com.snurdy.backend.global.jwt.JwtTokenProvider
 import io.mockk.every
 import io.mockk.just
@@ -39,6 +40,7 @@ class AuthServiceTest {
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var jwtTokenProvider: JwtTokenProvider
     private lateinit var accessTokenBlacklistService: AccessTokenBlacklistService
+    private lateinit var jwtProperties: JwtProperties
 
     private lateinit var authService: AuthService
 
@@ -51,6 +53,11 @@ class AuthServiceTest {
         refreshTokenRepository = mockk()
         jwtTokenProvider = mockk()
         accessTokenBlacklistService = mockk(relaxed = true)
+        jwtProperties = JwtProperties(
+            secretKey = "test-secret-test-secret-test-secret-test-secret",
+            accessTokenExpiration = ACCESS_TOKEN_EXPIRATION,
+            refreshTokenExpiration = REFRESH_TOKEN_EXPIRATION
+        )
 
         authService = AuthService(
             kakaoSocialProvider = kakaoSocialProvider,
@@ -59,7 +66,8 @@ class AuthServiceTest {
             userRepository = userRepository,
             refreshTokenRepository = refreshTokenRepository,
             jwtTokenProvider = jwtTokenProvider,
-            accessTokenBlacklistService = accessTokenBlacklistService
+            accessTokenBlacklistService = accessTokenBlacklistService,
+            jwtProperties = jwtProperties
         )
     }
 

@@ -7,6 +7,7 @@ import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
 import com.snurdy.backend.domain.admin.workflow.service.support.MorphemeVariantGenerator
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
+import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeTextLimits
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.global.constants.AdminError
@@ -22,8 +23,8 @@ class MorphemeChangeHandler(
 ) {
 
     companion object {
-        private const val SPELLING_MAX = 100
-        private const val MEANING_MAX = 100
+        private val SPELLING_MAX = MorphemeTextLimits.SPELLING_MAX
+        private val MEANING_MAX = MorphemeTextLimits.MEANING_MAX
     }
 
     fun validate(cr: ChangeRequestEntity): ValidationResult {
@@ -47,37 +48,38 @@ class MorphemeChangeHandler(
                 checkSpellingDuplicate(payload.spelling, excludeId = morphemeId, v)
             }
 
-            else -> v.error(ValidationCode.UNSUPPORTED_OPERATION, "어근어미", "CREATE, UPDATE")
+            ChangeRequestOperation.DELETE ->
+                v.error(ValidationCode.UNSUPPORTED_OPERATION, "어근어미", "CREATE, UPDATE")
         }
 
         return v.build()
     }
 
-    fun apply(cr: ChangeRequestEntity): String? {
-        return when (cr.operation) {
-            ChangeRequestOperation.CREATE -> {
-                val payload = parsePayload(cr.afterJson)!!
-                val morpheme = morphemeRepository.save(
-                    MorphemeEntity(spelling = payload.spelling.trim(), meaning = payload.meaning.trim())
-                )
-                variantGenerator.regenerate(morpheme)
-                morpheme.id.toString()
-            }
-
-            ChangeRequestOperation.UPDATE -> {
-                val morphemeId = cr.entityPk.toLong()
-                val payload = parsePayload(cr.afterJson)!!
-                val morpheme = morphemeRepository.findById(morphemeId)
-                    .orElseThrow { ApiException(AdminError.MORPHEME_NOT_FOUND) }
-                morpheme.spelling = payload.spelling.trim()
-                morpheme.meaning = payload.meaning.trim()
-                morphemeRepository.save(morpheme)
-                variantGenerator.regenerate(morpheme)
-                null
-            }
-
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+    fun apply(cr: ChangeRequestEntity): String? = when (cr.operation) {
+        ChangeRequestOperation.CREATE -> {
+            val payload = parsePayload(cr.afterJson)
+                ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
+            val morpheme = morphemeRepository.save(
+                MorphemeEntity(spelling = payload.spelling.trim(), meaning = payload.meaning.trim())
+            )
+            variantGenerator.regenerate(morpheme)
+            morpheme.id?.toString() ?: throw ApiException(AdminError.MORPHEME_NOT_FOUND)
         }
+
+        ChangeRequestOperation.UPDATE -> {
+            val morphemeId = cr.entityPk.toLong()
+            val payload = parsePayload(cr.afterJson)
+                ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
+            val morpheme = morphemeRepository.findById(morphemeId)
+                .orElseThrow { ApiException(AdminError.MORPHEME_NOT_FOUND) }
+            morpheme.spelling = payload.spelling.trim()
+            morpheme.meaning = payload.meaning.trim()
+            morphemeRepository.save(morpheme)
+            variantGenerator.regenerate(morpheme)
+            null
+        }
+
+        ChangeRequestOperation.DELETE -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
     }
 
     fun rollback(cr: ChangeRequestEntity) {
@@ -103,7 +105,7 @@ class MorphemeChangeHandler(
                 variantGenerator.regenerate(morpheme)
             }
 
-            else -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+            ChangeRequestOperation.DELETE -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
         }
     }
 

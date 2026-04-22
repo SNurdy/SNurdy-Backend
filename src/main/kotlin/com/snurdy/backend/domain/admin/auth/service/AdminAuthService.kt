@@ -1,6 +1,8 @@
 package com.snurdy.backend.domain.admin.auth.service
 
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditTarget
 import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
 import com.snurdy.backend.domain.admin.auth.dto.AdminInfo
 import com.snurdy.backend.domain.admin.auth.dto.AdminTokenResponse
@@ -37,7 +39,7 @@ class AdminAuthService(
         if (admin == null || !passwordEncoder.matches(password, admin.password)) {
             rateLimiter.recordFailure(normalizedEmail, ipAddress)
             writeAudit(
-                action = ACTION_LOGIN_FAILED,
+                action = AdminAuditAction.ADMIN_LOGIN_FAILED,
                 targetPk = normalizedEmail.ifBlank { UNKNOWN_TARGET },
                 ipAddress = ipAddress,
                 userAgent = userAgent
@@ -47,7 +49,7 @@ class AdminAuthService(
 
         rateLimiter.recordSuccess(normalizedEmail, ipAddress)
         writeAudit(
-            action = ACTION_LOGIN_SUCCESS,
+            action = AdminAuditAction.ADMIN_LOGIN_SUCCESS,
             targetPk = admin.id.toString(),
             ipAddress = ipAddress,
             userAgent = userAgent
@@ -65,12 +67,12 @@ class AdminAuthService(
         accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
-    private fun writeAudit(action: String, targetPk: String, ipAddress: String?, userAgent: String?) {
+    private fun writeAudit(action: AdminAuditAction, targetPk: String, ipAddress: String?, userAgent: String?) {
         auditLogRepository.save(
             AdminAuditLogEntity(
                 actorRole = ACTOR_ROLE,
-                action = action,
-                targetTable = TARGET_TABLE,
+                action = action.name,
+                targetTable = AdminAuditTarget.ADMIN_USERS,
                 targetPk = targetPk.take(MAX_PK_LENGTH),
                 ipAddress = ipAddress?.take(MAX_IP_LENGTH),
                 userAgent = userAgent?.take(MAX_UA_LENGTH)
@@ -80,9 +82,6 @@ class AdminAuthService(
 
     companion object {
         private const val ACTOR_ROLE = "ADMIN"
-        private const val TARGET_TABLE = "admin_users"
-        private const val ACTION_LOGIN_SUCCESS = "ADMIN_LOGIN_SUCCESS"
-        private const val ACTION_LOGIN_FAILED = "ADMIN_LOGIN_FAILED"
         private const val UNKNOWN_TARGET = "unknown"
         private const val MAX_PK_LENGTH = 100
         private const val MAX_IP_LENGTH = 45

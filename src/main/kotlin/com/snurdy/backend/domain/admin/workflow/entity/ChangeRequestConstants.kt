@@ -1,25 +1,51 @@
 package com.snurdy.backend.domain.admin.workflow.entity
 
-object ChangeRequestStatus {
-    const val REQUESTED = "REQUESTED"
-    const val VALIDATED = "VALIDATED"
-    const val APPLIED = "APPLIED"
-    const val FAILED = "FAILED"
-    const val CANCELED = "CANCELED"
-    const val ROLLED_BACK = "ROLLED_BACK"
+import com.snurdy.backend.global.constants.AdminError
+import com.snurdy.backend.global.exception.ApiException
+
+enum class ChangeRequestStatus {
+    REQUESTED,
+    VALIDATED,
+    APPLIED,
+    FAILED,
+    CANCELED,
+    ROLLED_BACK;
+
+    companion object {
+        fun fromDb(raw: String): ChangeRequestStatus =
+            runCatching { valueOf(raw.trim().uppercase()) }
+                .getOrElse { throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION) }
+
+        fun fromRequestOrNull(raw: String?): ChangeRequestStatus? =
+            raw?.trim()?.takeIf { it.isNotBlank() }?.let {
+                runCatching { valueOf(it.uppercase()) }.getOrNull()
+            }
+    }
 }
 
-object ChangeRequestEntityType {
-    const val TERM = "TERM"
-    const val MORPHEME = "MORPHEME"
+enum class ChangeRequestEntityType {
+    TERM,
+    MORPHEME;
 
-    val ALL = setOf(TERM, MORPHEME)
+    companion object {
+        fun fromRequest(raw: String): ChangeRequestEntityType =
+            runCatching { valueOf(raw.trim().uppercase()) }
+                .getOrElse { throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE) }
+
+        fun fromDb(raw: String): ChangeRequestEntityType = fromRequest(raw)
+    }
 }
 
-object ChangeRequestOperation {
-    const val CREATE = "CREATE"
-    const val UPDATE = "UPDATE"
-    const val DELETE = "DELETE"
+enum class ChangeRequestOperation {
+    CREATE,
+    UPDATE,
+    DELETE;
 
-    val ALL = setOf(CREATE, UPDATE, DELETE)
+    companion object {
+        fun fromRequest(raw: String): ChangeRequestOperation =
+            runCatching { valueOf(raw.trim().uppercase()) }
+                .getOrElse { throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION) }
+
+        fun fromDb(raw: String): ChangeRequestOperation = fromRequest(raw)
+    }
 }

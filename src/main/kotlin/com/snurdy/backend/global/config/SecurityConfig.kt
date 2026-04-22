@@ -20,7 +20,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
-    private val jwtAuthenticationFilter: JwtAuthenticationFilter
+    private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+    private val corsProperties: CorsProperties
 ) {
 
     @Bean
@@ -63,9 +64,10 @@ class SecurityConfig(
                 authorize("/v3/api-docs/**", permitAll)
                 authorize("/webjars/**", permitAll)
 
-                // Actuator
+                // Actuator: health만 공개, prometheus 는 인프라(IP allowlist)에서 제한, 나머지는 ADMIN 전용
                 authorize("/actuator/health", permitAll)
                 authorize("/actuator/prometheus", permitAll)
+                authorize("/actuator/**", hasRole("ADMIN"))
 
                 // Internal
                 authorize("/internal/**", denyAll)
@@ -87,15 +89,11 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
-            allowedOrigins = listOf(
-                "http://localhost:5173",
-                "http://localhost:8081",
-                "https://api-test.snurdy.org"
-            )
-            allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-            maxAge = 3600L
+            allowedOrigins = corsProperties.allowedOrigins
+            allowedMethods = corsProperties.allowedMethods
+            allowedHeaders = corsProperties.allowedHeaders
+            allowCredentials = corsProperties.allowCredentials
+            maxAge = corsProperties.maxAgeSeconds
         }
 
         return UrlBasedCorsConfigurationSource().apply {

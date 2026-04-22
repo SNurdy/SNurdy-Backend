@@ -253,18 +253,18 @@ class LearningService(
         }
     }
 
-    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, Pair<Int, Int>>) {
+    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, DailyDelta>) {
         if (byDate.isEmpty()) return
 
-        byDate.forEach { (date, counts) ->
+        byDate.forEach { (date, delta) ->
             val progress = dailyProgressRepository.findByIdOrNull(DailyProgressId(user.id, date))
                 ?: DailyProgressEntity(
                     id = DailyProgressId(user.id, date),
                     user = user
                 )
 
-            progress.learnedCount += counts.first
-            progress.reviewedCount += counts.second
+            progress.learnedCount += delta.learned
+            progress.reviewedCount += delta.reviewed
             dailyProgressRepository.save(progress)
         }
     }
@@ -352,11 +352,19 @@ class LearningService(
         private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
     }
 
+    private data class DailyDelta(val learned: Int, val reviewed: Int) {
+        operator fun plus(other: DailyDelta) = DailyDelta(learned + other.learned, reviewed + other.reviewed)
+
+        companion object {
+            val EMPTY = DailyDelta(0, 0)
+        }
+    }
+
     private class LearningAggregation {
         var learnedTotal: Int = 0
         var reviewedTotal: Int = 0
         val learnedByGlossary: MutableMap<Long, Int> = mutableMapOf()
-        val byDate: MutableMap<LocalDate, Pair<Int, Int>> = mutableMapOf()
+        val byDate: MutableMap<LocalDate, DailyDelta> = mutableMapOf()
 
         fun accumulate(glossaryId: Long, dailyDate: LocalDate, wasFirstLearned: Boolean) {
             reviewedTotal += 1
@@ -365,8 +373,8 @@ class LearningService(
                 learnedByGlossary[glossaryId] = (learnedByGlossary[glossaryId] ?: 0) + 1
             }
 
-            val previous = byDate[dailyDate] ?: (0 to 0)
-            byDate[dailyDate] = (previous.first + if (wasFirstLearned) 1 else 0) to (previous.second + 1)
+            val previous = byDate[dailyDate] ?: DailyDelta.EMPTY
+            byDate[dailyDate] = previous + DailyDelta(if (wasFirstLearned) 1 else 0, 1)
         }
     }
 }

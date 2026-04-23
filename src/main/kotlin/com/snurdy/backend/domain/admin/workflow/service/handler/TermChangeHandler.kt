@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
+import com.snurdy.backend.domain.admin.workflow.service.support.EntityPkParser
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermEntity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
@@ -64,8 +65,8 @@ class TermChangeHandler(
             ChangeRequestOperation.UPDATE -> {
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
-                val termId = cr.entityPk.toLongOrNull()
-                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "용어"); return v.build() }
+                val termId = EntityPkParser.parseForValidation(cr.entityPk, EntityPkParser.LABEL_TERM, v)
+                    ?: return v.build()
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
                 validateFields(payload, v)
 
@@ -83,8 +84,8 @@ class TermChangeHandler(
             }
 
             ChangeRequestOperation.DELETE -> {
-                val termId = cr.entityPk.toLongOrNull()
-                if (termId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "용어"); return v.build() }
+                val termId = EntityPkParser.parseForValidation(cr.entityPk, EntityPkParser.LABEL_TERM, v)
+                    ?: return v.build()
                 if (!termRepository.existsById(termId)) v.error(ValidationCode.TERM_NOT_FOUND, termId)
             }
         }
@@ -126,7 +127,7 @@ class TermChangeHandler(
     }
 
     private fun applyUpdate(cr: ChangeRequestEntity): String? {
-        val termId = cr.entityPk.toLong()
+        val termId = EntityPkParser.parseForApply(cr.entityPk)
         val payload = parsePayload(cr.afterJson)
             ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
         val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
@@ -142,7 +143,7 @@ class TermChangeHandler(
     }
 
     private fun applyDelete(cr: ChangeRequestEntity): String? {
-        val termId = cr.entityPk.toLong()
+        val termId = EntityPkParser.parseForApply(cr.entityPk)
         termMorphemeRepository.deleteByIdTermId(termId)
         glossaryTermRepository.deleteByIdTermId(termId)
         val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
@@ -152,8 +153,7 @@ class TermChangeHandler(
     }
 
     private fun rollbackCreate(cr: ChangeRequestEntity) {
-        val termId = cr.entityPk.toLongOrNull()
-            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+        val termId = EntityPkParser.parseForRollback(cr.entityPk)
         termMorphemeRepository.deleteByIdTermId(termId)
         glossaryTermRepository.deleteByIdTermId(termId)
         val term = termRepository.findById(termId).orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
@@ -161,7 +161,7 @@ class TermChangeHandler(
     }
 
     private fun rollbackUpdate(cr: ChangeRequestEntity) {
-        val termId = cr.entityPk.toLong()
+        val termId = EntityPkParser.parseForRollback(cr.entityPk)
         val beforePayload = parsePayload(cr.beforeJson)
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
         val term = termRepository.findById(termId).orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
@@ -176,8 +176,7 @@ class TermChangeHandler(
     }
 
     private fun rollbackDelete(cr: ChangeRequestEntity) {
-        val termId = cr.entityPk.toLongOrNull()
-            ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+        val termId = EntityPkParser.parseForRollback(cr.entityPk)
         val beforePayload = parsePayload(cr.beforeJson)
             ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
 

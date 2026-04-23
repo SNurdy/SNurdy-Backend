@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -57,8 +58,11 @@ class MigrationService(
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
     private val migrationSessionFailureService: MigrationSessionFailureService,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val clock: Clock
 ) {
+
+    private fun now(): Instant = clock.instant()
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
@@ -102,7 +106,7 @@ class MigrationService(
         }
 
         if (user.migrationDeclinedAt == null) {
-            user.migrationDeclinedAt = Instant.now()
+            user.migrationDeclinedAt = now()
         }
 
         return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
@@ -241,7 +245,7 @@ class MigrationService(
             pairs = payloads.map { it.termId to it.glossaryId }
         )
 
-        val migratedAt = Instant.now()
+        val migratedAt = now()
         val entities = payloads.map { payload ->
             val glossary = glossaries[payload.glossaryId]
                 ?: throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)

@@ -41,6 +41,8 @@ class MigrationServiceTest {
     private lateinit var glossaryTermRepository: GlossaryTermRepository
     private lateinit var glossaryRepository: GlossaryRepository
     private lateinit var migrationSessionFailureService: MigrationSessionFailureService
+    private lateinit var eventPublisher: org.springframework.context.ApplicationEventPublisher
+    private lateinit var clock: java.time.Clock
 
     private lateinit var migrationService: MigrationService
 
@@ -56,6 +58,8 @@ class MigrationServiceTest {
         glossaryTermRepository = mockk()
         glossaryRepository = mockk()
         migrationSessionFailureService = mockk()
+        eventPublisher = mockk(relaxed = true)
+        clock = java.time.Clock.fixed(java.time.Instant.parse("2026-01-15T10:00:00Z"), java.time.ZoneOffset.UTC)
 
         migrationService = MigrationService(
             migrationSessionRepository = migrationSessionRepository,
@@ -67,7 +71,9 @@ class MigrationServiceTest {
             termRepository = termRepository,
             glossaryTermRepository = glossaryTermRepository,
             glossaryRepository = glossaryRepository,
-            migrationSessionFailureService = migrationSessionFailureService
+            migrationSessionFailureService = migrationSessionFailureService,
+            eventPublisher = eventPublisher,
+            clock = clock
         )
     }
 

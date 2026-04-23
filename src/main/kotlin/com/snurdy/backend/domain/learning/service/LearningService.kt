@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.YearMonth
@@ -52,8 +53,12 @@ class LearningService(
     private val termProgressRepository: TermProgressRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
-    private val bookmarkRepository: BookmarkRepository
+    private val bookmarkRepository: BookmarkRepository,
+    private val clock: Clock
 ) {
+
+    private fun now(): Instant = clock.instant()
+    private fun today(): LocalDate = LocalDate.now(clock.withZone(APP_ZONE_ID))
 
     @Transactional(readOnly = true)
     fun getNextTerms(userId: UUID, glossaryId: Long, size: Int): StudyNextTermsResponse {
@@ -103,7 +108,7 @@ class LearningService(
         val glossary = findGlossary(glossaryId)
         val glossaryKey = glossary.id!!
         val safeSize = size.coerceIn(1, 100)
-        val now = Instant.now()
+        val now = now()
 
         val dueProgresses = termProgressRepository.findDueProgresses(
             userId = userId,
@@ -248,40 +253,89 @@ class LearningService(
                 )
 
             progress.learnedCount += learnedDelta
-            progress.lastLearnedAt = Instant.now()
+            progress.lastLearnedAt = now()
             glossaryProgressRepository.save(progress)
         }
     }
 
-    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, DailyDelta>) {
-        if (byDate.isEmpty()) return
+    /**
+     * daily_progresses를 갱신하고, 오늘 엔트리가 '세션 전부터' 활성이었는지 여부를 돌려준다.
+     * streak 증분 계산에 필요한 유일한 기존 상태 신호.
+     */
+    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, DailyDelta>): Boolean {
+        if (byDate.isEmpty()) return false
+
+        val today = today()
+        var todayWasActiveBefore = false
 
         byDate.forEach { (date, delta) ->
-            val progress = dailyProgressRepository.findByIdOrNull(DailyProgressId(user.id, date))
-                ?: DailyProgressEntity(
-                    id = DailyProgressId(user.id, date),
-                    user = user
-                )
+            val existing = dailyProgressRepository.findByIdOrNull(DailyProgressId(user.id, date))
+            if (date == today) {
+                todayWasActiveBefore = existing != null && (existing.learnedCount + existing.reviewedCount) > 0
+            }
+            val progress = existing ?: DailyProgressEntity(
+                id = DailyProgressId(user.id, date),
+                user = user
+            )
 
             progress.learnedCount += delta.learned
             progress.reviewedCount += delta.reviewed
             dailyProgressRepository.save(progress)
         }
+        return todayWasActiveBefore
     }
 
-    private fun updateUserSummary(user: UserEntity, learnedDelta: Int) {
-        if (learnedDelta > 0) {
-            user.totalLearningTerms += learnedDelta
+    /**
+     * streak 증분 계산 — 전체 daily 스캔 대신 오늘/어제 2건만 조회.
+     *   - 오늘이 세션 전부터 이미 활성이었다면 streak는 이미 오늘을 포함하므로 변경 없음
+     *   - 오늘이 신규 활성이면 어제가 활성이었는지로 +1 vs 1 결정
+     *   - 오늘에 학습이 없었다면 streak는 과거 값 유지(만료는 별도 배치 또는 조회 시점에서 해결)
+     */
+    private fun updateUserSummary(user: UserEntity, learnedDelta: Int, todayWasActiveBefore: Boolean) {
+        val today = today()
+        val newStreak = when {
+            // 오늘 세션 이전부터 이미 활성 → 현재 streak 에 이미 오늘이 포함됨. 단 stale=0인 엣지케이스 방어
+            todayWasActiveBefore -> if (user.currentStreak > 0) user.currentStreak else countStreakEndingAt(user.id, today)
+            else -> {
+                val yesterday = today.minusDays(1)
+                val yesterdayActive = dailyProgressRepository
+                    .findByIdOrNull(DailyProgressId(user.id, yesterday))
+                    ?.let { (it.learnedCount + it.reviewedCount) > 0 }
+                    ?: false
+                when {
+                    !yesterdayActive -> 1
+                    user.currentStreak > 0 -> user.currentStreak + 1
+                    // currentStreak가 stale(0)인데 어제는 활성 → daily_progresses 기반으로 역산
+                    // 사례: userSummary 없이 마이그레이션한 사용자가 마이그레이션 이후 첫 학습.
+                    else -> countStreakEndingAt(user.id, yesterday) + 1
+                }
+            }
         }
+        user.applyLearningOutcome(learnedDelta = learnedDelta, newCurrentStreak = newStreak)
+    }
 
-        val activeDates = dailyProgressRepository.findByIdUserIdOrderByIdDateDesc(user.id)
-            .mapNotNull { if (it.learnedCount + it.reviewedCount > 0) it.id.date else null }
-            .toSet()
+    /**
+     * [endDate]에서 뒤로 연속된 활성일 수를 계산. 성능 보호를 위해 [MAX_STREAK_LOOKBACK]로 상한 캡.
+     * 이 경로는 streak stale 감지/마이그레이션 직후 등 드문 케이스에서만 호출된다.
+     */
+    private fun countStreakEndingAt(userId: UUID, endDate: LocalDate): Int {
+        val rows = dailyProgressRepository.findByIdUserIdAndIdDateLessThanEqualOrderByIdDateDesc(
+            userId = userId,
+            date = endDate,
+            pageable = PageRequest.of(0, MAX_STREAK_LOOKBACK)
+        )
+        val activeDates = rows.asSequence()
+            .filter { (it.learnedCount + it.reviewedCount) > 0 }
+            .map { it.id.date }
+            .toHashSet()
 
-        val streak = calculateCurrentStreak(activeDates)
-
-        user.currentStreak = streak
-        user.longestStreak = maxOf(user.longestStreak, streak)
+        var streak = 0
+        var cursor = endDate
+        while (streak < MAX_STREAK_LOOKBACK && cursor in activeDates) {
+            streak += 1
+            cursor = cursor.minusDays(1)
+        }
+        return streak
     }
 
     private fun processLearningEvent(
@@ -289,7 +343,7 @@ class LearningService(
         event: LearningAnswerEvent,
         aggregation: LearningAggregation
     ) {
-        val now = Instant.now()
+        val now = now()
         val dailyDate = now.atZone(APP_ZONE_ID).toLocalDate()
 
         val progress = findOrCreateProgress(user, event)
@@ -299,18 +353,8 @@ class LearningService(
 
     private fun applyLearningAggregation(user: UserEntity, aggregation: LearningAggregation) {
         updateGlossaryProgresses(user, aggregation.learnedByGlossary)
-        updateDailyProgresses(user, aggregation.byDate)
-        updateUserSummary(user, aggregation.learnedTotal)
-    }
-
-    private fun calculateCurrentStreak(activeDates: Set<LocalDate>): Int {
-        var streak = 0
-        var cursor = LocalDate.now(APP_ZONE_ID)
-        while (activeDates.contains(cursor)) {
-            streak += 1
-            cursor = cursor.minusDays(1)
-        }
-        return streak
+        val todayWasActiveBefore = updateDailyProgresses(user, aggregation.byDate)
+        updateUserSummary(user, aggregation.learnedTotal, todayWasActiveBefore)
     }
 
     private fun toLearningCard(progress: TermProgressEntity, term: TermEntity, bookmarked: Boolean): LearningTermCard =
@@ -348,6 +392,11 @@ class LearningService(
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
         private val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
+        /**
+         * streak 역산 시 daily_progresses 를 돌아볼 최대 일수.
+         * 365일이면 1년 간 매일 활동한 사용자도 수용하며, 단건 쿼리로 끝난다.
+         */
+        private const val MAX_STREAK_LOOKBACK: Int = 365
         private val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
         private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
     }

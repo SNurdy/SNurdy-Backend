@@ -5,33 +5,25 @@ import com.snurdy.backend.domain.bookmark.dto.BookmarkMutationResponse
 import com.snurdy.backend.domain.bookmark.service.BookmarkService
 import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
-import com.snurdy.backend.global.extension.currentUserId
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 class BookmarkController(
     private val bookmarkService: BookmarkService
 ) : BookmarkApi {
-    override fun getBookmarks(): ApiResponse<BookmarkListResponse> =
-        ApiResponse.success(CommonSuccess.OK, bookmarkService.getBookmarks(currentUserId()))
+    override fun getBookmarks(userId: UUID): ApiResponse<BookmarkListResponse> =
+        ApiResponse.success(CommonSuccess.OK, bookmarkService.getBookmarks(userId))
 
-    override fun addBookmark(termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
+    override fun addBookmark(userId: UUID, termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
         ApiResponse.success(
             CommonSuccess.OK,
-            bookmarkService.addBookmark(
-                userId = currentUserId(),
-                termId = termId,
-                glossaryId = glossaryId
-            )
+            bookmarkService.addBookmark(userId = userId, termId = termId, glossaryId = glossaryId)
         )
 
-    override fun removeBookmark(termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
+    override fun removeBookmark(userId: UUID, termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
         ApiResponse.success(
             CommonSuccess.OK,
-            bookmarkService.removeBookmark(
-                userId = currentUserId(),
-                termId = termId,
-                glossaryId = glossaryId
-            )
+            bookmarkService.removeBookmark(userId = userId, termId = termId, glossaryId = glossaryId)
         )
 }

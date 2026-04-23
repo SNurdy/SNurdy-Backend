@@ -33,14 +33,15 @@ import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
@@ -56,8 +57,12 @@ class MigrationService(
     private val termRepository: TermRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
-    private val migrationSessionFailureService: MigrationSessionFailureService
+    private val migrationSessionFailureService: MigrationSessionFailureService,
+    private val eventPublisher: ApplicationEventPublisher,
+    private val clock: Clock
 ) {
+
+    private fun now(): Instant = clock.instant()
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Transactional
@@ -101,7 +106,7 @@ class MigrationService(
         }
 
         if (user.migrationDeclinedAt == null) {
-            user.migrationDeclinedAt = Instant.now()
+            user.migrationDeclinedAt = now()
         }
 
         return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
@@ -240,7 +245,7 @@ class MigrationService(
             pairs = payloads.map { it.termId to it.glossaryId }
         )
 
-        val migratedAt = Instant.now()
+        val migratedAt = now()
         val entities = payloads.map { payload ->
             val glossary = glossaries[payload.glossaryId]
                 ?: throw ApiException(MigrationError.MIGRATION_INVALID_GLOSSARY_ID)
@@ -359,13 +364,11 @@ class MigrationService(
 
     private fun applyUserSummary(user: UserEntity, payload: UserSummaryPayload?) {
         if (payload == null) return
-
-        val currentStreak = payload.currentStreak.coerceAtLeast(0)
-        val longestStreak = payload.longestStreak.coerceAtLeast(0)
-
-        user.currentStreak = currentStreak
-        user.longestStreak = maxOf(longestStreak, currentStreak)
-        user.totalLearningTerms = payload.totalLearningTerms.coerceAtLeast(0)
+        user.replaceSummaryFromMigration(
+            currentStreakValue = payload.currentStreak,
+            longestStreakValue = payload.longestStreak,
+            totalLearning = payload.totalLearningTerms
+        )
     }
 
     private fun validateGlossaryTermPairs(
@@ -458,20 +461,13 @@ class MigrationService(
         val normalizedReason = reason.ifBlank { MigrationError.MIGRATION_PROCESSING_ERROR.message }
 
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            // 활성 트랜잭션이 없는 경로는 그대로 동기 기록 (기존 동작 유지)
             migrationSessionFailureService.markFailed(sessionId, normalizedReason)
             return
         }
 
-        TransactionSynchronizationManager.registerSynchronization(object : TransactionSynchronization {
-            override fun afterCompletion(status: Int) {
-                if (status != TransactionSynchronization.STATUS_ROLLED_BACK) return
-                runCatching {
-                    migrationSessionFailureService.markFailed(sessionId, normalizedReason)
-                }.onFailure { throwable ->
-                    log.error("migration failure 상태 저장 실패: sessionId={}", sessionId, throwable)
-                }
-            }
-        })
+        // Spring 이벤트를 발행하면 MigrationFailureEventListener (AFTER_ROLLBACK) 가 REQUIRES_NEW 트랜잭션에서 기록한다.
+        eventPublisher.publishEvent(MigrationFailureEvent(sessionId = sessionId, reason = normalizedReason))
     }
 
     companion object {

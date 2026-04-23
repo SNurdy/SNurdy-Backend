@@ -8,7 +8,13 @@ import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import jakarta.validation.ConstraintViolationException
+import java.sql.SQLException
+import org.hibernate.JDBCException
+import org.hibernate.exception.ConstraintViolationException as HibernateConstraintViolationException
+import org.hibernate.exception.DataException as HibernateDataException
+import org.hibernate.exception.LockAcquisitionException as HibernateLockAcquisitionException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -30,7 +36,8 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is MethodArgumentNotValidException -> this.toValidationApiException()
     is HandlerMethodValidationException -> this.toMethodValidationApiException()
     is ConstraintViolationException -> this.toConstraintViolationApiException()
-    is DataIntegrityViolationException -> ApiException(CommonError.BAD_REQUEST)
+    is DataIntegrityViolationException -> this.toDataIntegrityApiException()
+    is OptimisticLockingFailureException -> ApiException(CommonError.CONFLICT, cause = this)
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->
@@ -101,4 +108,78 @@ private fun ConstraintViolationException.toConstraintViolationApiException(): Ap
         .firstOrNull()
 
     return ApiException(CommonError.BAD_REQUEST, detailMessage)
+}
+
+// DataIntegrityViolation 은 원인별로 409(중복) / 400(FK·NOT NULL·형식·길이) / 409(락) / 500(그 외)으로 분류.
+// ConstraintViolation 만이 아니라 Hibernate JDBCException 계열 전체에서 sqlState/errorCode 를 읽는다.
+// 상세 메시지는 보안상 노출하지 않고 유형만 알려준다.
+private fun DataIntegrityViolationException.toDataIntegrityApiException(): ApiException {
+    val classification = classifySqlCause(this)
+
+    return when (classification) {
+        SqlClassification.DUPLICATE -> ApiException(CommonError.DUPLICATED, cause = this)
+        SqlClassification.FK_VIOLATION -> ApiException(CommonError.INVALID_REFERENCE, cause = this)
+        SqlClassification.NOT_NULL_VIOLATION -> ApiException(CommonError.BAD_REQUEST, "필수 값이 누락되었습니다", this)
+        SqlClassification.DATA_FORMAT_OR_RANGE -> ApiException(CommonError.BAD_REQUEST, "값의 형식 또는 길이가 올바르지 않습니다", this)
+        SqlClassification.LOCK_CONFLICT -> ApiException(CommonError.CONFLICT, cause = this)
+        SqlClassification.OTHER_CONSTRAINT -> ApiException(CommonError.CONFLICT, cause = this)
+        SqlClassification.UNKNOWN -> ApiException(CommonError.INTERNAL_ERROR, cause = this)
+    }
+}
+
+private enum class SqlClassification {
+    DUPLICATE,
+    FK_VIOLATION,
+    NOT_NULL_VIOLATION,
+    DATA_FORMAT_OR_RANGE,
+    LOCK_CONFLICT,
+    OTHER_CONSTRAINT,
+    UNKNOWN
+}
+
+private fun classifySqlCause(root: Throwable): SqlClassification {
+    // 원인 체인에서 Hibernate JDBCException 우선 → 없으면 표준 SQLException
+    val (sqlState, errorCode) = generateSequence<Throwable>(root) { it.cause }
+        .mapNotNull { cause ->
+            when (cause) {
+                is JDBCException -> cause.sqlState to cause.errorCode
+                is SQLException -> cause.sqlState to cause.errorCode
+                else -> null
+            }
+        }
+        .firstOrNull() ?: return SqlClassification.UNKNOWN
+
+    // Hibernate 고수준 타입도 존재하면 유형 힌트로 사용
+    val hintType = generateSequence<Throwable>(root) { it.cause }.firstOrNull {
+        it is HibernateConstraintViolationException ||
+            it is HibernateDataException ||
+            it is HibernateLockAcquisitionException
+    }
+
+    return when {
+        // 중복 키
+        errorCode in setOf(1062, 1169) -> SqlClassification.DUPLICATE
+
+        // FK 위반
+        errorCode in setOf(1451, 1452, 1216, 1217) -> SqlClassification.FK_VIOLATION
+
+        // NOT NULL / 기본값 없음
+        errorCode in setOf(1048, 1364) -> SqlClassification.NOT_NULL_VIOLATION
+
+        // 락 경합 / 교착상태 → 재시도 가능
+        errorCode in setOf(1205, 1213) || hintType is HibernateLockAcquisitionException ->
+            SqlClassification.LOCK_CONFLICT
+
+        // 데이터 길이/형식/범위 (SQLState 22xxx 및 MySQL 1406 "data too long" / 1264 "out of range" / 1292 "incorrect value")
+        sqlState?.startsWith("22") == true ||
+            errorCode in setOf(1264, 1265, 1292, 1366, 1406) ||
+            hintType is HibernateDataException ->
+            SqlClassification.DATA_FORMAT_OR_RANGE
+
+        // 그 외 제약조건 (SQLState 23xxx)
+        sqlState?.startsWith("23") == true || hintType is HibernateConstraintViolationException ->
+            SqlClassification.OTHER_CONSTRAINT
+
+        else -> SqlClassification.UNKNOWN
+    }
 }

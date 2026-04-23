@@ -1,10 +1,10 @@
 package com.snurdy.backend.domain.admin.workflow.service.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
+import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
+import com.snurdy.backend.domain.admin.workflow.service.support.EntityPkParser
 import com.snurdy.backend.domain.admin.workflow.service.support.MorphemeVariantGenerator
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeTextLimits
@@ -19,7 +19,7 @@ class MorphemeChangeHandler(
     private val morphemeRepository: MorphemeRepository,
     private val morphemeVariantRepository: MorphemeVariantRepository,
     private val variantGenerator: MorphemeVariantGenerator,
-    private val objectMapper: ObjectMapper
+    private val payloadMapper: ChangeRequestPayloadMapper
 ) {
 
     companion object {
@@ -41,8 +41,8 @@ class MorphemeChangeHandler(
             ChangeRequestOperation.UPDATE -> {
                 val payload = parsePayload(cr.afterJson)
                 if (payload == null) { v.error(ValidationCode.EMPTY_PAYLOAD); return v.build() }
-                val morphemeId = cr.entityPk.toLongOrNull()
-                if (morphemeId == null) { v.error(ValidationCode.INVALID_ENTITY_PK, "어근어미"); return v.build() }
+                val morphemeId = EntityPkParser.parseForValidation(cr.entityPk, EntityPkParser.LABEL_MORPHEME, v)
+                    ?: return v.build()
                 if (!morphemeRepository.existsById(morphemeId)) v.error(ValidationCode.MORPHEME_NOT_FOUND, morphemeId)
                 validateFields(payload, v)
                 checkSpellingDuplicate(payload.spelling, excludeId = morphemeId, v)
@@ -67,7 +67,7 @@ class MorphemeChangeHandler(
         }
 
         ChangeRequestOperation.UPDATE -> {
-            val morphemeId = cr.entityPk.toLong()
+            val morphemeId = EntityPkParser.parseForApply(cr.entityPk)
             val payload = parsePayload(cr.afterJson)
                 ?: throw ApiException(AdminError.WORKFLOW_VALIDATION_FAILED)
             val morpheme = morphemeRepository.findById(morphemeId)
@@ -85,8 +85,7 @@ class MorphemeChangeHandler(
     fun rollback(cr: ChangeRequestEntity) {
         when (cr.operation) {
             ChangeRequestOperation.CREATE -> {
-                val morphemeId = cr.entityPk.toLongOrNull()
-                    ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
+                val morphemeId = EntityPkParser.parseForRollback(cr.entityPk)
                 morphemeVariantRepository.deleteByMorphemeId(morphemeId)
                 val morpheme = morphemeRepository.findById(morphemeId)
                     .orElseThrow { ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED) }
@@ -94,7 +93,7 @@ class MorphemeChangeHandler(
             }
 
             ChangeRequestOperation.UPDATE -> {
-                val morphemeId = cr.entityPk.toLong()
+                val morphemeId = EntityPkParser.parseForRollback(cr.entityPk)
                 val beforePayload = parsePayload(cr.beforeJson)
                     ?: throw ApiException(AdminError.WORKFLOW_ROLLBACK_FAILED)
                 val morpheme = morphemeRepository.findById(morphemeId)
@@ -124,6 +123,5 @@ class MorphemeChangeHandler(
         }
     }
 
-    internal fun parsePayload(json: String?): MorphemePayload? =
-        json?.takeIf { it.isNotBlank() }?.let { objectMapper.readValue(it) }
+    internal fun parsePayload(json: String?): MorphemePayload? = payloadMapper.readMorphemeOrNull(json)
 }

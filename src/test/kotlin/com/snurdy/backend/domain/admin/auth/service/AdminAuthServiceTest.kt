@@ -105,7 +105,7 @@ class AdminAuthServiceTest {
         every { adminUserRepository.findByEmail(EMAIL) } returns admin
         every { passwordEncoder.matches(PASSWORD, admin.password) } returns true
         every { jwtTokenProvider.createAdminAccessToken(admin.id) } returns ACCESS_TOKEN
-        every { jwtTokenProvider.accessTokenExpiration() } returns EXPIRES
+        every { jwtTokenProvider.adminAccessTokenExpiration() } returns EXPIRES
 
         val auditCaptured = slot<AdminAuditLogEntity>()
         every { auditLogRepository.save(capture(auditCaptured)) } answers { auditCaptured.captured }

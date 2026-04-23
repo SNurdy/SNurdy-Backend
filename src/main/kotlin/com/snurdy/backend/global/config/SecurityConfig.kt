@@ -5,6 +5,7 @@ import com.snurdy.backend.global.jwt.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.annotation.Order
+import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.invoke
@@ -13,6 +14,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
@@ -24,54 +28,92 @@ class SecurityConfig(
     private val corsProperties: CorsProperties
 ) {
 
+    // Chain 1: 정적 자원 / 공개 페이지 / 인프라 헬스체크 / 스웨거.
+    // JWT 필터 미탑재, 세션 없음. CMS 정적 HTML/CSS/JS 도 여기로.
     @Bean
-    @Order(2)
-    fun filterChain(http: HttpSecurity, securityExceptionHandler: SecurityExceptionHandler): SecurityFilterChain {
-        http {
-            cors { configurationSource = corsConfigurationSource() }
-            csrf { disable() }
-            sessionManagement {
-                sessionCreationPolicy = SessionCreationPolicy.STATELESS
+    @Order(1)
+    fun publicAssetsFilterChain(http: HttpSecurity): SecurityFilterChain {
+        http
+            .securityMatcher(
+                OrRequestMatcher(
+                    AntPathRequestMatcher("/"),
+                    AntPathRequestMatcher("/health"),
+                    AntPathRequestMatcher("/v1/health"),
+                    AntPathRequestMatcher("/actuator/health"),
+                    AntPathRequestMatcher("/actuator/prometheus"),
+                    AntPathRequestMatcher("/swagger-ui/**"),
+                    AntPathRequestMatcher("/swagger-resources/**"),
+                    AntPathRequestMatcher("/v3/api-docs/**"),
+                    AntPathRequestMatcher("/webjars/**"),
+                    AntPathRequestMatcher("/swagger"),
+                    AntPathRequestMatcher("/admin/**", HttpMethod.GET.name())
+                )
+            )
+            .csrf { it.disable() }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .authorizeHttpRequests { it.anyRequest().permitAll() }
+            .headers { headers ->
+                // CMS 페이지 clickjacking 방어
+                headers.addHeaderWriter(XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.DENY))
             }
 
+        return http.build()
+    }
+
+    // Chain 2: 인증 및 버전 체크 API (비로그인 허용).
+    @Bean
+    @Order(2)
+    fun publicApiFilterChain(http: HttpSecurity, securityExceptionHandler: SecurityExceptionHandler): SecurityFilterChain {
+        val corsSource = corsConfigurationSource()
+        http.securityMatcher(
+            OrRequestMatcher(
+                AntPathRequestMatcher("/v1/auth/**"),
+                AntPathRequestMatcher("/v1/admin/auth/**"),
+                AntPathRequestMatcher("/v1/app/version/**")
+            )
+        )
+        http {
+            cors { configurationSource = corsSource }
+            csrf { disable() }
+            sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
+
             authorizeHttpRequests {
-                // 헬스체크
-                authorize("/", permitAll)
-                authorize("/health", permitAll)
-                authorize("/v1/health", permitAll)
+                authorize(anyRequest, permitAll)
+            }
 
-                // 일반 사용자 인증
-                authorize("/v1/auth/**", permitAll)
+            exceptionHandling {
+                authenticationEntryPoint = securityExceptionHandler
+                accessDeniedHandler = securityExceptionHandler
+            }
 
-                // 관리자 로그인
-                authorize("/v1/admin/auth/**", permitAll)
+            // admin logout은 블랙리스트 등록을 위해 JWT 필터가 먼저 돌며 blacklist 체크를 해야 함
+            addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)
+        }
 
-                //  버전 체크
-                authorize("/v1/app/version/**", permitAll)
+        return http.build()
+    }
 
-                // 관리자 APIㄷㄷㄷㄷ
+    // Chain 3: 보호된 애플리케이션 API. JWT 인증 필수.
+    // /internal 은 denyAll (프로파일로 load 여부가 결정되지만 런타임 2중 차단).
+    @Bean
+    @Order(3)
+    fun protectedApiFilterChain(http: HttpSecurity, securityExceptionHandler: SecurityExceptionHandler): SecurityFilterChain {
+        val corsSource = corsConfigurationSource()
+        http {
+            cors { configurationSource = corsSource }
+            csrf { disable() }
+            sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
+
+            authorizeHttpRequests {
+                // 관리자 API
                 authorize("/v1/admin/**", hasRole("ADMIN"))
-
-                // CMS 정적 페이지
-                authorize("/admin/**", permitAll)
-
                 // 마이그레이션
                 authorize("/v1/migration/**", hasRole("USER"))
-
-                // Swagger
-                authorize("/swagger-ui/**", permitAll)
-                authorize("/swagger-resources/**", permitAll)
-                authorize("/v3/api-docs/**", permitAll)
-                authorize("/webjars/**", permitAll)
-
-                // Actuator: health만 공개, prometheus 는 인프라(IP allowlist)에서 제한, 나머지는 ADMIN 전용
-                authorize("/actuator/health", permitAll)
-                authorize("/actuator/prometheus", permitAll)
+                // Actuator 비공개 엔드포인트 (env, beans, loggers 등)
                 authorize("/actuator/**", hasRole("ADMIN"))
-
-                // Internal
+                // Internal 은 완전 차단
                 authorize("/internal/**", denyAll)
-
+                // 그 외 인증 필요
                 authorize(anyRequest, authenticated)
             }
 

@@ -11,17 +11,14 @@ import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
-import kotlin.math.ceil
 
 @Service
 class ClientDictionaryService(
@@ -29,7 +26,6 @@ class ClientDictionaryService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
-    private val termProgressRepository: TermProgressRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val bookmarkRepository: BookmarkRepository
 ) {
@@ -127,64 +123,37 @@ class ClientDictionaryService(
             .orElseThrow { ApiException(DictionaryError.GLOSSARY_NOT_FOUND) }
 
         val normalizedFilter = normalizeFilter(filter)
-
-        val termSummaries = glossaryTermRepository.findTermSummariesByGlossaryId(glossaryId)
-        val termIds = termSummaries.map { it.termId }
-
-        val progressMap = if (termIds.isEmpty()) {
-            emptyMap()
-        } else {
-            termProgressRepository.findByUserIdAndGlossaryIdAndTermIdIn(userId, glossaryId, termIds)
-                .associateBy { it.term.id!! }
-        }
-        val bookmarkedTermIds = if (termIds.isEmpty()) {
-            emptySet()
-        } else {
-            bookmarkRepository.findAllByIdUserIdAndIdTermIdIn(userId, termIds)
-                .map { it.id.termId }
-                .toSet()
-        }
-
-        val filteredTerms = termSummaries
-            .map { projection ->
-                val progress = progressMap[projection.termId]
-                val status = progress?.status ?: TermProgressStatus.NEW
-
-                ClientGlossaryTermItem(
-                    id = projection.termId,
-                    spelling = projection.spelling,
-                    meaning = projection.meaning,
-                    abbreviation = projection.abbreviation,
-                    status = status.name,
-                    bookmarked = projection.termId in bookmarkedTermIds
-                )
-            }
-            .filter { item ->
-                when (normalizedFilter) {
-                    TermFilter.LEARNED -> item.status != TermProgressStatus.NEW.name
-                    TermFilter.NOT_LEARNED -> item.status == TermProgressStatus.NEW.name
-                    TermFilter.ALL -> true
-                }
-            }
-
         val safeSize = size.coerceAtLeast(1)
         val safePage = page.coerceAtLeast(0)
-        val fromIndex = (safePage * safeSize).coerceAtMost(filteredTerms.size)
-        val toIndex = (fromIndex + safeSize).coerceAtMost(filteredTerms.size)
-        val totalElements = filteredTerms.size.toLong()
-        val totalPages = if (totalElements == 0L) 0 else ceil(totalElements.toDouble() / safeSize.toDouble()).toInt()
+        val pageable = PageRequest.of(safePage, safeSize)
+
+        val pageResult = glossaryTermRepository.findPagedClientGlossaryTerms(
+            userId = userId,
+            glossaryId = glossaryId,
+            filter = normalizedFilter.queryValue,
+            pageable = pageable
+        )
 
         return ClientGlossaryTermsResponse(
             glossaryId = glossary.id!!,
             category = glossary.category,
             title = glossary.title,
             filter = normalizedFilter.responseValue,
-            page = safePage,
-            size = safeSize,
-            totalElements = totalElements,
-            totalPages = totalPages,
-            hasNext = toIndex < filteredTerms.size,
-            terms = filteredTerms.subList(fromIndex, toIndex)
+            page = pageResult.number,
+            size = pageResult.size,
+            totalElements = pageResult.totalElements,
+            totalPages = pageResult.totalPages,
+            hasNext = pageResult.hasNext(),
+            terms = pageResult.content.map { projection ->
+                ClientGlossaryTermItem(
+                    id = projection.termId,
+                    spelling = projection.spelling,
+                    meaning = projection.meaning,
+                    abbreviation = projection.abbreviation,
+                    status = projection.status,
+                    bookmarked = projection.bookmarked == 1
+                )
+            }
         )
     }
 
@@ -194,9 +163,9 @@ class ClientDictionaryService(
             ?: throw ApiException(CommonError.BAD_REQUEST, "filter는 all|learned|notLearned 중 하나여야 합니다")
     }
 
-    private enum class TermFilter(val apiValue: String, val responseValue: String) {
-        ALL("all", "all"),
-        LEARNED("learned", "learned"),
-        NOT_LEARNED("notlearned", "notLearned")
+    private enum class TermFilter(val apiValue: String, val responseValue: String, val queryValue: String) {
+        ALL("all", "all", "ALL"),
+        LEARNED("learned", "learned", "LEARNED"),
+        NOT_LEARNED("notlearned", "notLearned", "NOT_LEARNED")
     }
 }

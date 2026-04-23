@@ -1,7 +1,5 @@
 package com.snurdy.backend.domain.admin.workflow.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditTarget
@@ -16,6 +14,7 @@ import com.snurdy.backend.domain.admin.workflow.service.handler.MorphemeChangeHa
 import com.snurdy.backend.domain.admin.workflow.service.handler.TermChangeHandler
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestBuilder
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestMapper
+import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
 import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.exception.ApiException
@@ -32,7 +31,7 @@ class AdminWorkflowService(
     private val builder: ChangeRequestBuilder,
     private val mapper: ChangeRequestMapper,
     private val auditLogRepository: AdminAuditLogRepository,
-    private val objectMapper: ObjectMapper
+    private val payloadMapper: ChangeRequestPayloadMapper
 ) {
 
     @Transactional
@@ -74,9 +73,7 @@ class AdminWorkflowService(
         val changeRequest = findRequest(id)
         if (!changeRequest.isEditable()) throw ApiException(AdminError.WORKFLOW_INVALID_STATUS_TRANSITION)
 
-        val currentPayload: MutableMap<String, Any?> = changeRequest.afterJson
-            ?.let { objectMapper.readValue(it) }
-            ?: mutableMapOf()
+        val currentPayload = payloadMapper.readMutableMap(changeRequest.afterJson)
 
         request.title?.trim()?.takeIf { it.isNotBlank() }?.let { changeRequest.title = it }
         request.spelling?.let { currentPayload["spelling"] = it.trim() }
@@ -92,7 +89,7 @@ class AdminWorkflowService(
             currentPayload["glossaryIds"] = listOf(it)
         }
 
-        changeRequest.afterJson = objectMapper.writeValueAsString(currentPayload)
+        changeRequest.afterJson = payloadMapper.writeAsString(currentPayload)
         changeRequest.resetForRetry()
         changeRequestRepository.save(changeRequest)
 
@@ -193,8 +190,8 @@ class AdminWorkflowService(
                 action = action.name,
                 targetTable = AdminAuditTarget.CHANGE_REQUESTS,
                 targetPk = pk.toString(),
-                beforeJson = before?.let { objectMapper.writeValueAsString(it) },
-                afterJson = after?.let { objectMapper.writeValueAsString(it) }
+                beforeJson = payloadMapper.writeAsString(before),
+                afterJson = payloadMapper.writeAsString(after)
             )
         )
     }

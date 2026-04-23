@@ -69,6 +69,35 @@ class UserEntity(
         deletedAt = Instant.now()
     }
 
+    fun declineMigration() {
+        migrationDeclinedAt = Instant.now()
+    }
+
+    fun updateNickname(nickname: String?) {
+        this.nickname = nickname?.take(MAX_NICKNAME_LENGTH)
+    }
+
+    /**
+     * 학습 이벤트 집계 결과를 반영.
+     * streak 값은 호출자가 계산(증분 혹은 전체 재계산)해서 전달한다.
+     */
+    fun applyLearningOutcome(learnedDelta: Int, newCurrentStreak: Int) {
+        if (learnedDelta > 0) {
+            totalLearningTerms += learnedDelta
+        }
+        currentStreak = newCurrentStreak.coerceAtLeast(0)
+        longestStreak = maxOf(longestStreak, currentStreak)
+    }
+
+    /** 마이그레이션 시 요약 지표를 덮어쓴다. */
+    fun replaceSummaryFromMigration(currentStreakValue: Int, longestStreakValue: Int, totalLearning: Int) {
+        val normalizedCurrent = currentStreakValue.coerceAtLeast(0)
+        val normalizedLongest = longestStreakValue.coerceAtLeast(0)
+        currentStreak = normalizedCurrent
+        longestStreak = maxOf(normalizedLongest, normalizedCurrent)
+        totalLearningTerms = totalLearning.coerceAtLeast(0)
+    }
+
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20
 

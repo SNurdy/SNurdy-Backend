@@ -33,6 +33,7 @@ import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -56,7 +57,7 @@ class MigrationService(
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
     private val migrationSessionFailureService: MigrationSessionFailureService,
-    private val eventPublisher: org.springframework.context.ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 

@@ -41,6 +41,7 @@ class MigrationServiceTest {
     private lateinit var glossaryTermRepository: GlossaryTermRepository
     private lateinit var glossaryRepository: GlossaryRepository
     private lateinit var migrationSessionFailureService: MigrationSessionFailureService
+    private lateinit var eventPublisher: org.springframework.context.ApplicationEventPublisher
 
     private lateinit var migrationService: MigrationService
 
@@ -56,6 +57,7 @@ class MigrationServiceTest {
         glossaryTermRepository = mockk()
         glossaryRepository = mockk()
         migrationSessionFailureService = mockk()
+        eventPublisher = mockk(relaxed = true)
 
         migrationService = MigrationService(
             migrationSessionRepository = migrationSessionRepository,
@@ -67,7 +69,8 @@ class MigrationServiceTest {
             termRepository = termRepository,
             glossaryTermRepository = glossaryTermRepository,
             glossaryRepository = glossaryRepository,
-            migrationSessionFailureService = migrationSessionFailureService
+            migrationSessionFailureService = migrationSessionFailureService,
+            eventPublisher = eventPublisher
         )
     }
 

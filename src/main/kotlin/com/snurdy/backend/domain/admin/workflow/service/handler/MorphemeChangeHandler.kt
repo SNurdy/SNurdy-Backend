@@ -1,10 +1,9 @@
 package com.snurdy.backend.domain.admin.workflow.service.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
+import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
 import com.snurdy.backend.domain.admin.workflow.service.support.MorphemeVariantGenerator
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeTextLimits
@@ -19,7 +18,7 @@ class MorphemeChangeHandler(
     private val morphemeRepository: MorphemeRepository,
     private val morphemeVariantRepository: MorphemeVariantRepository,
     private val variantGenerator: MorphemeVariantGenerator,
-    private val objectMapper: ObjectMapper
+    private val payloadMapper: ChangeRequestPayloadMapper
 ) {
 
     companion object {
@@ -124,6 +123,5 @@ class MorphemeChangeHandler(
         }
     }
 
-    internal fun parsePayload(json: String?): MorphemePayload? =
-        json?.takeIf { it.isNotBlank() }?.let { objectMapper.readValue(it) }
+    internal fun parsePayload(json: String?): MorphemePayload? = payloadMapper.readMorphemeOrNull(json)
 }

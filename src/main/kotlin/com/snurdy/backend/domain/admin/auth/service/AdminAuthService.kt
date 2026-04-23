@@ -58,7 +58,7 @@ class AdminAuthService(
         val accessToken = jwtTokenProvider.createAdminAccessToken(admin.id)
         return AdminTokenResponse(
             accessToken = accessToken,
-            accessTokenExpiresIn = jwtTokenProvider.accessTokenExpiration(),
+            accessTokenExpiresIn = jwtTokenProvider.adminAccessTokenExpiration(),
             admin = AdminInfo(id = admin.id, email = admin.email, name = admin.name)
         )
     }

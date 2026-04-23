@@ -1,10 +1,9 @@
 package com.snurdy.backend.domain.admin.workflow.service.handler
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestOperation
 import com.snurdy.backend.domain.admin.workflow.service.model.*
+import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermEntity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
@@ -29,7 +28,7 @@ class TermChangeHandler(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termMorphemeRepository: TermMorphemeRepository,
-    private val objectMapper: ObjectMapper
+    private val payloadMapper: ChangeRequestPayloadMapper
 ) {
 
     companion object {
@@ -264,6 +263,5 @@ class TermChangeHandler(
         return payload.glossaryId?.let { listOf(it) }
     }
 
-    internal fun parsePayload(json: String?): TermPayload? =
-        json?.takeIf { it.isNotBlank() }?.let { objectMapper.readValue(it) }
+    internal fun parsePayload(json: String?): TermPayload? = payloadMapper.readTermOrNull(json)
 }

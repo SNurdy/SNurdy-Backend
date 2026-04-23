@@ -8,7 +8,9 @@ import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import jakarta.validation.ConstraintViolationException
+import org.hibernate.exception.ConstraintViolationException as HibernateConstraintViolationException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -30,7 +32,8 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is MethodArgumentNotValidException -> this.toValidationApiException()
     is HandlerMethodValidationException -> this.toMethodValidationApiException()
     is ConstraintViolationException -> this.toConstraintViolationApiException()
-    is DataIntegrityViolationException -> ApiException(CommonError.BAD_REQUEST)
+    is DataIntegrityViolationException -> this.toDataIntegrityApiException()
+    is OptimisticLockingFailureException -> ApiException(CommonError.CONFLICT, cause = this)
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->
@@ -101,4 +104,34 @@ private fun ConstraintViolationException.toConstraintViolationApiException(): Ap
         .firstOrNull()
 
     return ApiException(CommonError.BAD_REQUEST, detailMessage)
+}
+
+// DataIntegrityViolation은 원인에 따라 409(중복) / 400(FK·NOT NULL 위반) / 500(그 외) 로 세분화.
+// 상세 메시지는 보안상 노출하지 않고 유형만 알려준다.
+private fun DataIntegrityViolationException.toDataIntegrityApiException(): ApiException {
+    val hibernateCause = generateSequence<Throwable>(this) { it.cause }
+        .firstOrNull { it is HibernateConstraintViolationException } as? HibernateConstraintViolationException
+
+    val sqlState = hibernateCause?.sqlState
+    val errorCode = hibernateCause?.errorCode ?: 0
+
+    return when {
+        // MySQL 23000 / errorCode 1062 (Duplicate entry) / 1169 (Can't write, duplicate key)
+        sqlState == "23000" && errorCode in setOf(1062, 1169) ->
+            ApiException(CommonError.DUPLICATED, cause = this)
+
+        // MySQL 23000 / errorCode 1452 (FK parent missing) / 1451 (FK child exists) / 1216 / 1217
+        sqlState == "23000" && errorCode in setOf(1451, 1452, 1216, 1217) ->
+            ApiException(CommonError.INVALID_REFERENCE, cause = this)
+
+        // MySQL 23000 / 1048 (NOT NULL 위반) / 1364 (no default for field)
+        sqlState == "23000" && errorCode in setOf(1048, 1364) ->
+            ApiException(CommonError.BAD_REQUEST, "필수 값이 누락되었습니다", this)
+
+        // sqlState 기준 폴백: 23xxx 계열은 제약조건 위반 전부
+        sqlState?.startsWith("23") == true ->
+            ApiException(CommonError.CONFLICT, cause = this)
+
+        else -> ApiException(CommonError.INTERNAL_ERROR, cause = this)
+    }
 }

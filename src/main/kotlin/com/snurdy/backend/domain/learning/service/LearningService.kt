@@ -253,35 +253,52 @@ class LearningService(
         }
     }
 
-    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, DailyDelta>) {
-        if (byDate.isEmpty()) return
+    /**
+     * daily_progresses를 갱신하고, 오늘 엔트리가 '세션 전부터' 활성이었는지 여부를 돌려준다.
+     * streak 증분 계산에 필요한 유일한 기존 상태 신호.
+     */
+    private fun updateDailyProgresses(user: UserEntity, byDate: Map<LocalDate, DailyDelta>): Boolean {
+        if (byDate.isEmpty()) return false
+
+        val today = LocalDate.now(APP_ZONE_ID)
+        var todayWasActiveBefore = false
 
         byDate.forEach { (date, delta) ->
-            val progress = dailyProgressRepository.findByIdOrNull(DailyProgressId(user.id, date))
-                ?: DailyProgressEntity(
-                    id = DailyProgressId(user.id, date),
-                    user = user
-                )
+            val existing = dailyProgressRepository.findByIdOrNull(DailyProgressId(user.id, date))
+            if (date == today) {
+                todayWasActiveBefore = existing != null && (existing.learnedCount + existing.reviewedCount) > 0
+            }
+            val progress = existing ?: DailyProgressEntity(
+                id = DailyProgressId(user.id, date),
+                user = user
+            )
 
             progress.learnedCount += delta.learned
             progress.reviewedCount += delta.reviewed
             dailyProgressRepository.save(progress)
         }
+        return todayWasActiveBefore
     }
 
-    private fun updateUserSummary(user: UserEntity, learnedDelta: Int) {
-        if (learnedDelta > 0) {
-            user.totalLearningTerms += learnedDelta
+    /**
+     * streak 증분 계산 — 전체 daily 스캔 대신 오늘/어제 2건만 조회.
+     *   - 오늘이 세션 전부터 이미 활성이었다면 streak는 이미 오늘을 포함하므로 변경 없음
+     *   - 오늘이 신규 활성이면 어제가 활성이었는지로 +1 vs 1 결정
+     *   - 오늘에 학습이 없었다면 streak는 과거 값 유지(만료는 별도 배치 또는 조회 시점에서 해결)
+     */
+    private fun updateUserSummary(user: UserEntity, learnedDelta: Int, todayWasActiveBefore: Boolean) {
+        val today = LocalDate.now(APP_ZONE_ID)
+        val newStreak = when {
+            todayWasActiveBefore -> user.currentStreak
+            else -> {
+                val yesterdayActive = dailyProgressRepository
+                    .findByIdOrNull(DailyProgressId(user.id, today.minusDays(1)))
+                    ?.let { (it.learnedCount + it.reviewedCount) > 0 }
+                    ?: false
+                if (yesterdayActive && user.currentStreak > 0) user.currentStreak + 1 else 1
+            }
         }
-
-        val activeDates = dailyProgressRepository.findByIdUserIdOrderByIdDateDesc(user.id)
-            .mapNotNull { if (it.learnedCount + it.reviewedCount > 0) it.id.date else null }
-            .toSet()
-
-        val streak = calculateCurrentStreak(activeDates)
-
-        user.currentStreak = streak
-        user.longestStreak = maxOf(user.longestStreak, streak)
+        user.applyLearningOutcome(learnedDelta = learnedDelta, newCurrentStreak = newStreak)
     }
 
     private fun processLearningEvent(
@@ -299,18 +316,8 @@ class LearningService(
 
     private fun applyLearningAggregation(user: UserEntity, aggregation: LearningAggregation) {
         updateGlossaryProgresses(user, aggregation.learnedByGlossary)
-        updateDailyProgresses(user, aggregation.byDate)
-        updateUserSummary(user, aggregation.learnedTotal)
-    }
-
-    private fun calculateCurrentStreak(activeDates: Set<LocalDate>): Int {
-        var streak = 0
-        var cursor = LocalDate.now(APP_ZONE_ID)
-        while (activeDates.contains(cursor)) {
-            streak += 1
-            cursor = cursor.minusDays(1)
-        }
-        return streak
+        val todayWasActiveBefore = updateDailyProgresses(user, aggregation.byDate)
+        updateUserSummary(user, aggregation.learnedTotal, todayWasActiveBefore)
     }
 
     private fun toLearningCard(progress: TermProgressEntity, term: TermEntity, bookmarked: Boolean): LearningTermCard =

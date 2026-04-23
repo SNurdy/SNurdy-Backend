@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.admin.workflow.service.support
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.snurdy.backend.domain.admin.workflow.dto.CreateChangeRequest
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntityType
@@ -22,7 +21,7 @@ class ChangeRequestBuilder(
     private val termMorphemeRepository: TermMorphemeRepository,
     private val morphemeRepository: MorphemeRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
-    private val objectMapper: ObjectMapper
+    private val payloadMapper: ChangeRequestPayloadMapper
 ) {
 
     fun build(
@@ -41,12 +40,12 @@ class ChangeRequestBuilder(
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
-                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, objectMapper.writeValueAsString(request.toTermPayload()))
+                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, payloadMapper.writeRequired(request.toTermPayload()))
 
             ChangeRequestOperation.UPDATE -> {
                 val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
                 val before = snapshotTerm(termId)
-                Triple(termId.toString(), before, objectMapper.writeValueAsString(request.toTermPayload()))
+                Triple(termId.toString(), before, payloadMapper.writeRequired(request.toTermPayload()))
             }
 
             ChangeRequestOperation.DELETE -> {
@@ -66,7 +65,7 @@ class ChangeRequestBuilder(
     ): ChangeRequestEntity {
         val (entityPk, beforeJson, afterJson) = when (operation) {
             ChangeRequestOperation.CREATE ->
-                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, objectMapper.writeValueAsString(request.toMorphemePayload()))
+                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, payloadMapper.writeRequired(request.toMorphemePayload()))
 
             ChangeRequestOperation.UPDATE -> {
                 val morphemeId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
@@ -74,8 +73,8 @@ class ChangeRequestBuilder(
                     .orElseThrow { ApiException(AdminError.MORPHEME_NOT_FOUND) }
                 Triple(
                     morphemeId.toString(),
-                    objectMapper.writeValueAsString(MorphemePayload(spelling = before.spelling, meaning = before.meaning)),
-                    objectMapper.writeValueAsString(request.toMorphemePayload())
+                    payloadMapper.writeRequired(MorphemePayload(spelling = before.spelling, meaning = before.meaning)),
+                    payloadMapper.writeRequired(request.toMorphemePayload())
                 )
             }
 
@@ -98,7 +97,7 @@ class ChangeRequestBuilder(
             glossaryId = glossaryIds.firstOrNull(),
             glossaryIds = glossaryIds
         )
-        return objectMapper.writeValueAsString(payload)
+        return payloadMapper.writeRequired(payload)
     }
 
     private fun newEntity(

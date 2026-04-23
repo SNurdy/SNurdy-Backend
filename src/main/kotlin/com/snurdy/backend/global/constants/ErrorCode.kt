@@ -19,6 +19,9 @@ enum class CommonError(
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_E403", "접근 권한이 없습니다"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_E404", "리소스를 찾을 수 없습니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_E405", "지원하지 않는 HTTP 메서드입니다"),
+    CONFLICT(HttpStatus.CONFLICT, "COMMON_E409", "요청이 현재 상태와 충돌합니다"),
+    DUPLICATED(HttpStatus.CONFLICT, "COMMON_E410", "이미 존재하는 데이터입니다"),
+    INVALID_REFERENCE(HttpStatus.BAD_REQUEST, "COMMON_E411", "참조하는 데이터가 존재하지 않습니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_E500", "서버 오류가 발생했습니다"),
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON_E502", "외부 API 오류가 발생했습니다")
 

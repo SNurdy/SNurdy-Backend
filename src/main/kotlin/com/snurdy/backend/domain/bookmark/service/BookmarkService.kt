@@ -31,7 +31,7 @@ class BookmarkService(
 ) {
     @Transactional(readOnly = true)
     fun getBookmarks(userId: UUID): BookmarkListResponse {
-        val items = bookmarkRepository.findAllByIdUserIdOrderByCreatedAtDesc(userId)
+        val items = bookmarkRepository.findAllWithTermByUserId(userId)
             .map {
                 BookmarkItem(
                     glossaryId = it.id.glossaryId,

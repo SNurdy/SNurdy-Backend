@@ -32,7 +32,13 @@ class ClientDictionaryService(
     @Transactional(readOnly = true)
     fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): TermSearchResponse {
         val pageable = PageRequest.of(page, size)
-        val termPage = termRepository.searchActiveTerms(query, pageable)
+        // BOOLEAN MODE 연산자(+, -, *, " 등)를 제거해 쿼리 오류 방지
+        val sanitizedQuery = query?.trim()?.replace(Regex("[+\\-><()~*\"@]+"), " ")?.trim()
+        val termPage = if (sanitizedQuery.isNullOrBlank()) {
+            termRepository.findByDeletedAtIsNull(pageable)
+        } else {
+            termRepository.searchActiveTerms(sanitizedQuery, pageable)
+        }
 
         val termIds = termPage.content.mapNotNull { it.id }
         val bookmarkedTermIds = if (termIds.isEmpty()) {

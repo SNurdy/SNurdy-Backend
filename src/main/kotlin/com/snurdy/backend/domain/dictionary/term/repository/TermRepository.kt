@@ -12,24 +12,31 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
 
     fun findByIdInAndDeletedAtIsNull(ids: List<Long>): List<TermEntity>
 
+    fun findByDeletedAtIsNull(pageable: Pageable): Page<TermEntity>
+
     @Query(value = "SELECT spelling FROM terms WHERE deleted_at IS NULL ORDER BY id", nativeQuery = true)
     fun findAllSpellings(): List<String>
 
+    // ft_terms_search (spelling, meaning, abbreviation) WITH PARSER ngram 인덱스 사용.
+    // BOOLEAN MODE: 50% 초과 등장 단어를 무시하는 NATURAL LANGUAGE MODE 제약 없음.
+    // 호출 전에 서비스에서 query가 non-blank임을 보장해야 한다.
     @Query(
-        """
-        SELECT t
-        FROM TermEntity t
-        WHERE t.deletedAt IS NULL
-          AND (
-            :query IS NULL
-            OR TRIM(:query) = ''
-            OR LOWER(t.spelling) LIKE LOWER(CONCAT('%', :query, '%'))
-            OR LOWER(t.meaning) LIKE LOWER(CONCAT('%', :query, '%'))
-            OR LOWER(COALESCE(t.abbreviation, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-          )
-        """
+        value = """
+        SELECT *
+        FROM terms
+        WHERE deleted_at IS NULL
+          AND MATCH(spelling, meaning, abbreviation) AGAINST(:query IN BOOLEAN MODE)
+        ORDER BY MATCH(spelling, meaning, abbreviation) AGAINST(:query IN BOOLEAN MODE) DESC, id ASC
+        """,
+        countQuery = """
+        SELECT COUNT(*)
+        FROM terms
+        WHERE deleted_at IS NULL
+          AND MATCH(spelling, meaning, abbreviation) AGAINST(:query IN BOOLEAN MODE)
+        """,
+        nativeQuery = true
     )
-    fun searchActiveTerms(@Param("query") query: String?, pageable: Pageable): Page<TermEntity>
+    fun searchActiveTerms(@Param("query") query: String, pageable: Pageable): Page<TermEntity>
 
     fun findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCaseOrAbbreviationContainingIgnoreCase(
         spelling: String,

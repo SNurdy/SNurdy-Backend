@@ -1,12 +1,9 @@
 package com.snurdy.backend.global.jwt
 
-import com.snurdy.backend.domain.admin.auth.repository.AdminUserRepository
 import com.snurdy.backend.domain.auth.service.AccessTokenBlacklistService
-import com.snurdy.backend.domain.user.repository.UserRepository
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
@@ -16,8 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
-    private val userRepository: UserRepository,
-    private val adminUserRepository: AdminUserRepository,
     private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) : OncePerRequestFilter() {
 
@@ -45,32 +40,13 @@ class JwtAuthenticationFilter(
         }
 
         val subjectId = jwtTokenProvider.getUserIdFromToken(token)
-        val authority = resolveAuthority(tokenType, subjectId)
-        if (authority == null) {
-            SecurityContextHolder.clearContext()
-            filterChain.doFilter(request, response)
-            return
-        }
+        val role = jwtTokenProvider.getRoleFromToken(token)
 
         SecurityContextHolder.getContext().authentication =
-            UsernamePasswordAuthenticationToken(subjectId, null, listOf(authority))
+            UsernamePasswordAuthenticationToken(subjectId, null, listOf(SimpleGrantedAuthority("ROLE_$role")))
 
         filterChain.doFilter(request, response)
     }
-
-    private fun resolveAuthority(tokenType: TokenType, subjectId: java.util.UUID): SimpleGrantedAuthority? =
-        when (tokenType) {
-            TokenType.ACCESS -> {
-                val user = userRepository.findByIdOrNull(subjectId)
-                if (user == null || user.isDeleted()) null
-                else SimpleGrantedAuthority("ROLE_${user.role.name}")
-            }
-            TokenType.ADMIN -> {
-                val admin = adminUserRepository.findByIdOrNull(subjectId)
-                if (admin == null) null else SimpleGrantedAuthority("ROLE_ADMIN")
-            }
-            else -> null
-        }
 
     private fun extractToken(request: HttpServletRequest): String? {
         val bearerToken = request.getHeader(AUTHORIZATION_HEADER)

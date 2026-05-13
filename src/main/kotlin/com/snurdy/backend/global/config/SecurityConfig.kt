@@ -30,6 +30,7 @@ class SecurityConfig(
 
     // Chain 1: 정적 자원 / 공개 페이지 / 인프라 헬스체크 / 스웨거.
     // JWT 필터 미탑재, 세션 없음. CMS 정적 HTML/CSS/JS 도 여기로.
+    // /actuator/prometheus 는 의도적으로 제외 → Chain 3에서 ROLE_ADMIN 요구.
     @Bean
     @Order(1)
     fun publicAssetsFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -40,7 +41,6 @@ class SecurityConfig(
                     AntPathRequestMatcher("/health"),
                     AntPathRequestMatcher("/v1/health"),
                     AntPathRequestMatcher("/actuator/health"),
-                    AntPathRequestMatcher("/actuator/prometheus"),
                     AntPathRequestMatcher("/swagger-ui/**"),
                     AntPathRequestMatcher("/swagger-resources/**"),
                     AntPathRequestMatcher("/v3/api-docs/**"),

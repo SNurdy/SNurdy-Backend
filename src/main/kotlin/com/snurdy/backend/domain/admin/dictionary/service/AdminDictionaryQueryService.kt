@@ -46,12 +46,9 @@ class AdminDictionaryQueryService(
     fun getTerms(keyword: String?, page: Int, size: Int): TermPageResponse {
         val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"))
         val data = if (keyword.isNullOrBlank()) {
-            termRepository.findAll(pageable)
+            termRepository.findByDeletedAtIsNull(pageable)
         } else {
-            val q = keyword.trim()
-            termRepository.findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCaseOrAbbreviationContainingIgnoreCase(
-                q, q, q, pageable
-            )
+            termRepository.findActiveByKeyword(keyword.trim(), pageable)
         }
 
         return TermPageResponse(
@@ -73,7 +70,7 @@ class AdminDictionaryQueryService(
 
     @Transactional(readOnly = true)
     fun getTerm(termId: Long): TermDetailResponse {
-        val term = termRepository.findById(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
+        val term = termRepository.findByIdAndDeletedAtIsNull(termId).orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map {
             TermMorphemeMappingResponse(

@@ -83,9 +83,7 @@ class AdminWorkflowService(
         request.morphemes?.let { currentPayload["morphemes"] = it }
         request.glossaryIds?.let {
             currentPayload["glossaryIds"] = it
-            currentPayload["glossaryId"] = it.firstOrNull()
         } ?: request.glossaryId?.let {
-            currentPayload["glossaryId"] = it
             currentPayload["glossaryIds"] = listOf(it)
         }
 

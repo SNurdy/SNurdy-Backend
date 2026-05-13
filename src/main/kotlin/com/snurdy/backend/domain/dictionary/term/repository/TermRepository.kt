@@ -45,6 +45,24 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         pageable: Pageable
     ): Page<TermEntity>
 
+    @Query(
+        value = """
+        SELECT t FROM TermEntity t
+        WHERE t.deletedAt IS NULL
+          AND (LOWER(t.spelling) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(t.meaning) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(t.abbreviation) LIKE LOWER(CONCAT('%', :q, '%')))
+        """,
+        countQuery = """
+        SELECT COUNT(t) FROM TermEntity t
+        WHERE t.deletedAt IS NULL
+          AND (LOWER(t.spelling) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(t.meaning) LIKE LOWER(CONCAT('%', :q, '%'))
+            OR LOWER(t.abbreviation) LIKE LOWER(CONCAT('%', :q, '%')))
+        """
+    )
+    fun findActiveByKeyword(@Param("q") q: String, pageable: Pageable): Page<TermEntity>
+
     fun findAllBySpellingIgnoreCase(spelling: String): List<TermEntity>
 
     fun findByIdAndDeletedAtIsNull(id: Long): Optional<TermEntity>

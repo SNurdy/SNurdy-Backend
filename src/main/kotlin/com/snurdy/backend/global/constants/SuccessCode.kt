@@ -73,7 +73,7 @@ enum class AdminSuccess(
     VALIDATE_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S011", "변경 요청 검증에 성공했습니다"),
     APPLY_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S012", "변경 요청 반영에 성공했습니다"),
     CANCEL_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S013", "변경 요청 취소에 성공했습니다"),
-    ROLLBACK_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S014", "변경 요청 롤백에 성공했습니다.")
+    ROLLBACK_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S014", "변경 요청 롤백에 성공했습니다")
 }
 
 enum class VersionSuccess(

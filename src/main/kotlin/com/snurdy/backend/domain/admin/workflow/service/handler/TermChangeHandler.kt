@@ -257,6 +257,7 @@ class TermChangeHandler(
         glossaryTermRepository.saveAll(mappings)
     }
 
+    @Suppress("DEPRECATION")
     private fun resolveGlossaryIds(payload: TermPayload): List<Long>? {
         payload.glossaryIds?.let { return it }
         return payload.glossaryId?.let { listOf(it) }

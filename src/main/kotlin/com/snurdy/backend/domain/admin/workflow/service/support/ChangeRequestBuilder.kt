@@ -94,7 +94,6 @@ class ChangeRequestBuilder(
             abbreviation = term.abbreviation,
             explanation = term.explanation,
             morphemes = morphemeIds,
-            glossaryId = glossaryIds.firstOrNull(),
             glossaryIds = glossaryIds
         )
         return payloadMapper.writeRequired(payload)
@@ -123,7 +122,6 @@ class ChangeRequestBuilder(
         abbreviation = this.abbreviation?.trim()?.takeIf { it.isNotBlank() },
         explanation = this.explanation?.trim()?.takeIf { it.isNotBlank() },
         morphemes = this.morphemes,
-        glossaryId = this.glossaryIds?.firstOrNull() ?: this.glossaryId,
         glossaryIds = this.glossaryIds ?: this.glossaryId?.let { listOf(it) }
     )
 

@@ -40,7 +40,12 @@ class AdminAuthController(
     private fun clientIp(request: HttpServletRequest?): String? {
         if (request == null) return null
         val forwarded = request.getHeader("X-Forwarded-For")
-        return forwarded?.split(",")?.firstOrNull()?.trim()?.takeIf { it.isNotBlank() }
+        // Caddy는 실제 클라이언트 IP를 X-Forwarded-For 맨 뒤에 append한다.
+        // 앞쪽 값은 클라이언트가 위조 가능하므로 마지막 값만 신뢰한다.
+        return forwarded
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.lastOrNull { it.isNotBlank() }
             ?: request.remoteAddr
     }
 }

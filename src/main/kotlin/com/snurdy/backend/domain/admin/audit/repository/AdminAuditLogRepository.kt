@@ -13,6 +13,11 @@ interface AdminAuditLogRepository : JpaRepository<AdminAuditLogEntity, Long> {
         pageable: Pageable
     ): Page<AdminAuditLogEntity>
 
+    fun findByTargetTableOrderByIdDesc(
+        targetTable: String,
+        pageable: Pageable
+    ): Page<AdminAuditLogEntity>
+
     fun findByActionOrderByIdDesc(
         action: String,
         pageable: Pageable

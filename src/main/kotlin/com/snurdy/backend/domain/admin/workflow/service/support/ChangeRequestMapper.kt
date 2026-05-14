@@ -4,8 +4,6 @@ import com.snurdy.backend.domain.admin.workflow.dto.ChangeRequestActionResponse
 import com.snurdy.backend.domain.admin.workflow.dto.ChangeRequestDetailResponse
 import com.snurdy.backend.domain.admin.workflow.dto.ChangeRequestSummary
 import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
-import com.snurdy.backend.global.constants.CommonError
-import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 
 @Component
@@ -49,6 +47,4 @@ class ChangeRequestMapper {
         warningMessage = entity.warningMessage
     )
 
-    private fun ChangeRequestEntity.requireId(): Long =
-        id ?: throw ApiException(CommonError.INTERNAL_ERROR)
 }

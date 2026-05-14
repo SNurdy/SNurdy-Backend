@@ -6,6 +6,7 @@ data class CreateChangeRequest(
     val entityType: String,
     val operation: String,
     val termId: Long? = null,
+    val morphemeId: Long? = null,
     val spelling: String? = null,
     val meaning: String? = null,
     val abbreviation: String? = null,

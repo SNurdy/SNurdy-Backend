@@ -37,51 +37,68 @@ class ChangeRequestBuilder(
         request: CreateChangeRequest,
         entityType: ChangeRequestEntityType,
         operation: ChangeRequestOperation
-    ): ChangeRequestEntity {
-        val (entityPk, beforeJson, afterJson) = when (operation) {
-            ChangeRequestOperation.CREATE ->
-                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, payloadMapper.writeRequired(request.toTermPayload()))
+    ): ChangeRequestEntity = when (operation) {
+        ChangeRequestOperation.CREATE -> buildTermCreate(request, entityType)
+        ChangeRequestOperation.UPDATE -> buildTermUpdate(request, entityType)
+        ChangeRequestOperation.DELETE -> buildTermDelete(request, entityType)
+    }
 
-            ChangeRequestOperation.UPDATE -> {
-                val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
-                val before = snapshotTerm(termId)
-                Triple(termId.toString(), before, payloadMapper.writeRequired(request.toTermPayload()))
-            }
+    private fun buildTermCreate(request: CreateChangeRequest, entityType: ChangeRequestEntityType) =
+        newEntity(
+            request, entityType, ChangeRequestOperation.CREATE,
+            entityPk = ChangeRequestEntity.NEW_ENTITY_PK,
+            beforeJson = null,
+            afterJson = payloadMapper.writeRequired(request.toTermPayload())
+        )
 
-            ChangeRequestOperation.DELETE -> {
-                val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
-                val before = snapshotTerm(termId)
-                Triple(termId.toString(), before, null)
-            }
-        }
+    private fun buildTermUpdate(request: CreateChangeRequest, entityType: ChangeRequestEntityType): ChangeRequestEntity {
+        val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
+        return newEntity(
+            request, entityType, ChangeRequestOperation.UPDATE,
+            entityPk = termId.toString(),
+            beforeJson = snapshotTerm(termId),
+            afterJson = payloadMapper.writeRequired(request.toTermPayload())
+        )
+    }
 
-        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
+    private fun buildTermDelete(request: CreateChangeRequest, entityType: ChangeRequestEntityType): ChangeRequestEntity {
+        val termId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
+        return newEntity(
+            request, entityType, ChangeRequestOperation.DELETE,
+            entityPk = termId.toString(),
+            beforeJson = snapshotTerm(termId),
+            afterJson = null
+        )
     }
 
     private fun buildMorpheme(
         request: CreateChangeRequest,
         entityType: ChangeRequestEntityType,
         operation: ChangeRequestOperation
-    ): ChangeRequestEntity {
-        val (entityPk, beforeJson, afterJson) = when (operation) {
-            ChangeRequestOperation.CREATE ->
-                Triple(ChangeRequestEntity.NEW_ENTITY_PK, null, payloadMapper.writeRequired(request.toMorphemePayload()))
+    ): ChangeRequestEntity = when (operation) {
+        ChangeRequestOperation.CREATE -> buildMorphemeCreate(request, entityType)
+        ChangeRequestOperation.UPDATE -> buildMorphemeUpdate(request, entityType)
+        ChangeRequestOperation.DELETE -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
+    }
 
-            ChangeRequestOperation.UPDATE -> {
-                val morphemeId = request.termId ?: throw ApiException(AdminError.WORKFLOW_TERM_ID_REQUIRED)
-                val before = morphemeRepository.findById(morphemeId)
-                    .orElseThrow { ApiException(AdminError.MORPHEME_NOT_FOUND) }
-                Triple(
-                    morphemeId.toString(),
-                    payloadMapper.writeRequired(MorphemePayload(spelling = before.spelling, meaning = before.meaning)),
-                    payloadMapper.writeRequired(request.toMorphemePayload())
-                )
-            }
+    private fun buildMorphemeCreate(request: CreateChangeRequest, entityType: ChangeRequestEntityType) =
+        newEntity(
+            request, entityType, ChangeRequestOperation.CREATE,
+            entityPk = ChangeRequestEntity.NEW_ENTITY_PK,
+            beforeJson = null,
+            afterJson = payloadMapper.writeRequired(request.toMorphemePayload())
+        )
 
-            ChangeRequestOperation.DELETE -> throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
-        }
-
-        return newEntity(request, entityType, operation, entityPk, beforeJson, afterJson)
+    private fun buildMorphemeUpdate(request: CreateChangeRequest, entityType: ChangeRequestEntityType): ChangeRequestEntity {
+        val morphemeId = request.morphemeId ?: throw ApiException(AdminError.WORKFLOW_MORPHEME_ID_REQUIRED)
+        val before = morphemeRepository.findById(morphemeId)
+            .orElseThrow { ApiException(AdminError.MORPHEME_NOT_FOUND) }
+        return newEntity(
+            request, entityType, ChangeRequestOperation.UPDATE,
+            entityPk = morphemeId.toString(),
+            beforeJson = payloadMapper.writeRequired(MorphemePayload(spelling = before.spelling, meaning = before.meaning)),
+            afterJson = payloadMapper.writeRequired(request.toMorphemePayload())
+        )
     }
 
     private fun snapshotTerm(termId: Long): String {

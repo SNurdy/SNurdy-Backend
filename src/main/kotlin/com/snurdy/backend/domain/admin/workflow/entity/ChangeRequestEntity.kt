@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.admin.workflow.entity
 
+import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.exception.ApiException
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -136,6 +138,8 @@ class ChangeRequestEntity(
 
     fun isRollbackable(): Boolean =
         status == ChangeRequestStatus.APPLIED
+
+    fun requireId(): Long = id ?: throw ApiException(CommonError.INTERNAL_ERROR)
 
     companion object {
         const val NEW_ENTITY_PK = "NEW"

@@ -99,6 +99,7 @@ enum class AdminError(
     INVALID_TERM_FIELD_LENGTH(HttpStatus.BAD_REQUEST, "ADMIN_E012", "용어 필드 길이가 유효하지 않습니다"),
     INVALID_WORKFLOW_OPERATION(HttpStatus.BAD_REQUEST, "ADMIN_E013", "지원하지 않는 작업 유형입니다"),
     WORKFLOW_TERM_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_E014", "수정/삭제 요청에는 termId가 필요합니다"),
+    WORKFLOW_MORPHEME_ID_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_E027", "형태소 수정 요청에는 morphemeId가 필요합니다"),
     WORKFLOW_INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "ADMIN_E015", "요청 상태 전이가 올바르지 않습니다"),
     WORKFLOW_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "ADMIN_E016", "검증에 실패했습니다"),
     WORKFLOW_ONLY_APPROVER_CAN_APPLY(HttpStatus.FORBIDDEN, "ADMIN_E017", "반영은 승인 권한이 있는 관리자만 가능합니다"),

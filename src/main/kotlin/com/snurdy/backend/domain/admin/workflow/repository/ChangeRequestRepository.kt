@@ -11,7 +11,7 @@ import org.springframework.data.jpa.repository.Query
 
 interface ChangeRequestRepository : JpaRepository<ChangeRequestEntity, Long> {
 
-    fun findByStatusOrderByIdDesc(status: ChangeRequestStatus, pageable: Pageable): Page<ChangeRequestEntity>
+    fun findByStatus(status: ChangeRequestStatus, pageable: Pageable): Page<ChangeRequestEntity>
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM ChangeRequestEntity c WHERE c.id = :id")

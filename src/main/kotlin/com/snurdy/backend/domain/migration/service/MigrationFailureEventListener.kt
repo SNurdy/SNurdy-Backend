@@ -21,7 +21,7 @@ class MigrationFailureEventListener(
         runCatching {
             migrationSessionFailureService.markFailed(event.sessionId, event.reason)
         }.onFailure {
-            log.error("migration failure 상태 저장 실패: sessionId={}", event.sessionId, it)
+            log.error("마이그레이션 실패 상태 저장 오류 — sessionId={}", event.sessionId, it)
         }
     }
 }

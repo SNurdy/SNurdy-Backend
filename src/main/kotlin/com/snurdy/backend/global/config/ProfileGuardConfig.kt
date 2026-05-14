@@ -15,7 +15,7 @@ class ProfileGuardConfig(
     fun guardActiveProfiles() {
         val active = environment.activeProfiles.map { it.lowercase() }.toSet()
         if (active.isEmpty()) {
-            log.warn("No SPRING_PROFILES_ACTIVE set; defaulting to {}", environment.defaultProfiles.toList())
+            log.warn("SPRING_PROFILES_ACTIVE 미설정 — 기본 프로파일로 실행합니다: {}", environment.defaultProfiles.toList())
             return
         }
 
@@ -27,7 +27,7 @@ class ProfileGuardConfig(
                         "Production must NOT coexist with non-production profiles."
             )
         }
-        log.info("Active Spring profiles validated: {}", active)
+        log.info("활성 Spring 프로파일 검증 완료: {}", active)
     }
 
     companion object {

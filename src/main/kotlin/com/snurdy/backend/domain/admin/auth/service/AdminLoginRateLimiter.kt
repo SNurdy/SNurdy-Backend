@@ -30,10 +30,10 @@ class AdminLoginRateLimiter(
 
     fun recordSuccess(normalizedEmail: String, ipAddress: String?) {
         runCatching { redisTemplate.delete(emailKey(normalizedEmail)) }
-            .onFailure { log.warn("Failed to clear admin login failure counter for email", it) }
+            .onFailure { log.warn("이메일별 관리자 로그인 실패 횟수 초기화 실패", it) }
         ipAddress?.let {
             runCatching { redisTemplate.delete(ipKey(it)) }
-                .onFailure { e -> log.warn("Failed to clear admin login failure counter for ip", e) }
+                .onFailure { e -> log.warn("IP별 관리자 로그인 실패 횟수 초기화 실패", e) }
         }
     }
 
@@ -41,7 +41,7 @@ class AdminLoginRateLimiter(
         try {
             redisTemplate.opsForValue().get(key)?.toLongOrNull() ?: 0L
         } catch (e: DataAccessException) {
-            log.error("Redis lookup failed during admin login rate-limit check; failing closed", e)
+            log.error("관리자 로그인 시도 제한 확인 중 Redis 조회 실패 — 보안 원칙에 따라 접근을 차단합니다", e)
             throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
         }
 
@@ -52,7 +52,7 @@ class AdminLoginRateLimiter(
                 redisTemplate.expire(key, WINDOW)
             }
         } catch (e: DataAccessException) {
-            log.error("Redis write failed during admin login failure record; failing closed", e)
+            log.error("관리자 로그인 실패 횟수 기록 중 Redis 쓰기 실패 — 보안 원칙에 따라 접근을 차단합니다", e)
             throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
         }
     }

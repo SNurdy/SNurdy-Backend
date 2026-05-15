@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.auth.service
 
 import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.dto.TokenResponse
+import com.snurdy.backend.domain.auth.dto.toUserInfo
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.domain.auth.external.provider.AppleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
@@ -63,14 +64,23 @@ class AuthService(
         accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
-    fun issueTokens(user: UserEntity): TokenResponse =
-        jwtTokenProvider.createToken(user).also { response ->
+    fun issueTokens(user: UserEntity): TokenResponse {
+        val tokenPair = jwtTokenProvider.createTokenPair(user.id, user.role.name)
+        refreshTokenRepository.save(
             RefreshToken.create(
                 userId = user.id,
-                token = response.refreshToken,
+                token = tokenPair.refreshToken,
                 ttlDays = jwtProperties.refreshTokenValidityDays
-            ).let { refreshTokenRepository.save(it) }
-        }
+            )
+        )
+        return TokenResponse(
+            accessToken = tokenPair.accessToken,
+            refreshToken = tokenPair.refreshToken,
+            accessTokenExpiresIn = tokenPair.accessTokenExpiresIn,
+            refreshTokenExpiresIn = tokenPair.refreshTokenExpiresIn,
+            user = user.toUserInfo()
+        )
+    }
 
     private fun processLogin(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse {
         val activeUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)

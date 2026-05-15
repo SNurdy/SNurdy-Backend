@@ -22,12 +22,6 @@ class JwtAuthenticationFilter(
         filterChain: FilterChain
     ) {
         val token = extractToken(request)
-        if (accessTokenBlacklistService.isBlacklisted(token)) {
-            SecurityContextHolder.clearContext()
-            filterChain.doFilter(request, response)
-            return
-        }
-
         if (token == null || !jwtTokenProvider.validateToken(token)) {
             filterChain.doFilter(request, response)
             return
@@ -35,6 +29,12 @@ class JwtAuthenticationFilter(
 
         val tokenType = jwtTokenProvider.getTokenType(token)
         if (tokenType != TokenType.ACCESS && tokenType != TokenType.ADMIN) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
+        if (accessTokenBlacklistService.isBlacklisted(token)) {
+            SecurityContextHolder.clearContext()
             filterChain.doFilter(request, response)
             return
         }

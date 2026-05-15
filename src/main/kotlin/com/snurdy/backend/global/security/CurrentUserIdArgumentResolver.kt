@@ -31,11 +31,6 @@ class CurrentUserIdArgumentResolver : HandlerMethodArgumentResolver {
         binderFactory: WebDataBinderFactory?
     ): UUID {
         val principal = SecurityContextHolder.getContext().authentication?.principal
-        return when (principal) {
-            is UUID -> principal
-            is String -> runCatching { UUID.fromString(principal) }
-                .getOrElse { throw ApiException(CommonError.UNAUTHORIZED) }
-            else -> throw ApiException(CommonError.UNAUTHORIZED)
-        }
+        return principal as? UUID ?: throw ApiException(CommonError.UNAUTHORIZED)
     }
 }

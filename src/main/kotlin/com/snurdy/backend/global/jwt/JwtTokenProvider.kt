@@ -1,8 +1,5 @@
 package com.snurdy.backend.global.jwt
 
-import com.snurdy.backend.domain.auth.dto.TokenResponse
-import com.snurdy.backend.domain.auth.dto.toUserInfo
-import com.snurdy.backend.domain.user.entity.UserEntity
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -18,12 +15,11 @@ class JwtTokenProvider(
         jwtProperties.secretKey.toByteArray(StandardCharsets.UTF_8)
     )
 
-    fun createToken(user: UserEntity) = TokenResponse(
-        accessToken = generateToken(user.id, user.role.name, jwtProperties.accessTokenExpiration, TokenType.ACCESS),
-        refreshToken = generateToken(user.id, user.role.name, jwtProperties.refreshTokenExpiration, TokenType.REFRESH),
+    fun createTokenPair(userId: UUID, role: String) = TokenPair(
+        accessToken = generateToken(userId, role, jwtProperties.accessTokenExpiration, TokenType.ACCESS),
+        refreshToken = generateToken(userId, role, jwtProperties.refreshTokenExpiration, TokenType.REFRESH),
         accessTokenExpiresIn = jwtProperties.accessTokenExpiration,
-        refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration,
-        user = user.toUserInfo()
+        refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration
     )
 
     fun createAdminAccessToken(adminId: UUID): String =

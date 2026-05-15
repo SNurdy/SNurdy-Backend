@@ -8,6 +8,7 @@ import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import jakarta.validation.ConstraintViolationException
+import java.net.URI
 import java.sql.SQLException
 import org.hibernate.JDBCException
 import org.hibernate.exception.ConstraintViolationException as HibernateConstraintViolationException
@@ -52,15 +53,20 @@ fun Throwable.toApiException(): ApiException = when (this) {
 }
 
 private fun FeignException.toFeignApiException(): ApiException {
+    val host = runCatching { request()?.url()?.let { URI.create(it).host } }.getOrNull()?.lowercase()
     val error = when {
-        request()?.url()?.contains("kakao") == true -> AuthError.KAKAO_API_ERROR
-        request()?.url()?.contains("apple") == true -> AuthError.APPLE_API_ERROR
-        request()?.url()?.contains("google") == true -> AuthError.GOOGLE_API_ERROR
+        host == null -> CommonError.INTERNAL_ERROR
+        host.matchesHost("kakao.com") -> AuthError.KAKAO_API_ERROR
+        host.matchesHost("apple.com") -> AuthError.APPLE_API_ERROR
+        host.matchesHost("googleapis.com") -> AuthError.GOOGLE_API_ERROR
         else -> CommonError.INTERNAL_ERROR
     }
     // 기본 메시지 사용
     return ApiException(error, cause = this)
 }
+
+private fun String.matchesHost(suffix: String): Boolean =
+    this == suffix || endsWith(".$suffix")
 
 private fun HttpMessageNotReadableException.toParseApiException(): ApiException {
     // 상세 정보 필요 - 어떤 필드가 문제인지

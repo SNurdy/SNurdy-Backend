@@ -2,7 +2,6 @@ package com.snurdy.backend.domain.dictionary.morpheme.entity
 
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.*
-import java.time.LocalDateTime
 
 @Entity
 @Table(

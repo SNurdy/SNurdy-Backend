@@ -1,128 +1,70 @@
 package com.snurdy.backend.domain.migration.service
 
-import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.bookmark.entity.BookmarkEntity
 import com.snurdy.backend.domain.bookmark.entity.BookmarkId
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
 import com.snurdy.backend.domain.learning.entity.DailyProgressId
-import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
-import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
 import com.snurdy.backend.domain.learning.entity.TermProgressEntity
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
+import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.learning.service.SrsCalculator
 import com.snurdy.backend.domain.migration.dto.BookmarkPayload
 import com.snurdy.backend.domain.migration.dto.DailyProgressPayload
 import com.snurdy.backend.domain.migration.dto.GlossaryProgressPayload
-import com.snurdy.backend.domain.migration.dto.MigrationStartResponse
-import com.snurdy.backend.domain.migration.dto.MigrationStatusResponse
 import com.snurdy.backend.domain.migration.dto.MigrationUploadRequest
 import com.snurdy.backend.domain.migration.dto.MigrationUploadResponse
 import com.snurdy.backend.domain.migration.dto.TermProgressPayload
 import com.snurdy.backend.domain.migration.dto.UserSummaryPayload
-import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
-import com.snurdy.backend.domain.migration.entity.MigrationStatus
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
-import org.slf4j.LoggerFactory
-import org.springframework.context.ApplicationEventPublisher
-import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.support.TransactionSynchronizationManager
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDate
 import java.util.UUID
 
+/**
+ * 마이그레이션 페이로드 검증과 일괄 저장을 책임진다.
+ * 세션 라이프사이클/실패 기록은 MigrationSessionService 에 위임한다.
+ */
 @Service
-class MigrationService(
+class MigrationUploadService(
+    private val migrationSessionService: MigrationSessionService,
     private val migrationSessionRepository: MigrationSessionRepository,
     private val termProgressRepository: TermProgressRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val dailyProgressRepository: DailyProgressRepository,
-    private val userRepository: UserRepository,
     private val termRepository: TermRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
-    private val migrationSessionFailureService: MigrationSessionFailureService,
-    private val eventPublisher: ApplicationEventPublisher,
     private val clock: Clock
 ) {
 
     private fun now(): Instant = clock.instant()
-    private val log = LoggerFactory.getLogger(javaClass)
-
-    @Transactional
-    fun start(userId: UUID): MigrationStartResponse {
-        val user = findUser(userId)
-        if (user.migrationDeclinedAt != null) {
-            throw ApiException(MigrationError.MIGRATION_DECLINED)
-        }
-
-        val existing = migrationSessionRepository.findByUserId(userId)
-        if (existing != null) {
-            if (existing.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
-            return MigrationStartResponse(migrationId = existing.id.toString())
-        }
-
-        if (hasExistingLearningData(userId)) {
-            throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
-        }
-
-        return try {
-            val session = migrationSessionRepository.save(MigrationSessionEntity(user = user))
-            MigrationStartResponse(migrationId = session.id.toString())
-        } catch (_: DataIntegrityViolationException) {
-            val conflicted = migrationSessionRepository.findByUserId(userId)
-                ?: throw ApiException(CommonError.INTERNAL_ERROR)
-            if (conflicted.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
-            MigrationStartResponse(migrationId = conflicted.id.toString())
-        }
-    }
-
-    @Transactional
-    fun decline(userId: UUID): MigrationStatusResponse {
-        val user = findUser(userId)
-        val session = migrationSessionRepository.findByUserId(userId)
-
-        if (session?.isCompleted() == true) {
-            return MigrationStatusResponse(
-                status = MigrationStatus.COMPLETED.name,
-                completedAt = session.completedAt
-            )
-        }
-
-        if (user.migrationDeclinedAt == null) {
-            user.migrationDeclinedAt = now()
-        }
-
-        return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
-    }
 
     @Transactional
     fun upload(userId: UUID, migrationId: String, request: MigrationUploadRequest): MigrationUploadResponse {
-        val user = findUser(userId)
+        val user = migrationSessionService.findUser(userId)
         if (user.migrationDeclinedAt != null) {
             throw ApiException(MigrationError.MIGRATION_DECLINED)
         }
 
         validateDuplicateEntries(request)
 
-        val session = findSessionForUpdate(migrationId)
+        val session = migrationSessionService.findSessionForUpdate(migrationId)
         if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
 
         if (session.isUploaded() || session.isCompleted()) {
@@ -159,66 +101,12 @@ class MigrationService(
                 dailyProgressCount = savedDailyProgressCount
             )
         } catch (e: ApiException) {
-            scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
+            migrationSessionService.scheduleFailureRecord(session.id, e.responseMessage)
             throw e
         } catch (e: Exception) {
-            scheduleFailureRecordAfterRollback(session.id, MigrationError.MIGRATION_UPLOAD_INTERNAL_ERROR.message)
+            migrationSessionService.scheduleFailureRecord(session.id, MigrationError.MIGRATION_UPLOAD_INTERNAL_ERROR.message)
             throw e
         }
-    }
-
-    @Transactional
-    fun finalize(userId: UUID, migrationId: String): MigrationStatusResponse {
-        val user = findUser(userId)
-        if (user.migrationDeclinedAt != null) {
-            throw ApiException(MigrationError.MIGRATION_DECLINED)
-        }
-
-        val session = findSessionForUpdate(migrationId)
-        if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
-
-        if (session.isCompleted()) {
-            return MigrationStatusResponse(
-                status = MigrationStatus.COMPLETED.name,
-                completedAt = session.completedAt
-            )
-        }
-
-        if (!session.isUploaded()) throw ApiException(MigrationError.MIGRATION_UPLOAD_REQUIRED)
-
-        try {
-            session.complete()
-            migrationSessionRepository.save(session)
-        } catch (e: ApiException) {
-            scheduleFailureRecordAfterRollback(session.id, e.responseMessage)
-            throw e
-        } catch (e: Exception) {
-            scheduleFailureRecordAfterRollback(session.id, MigrationError.MIGRATION_FINALIZE_INTERNAL_ERROR.message)
-            throw e
-        }
-
-        return MigrationStatusResponse(
-            status = MigrationStatus.COMPLETED.name,
-            completedAt = session.completedAt
-        )
-    }
-
-    @Transactional(readOnly = true)
-    fun getStatus(userId: UUID): MigrationStatusResponse {
-        val user = findUser(userId)
-
-        if (user.migrationDeclinedAt != null) {
-            return MigrationStatusResponse(status = MigrationStatus.DECLINED.name)
-        }
-
-        val session = migrationSessionRepository.findByUserId(userId)
-            ?: return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
-
-        return MigrationStatusResponse(
-            status = session.status.name,
-            completedAt = session.completedAt,
-            errorMessage = session.errorMessage
-        )
     }
 
     private fun saveTermProgresses(user: UserEntity, payloads: List<TermProgressPayload>): Int {
@@ -412,16 +300,6 @@ class MigrationService(
         if (duplicated.isNotEmpty()) throw ApiException(error)
     }
 
-    private fun findUser(userId: UUID): UserEntity =
-        userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.NOT_FOUND)
-
-    private fun findSessionForUpdate(migrationId: String): MigrationSessionEntity {
-        val uuid = runCatching { UUID.fromString(migrationId) }
-            .getOrElse { throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND) }
-        return migrationSessionRepository.findByIdForUpdate(uuid)
-            ?: throw ApiException(MigrationError.MIGRATION_SESSION_NOT_FOUND)
-    }
-
     private fun normalizeEaseFactor(value: Double): BigDecimal =
         value
             .coerceAtLeast(SrsCalculator.MIN_EASE_FACTOR.toDouble())
@@ -442,18 +320,4 @@ class MigrationService(
             bookmarkCount = bookmarkRepository.countByIdUserId(userId).toInt(),
             dailyProgressCount = dailyProgressRepository.countByIdUserId(userId).toInt()
         )
-
-    private fun scheduleFailureRecordAfterRollback(sessionId: UUID, reason: String) {
-        val normalizedReason = reason.ifBlank { MigrationError.MIGRATION_PROCESSING_ERROR.message }
-
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            // 활성 트랜잭션이 없는 경로는 그대로 동기 기록 (기존 동작 유지)
-            migrationSessionFailureService.markFailed(sessionId, normalizedReason)
-            return
-        }
-
-        // Spring 이벤트를 발행하면 MigrationFailureEventListener (AFTER_ROLLBACK) 가 REQUIRES_NEW 트랜잭션에서 기록한다.
-        eventPublisher.publishEvent(MigrationFailureEvent(sessionId = sessionId, reason = normalizedReason))
-    }
-
 }

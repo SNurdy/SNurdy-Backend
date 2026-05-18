@@ -5,6 +5,7 @@ import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.PastOrPresent
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.time.Instant
@@ -60,6 +61,7 @@ data class BookmarkPayload(
 )
 
 data class DailyProgressPayload(
+    @field:PastOrPresent
     val date: LocalDate,
     @field:Min(0)
     val learnedCount: Int,

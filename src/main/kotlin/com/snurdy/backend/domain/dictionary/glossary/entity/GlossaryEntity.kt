@@ -14,7 +14,7 @@ class GlossaryEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    val id: Long? = null,
+    val id: Long = 0L,
 
     @Column(name = "category", nullable = false, length = 50)
     var category: String,

@@ -90,11 +90,11 @@ class LearningCommandService(
             .findAllByIdGlossaryIdInAndIdTermIdIn(glossaryIds, termIds)
             .mapTo(mutableSetOf()) { it.id }
 
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.idOrThrow }
-        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds.toList()).associateBy { it.idOrThrow }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds.toList()).associateBy { it.id }
         val progresses = termProgressRepository
             .findAllByUserIdAndGlossaryIdInAndTermIdIn(userId, glossaryIds, termIds)
-            .associateByTo(mutableMapOf()) { GlossaryTermId(it.glossary.idOrThrow, it.term.idOrThrow) }
+            .associateByTo(mutableMapOf()) { GlossaryTermId(it.glossary.id, it.term.id) }
 
         return SubmitContext(validPairs, glossaries, terms, progresses)
     }
@@ -103,7 +103,7 @@ class LearningCommandService(
         if (learnedByGlossary.isEmpty()) return
 
         val glossaryIds = learnedByGlossary.keys
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.idOrThrow }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
         val existing = glossaryProgressRepository
             .findAllByIdUserIdAndIdGlossaryIdIn(user.id, glossaryIds)
             .associateBy { it.id.glossaryId }
@@ -298,9 +298,3 @@ class LearningCommandService(
         }
     }
 }
-
-private val GlossaryEntity.idOrThrow: Long
-    get() = id ?: error("GlossaryEntity#id must be non-null after persistence")
-
-private val TermEntity.idOrThrow: Long
-    get() = id ?: error("TermEntity#id must be non-null after persistence")

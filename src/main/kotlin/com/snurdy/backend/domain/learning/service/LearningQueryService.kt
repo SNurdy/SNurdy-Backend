@@ -3,9 +3,7 @@ package com.snurdy.backend.domain.learning.service
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.dictionary.glossary.repository.NewLearningCardProjection
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.dto.CalendarDailyItem
 import com.snurdy.backend.domain.learning.dto.CalendarStatsResponse
@@ -13,7 +11,6 @@ import com.snurdy.backend.domain.learning.dto.LearningTermCard
 import com.snurdy.backend.domain.learning.dto.ReviewDueTermsResponse
 import com.snurdy.backend.domain.learning.dto.StudyNextTermsResponse
 import com.snurdy.backend.domain.learning.dto.UserStreakResponse
-import com.snurdy.backend.domain.learning.entity.TermProgressEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
@@ -50,33 +47,31 @@ class LearningQueryService(
     @Transactional(readOnly = true)
     fun getNextTerms(userId: UUID, glossaryId: Long, size: Int): StudyNextTermsResponse {
         val glossary = findGlossary(glossaryId)
-        val glossaryKey = glossary.idOrThrow
         val safeSize = size.coerceIn(1, 100)
 
         val cards = glossaryTermRepository
-            .findNewLearningCards(userId, glossaryKey, safeSize)
-            .map { toNewLearningCard(it) }
+            .findNewLearningCards(userId, glossary.id, safeSize)
+            .map { LearningTermCard.fromNewProjection(it) }
 
-        return StudyNextTermsResponse(glossaryId = glossaryKey, terms = cards)
+        return StudyNextTermsResponse(glossaryId = glossary.id, terms = cards)
     }
 
     @Transactional(readOnly = true)
     fun getDueTerms(userId: UUID, glossaryId: Long, size: Int): ReviewDueTermsResponse {
         val glossary = findGlossary(glossaryId)
-        val glossaryKey = glossary.idOrThrow
         val safeSize = size.coerceIn(1, 100)
         val now = clock.instant()
 
         val dueProgresses = termProgressRepository.findDueProgresses(
             userId = userId,
-            glossaryId = glossaryKey,
+            glossaryId = glossary.id,
             now = now,
             statuses = listOf(TermProgressStatus.LEARNING, TermProgressStatus.REVIEW),
             pageable = PageRequest.of(0, safeSize)
         )
 
-        val termIds = dueProgresses.mapNotNull { it.term.id }
-        val termMap = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.idOrThrow }
+        val termIds = dueProgresses.map { it.term.id }
+        val termMap = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
         val bookmarkedTermIds = if (termIds.isEmpty()) {
             emptySet()
         } else {
@@ -86,12 +81,11 @@ class LearningQueryService(
         }
 
         val cards = dueProgresses.mapNotNull { progress ->
-            val termId = progress.term.id ?: return@mapNotNull null
-            val term = termMap[termId] ?: return@mapNotNull null
-            toLearningCard(progress, term, termId in bookmarkedTermIds)
+            val term = termMap[progress.term.id] ?: return@mapNotNull null
+            LearningTermCard.from(progress, term, term.id in bookmarkedTermIds)
         }
 
-        return ReviewDueTermsResponse(glossaryId = glossaryKey, terms = cards)
+        return ReviewDueTermsResponse(glossaryId = glossary.id, terms = cards)
     }
 
     @Transactional(readOnly = true)
@@ -136,14 +130,6 @@ class LearningQueryService(
         )
     }
 
-    /**
-     * 저장된 currentStreak 가 현 시점에서도 유효한지 판정.
-     * - 저장값이 0 이면 비교할 필요 없음
-     * - 오늘 또는 어제 활성이면 streak 유지 (자정 전까지는 어제 활성도 회복 기회로 인정)
-     * - 그 외(그제 이전이 마지막 활성)면 만료
-     *
-     * DB는 갱신하지 않는다(read-only). 다음 학습 제출 시 정상 경로로 재계산된다.
-     */
     private fun isStreakStillAlive(userId: UUID, storedStreak: Int): Boolean {
         if (storedStreak == 0) return true
         val today = today()
@@ -152,36 +138,6 @@ class LearningQueryService(
             .findAllByIdUserIdAndIdDateIn(userId, listOf(today, yesterday))
         return recent.any { (it.learnedCount + it.reviewedCount) > 0 }
     }
-
-    private fun toNewLearningCard(projection: NewLearningCardProjection): LearningTermCard =
-        LearningTermCard(
-            termId = projection.termId,
-            spelling = projection.spelling,
-            meaning = projection.meaning,
-            abbreviation = projection.abbreviation,
-            status = TermProgressStatus.NEW.name,
-            easeFactor = SrsCalculator.DEFAULT_EASE_FACTOR,
-            intervalDays = 0,
-            reviewCount = 0,
-            lastReviewedAt = null,
-            nextReviewAt = null,
-            bookmarked = projection.bookmarked == 1
-        )
-
-    private fun toLearningCard(progress: TermProgressEntity, term: TermEntity, bookmarked: Boolean): LearningTermCard =
-        LearningTermCard(
-            termId = term.idOrThrow,
-            spelling = term.spelling,
-            meaning = term.meaning,
-            abbreviation = term.abbreviation,
-            status = progress.status.name,
-            easeFactor = progress.easeFactor,
-            intervalDays = progress.intervalDays,
-            reviewCount = progress.reviewCount,
-            lastReviewedAt = progress.lastReviewedAt,
-            nextReviewAt = progress.nextReviewAt,
-            bookmarked = bookmarked
-        )
 
     private fun findUser(userId: UUID): UserEntity =
         userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.UNAUTHORIZED)
@@ -195,9 +151,3 @@ class LearningQueryService(
         private val VALID_YEAR_RANGE: IntRange = 2000..2100
     }
 }
-
-private val GlossaryEntity.idOrThrow: Long
-    get() = id ?: error("GlossaryEntity#id must be non-null after persistence")
-
-private val TermEntity.idOrThrow: Long
-    get() = id ?: error("TermEntity#id must be non-null after persistence")

@@ -14,7 +14,7 @@ class MorphemeEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    val id: Long? = null,
+    val id: Long = 0L,
 
     @Column(name = "spelling", nullable = false, length = 100)
     var spelling: String,

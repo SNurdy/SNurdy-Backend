@@ -97,7 +97,8 @@ enum class LearningError(
     override val code: String,
     override val message: String
 ) : ErrorCode {
-    INVALID_MONTH_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E001", "month는 1..12 범위여야 합니다")
+    INVALID_MONTH_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E001", "month는 1..12 범위여야 합니다"),
+    INVALID_YEAR_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E002", "year는 2000..2100 범위여야 합니다")
 }
 
 enum class AdminError(

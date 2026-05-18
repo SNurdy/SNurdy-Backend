@@ -13,4 +13,9 @@ interface GlossaryProgressRepository : JpaRepository<GlossaryProgressEntity, Glo
     fun findByIdUserIdAndIdGlossaryId(userId: UUID, glossaryId: Long): GlossaryProgressEntity?
 
     fun findAllByIdUserId(userId: UUID): List<GlossaryProgressEntity>
+
+    fun findAllByIdUserIdAndIdGlossaryIdIn(
+        userId: UUID,
+        glossaryIds: Collection<Long>
+    ): List<GlossaryProgressEntity>
 }

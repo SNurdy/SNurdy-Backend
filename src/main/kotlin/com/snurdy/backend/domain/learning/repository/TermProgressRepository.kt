@@ -22,6 +22,12 @@ interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
         termIds: List<Long>
     ): List<TermProgressEntity>
 
+    fun findAllByUserIdAndGlossaryIdInAndTermIdIn(
+        userId: UUID,
+        glossaryIds: Collection<Long>,
+        termIds: Collection<Long>
+    ): List<TermProgressEntity>
+
     @Query(
         """
         SELECT tp

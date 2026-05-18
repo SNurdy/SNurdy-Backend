@@ -19,6 +19,11 @@ interface DailyProgressRepository : JpaRepository<DailyProgressEntity, DailyProg
 
     fun findByIdUserIdOrderByIdDateDesc(userId: UUID): List<DailyProgressEntity>
 
+    fun findAllByIdUserIdAndIdDateIn(
+        userId: UUID,
+        dates: Collection<LocalDate>
+    ): List<DailyProgressEntity>
+
     /** [from] 포함 이하 날짜 범위에서 내림차순으로 조회. streak 역산(cap 기반) 용도. */
     fun findByIdUserIdAndIdDateLessThanEqualOrderByIdDateDesc(
         userId: UUID,

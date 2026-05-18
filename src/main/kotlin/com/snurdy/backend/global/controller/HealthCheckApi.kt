@@ -12,5 +12,5 @@ interface HealthCheckApi {
     @Operation(summary = "서버 헬스체크", description = "서버가 정상 작동 중인지 확인합니다.")
     @SecurityRequirements
     @GetMapping("/v1/health")
-    fun healthCheck(): ApiResponse<Map<String, Any>>
+    fun healthCheck(): ApiResponse<HealthCheckResponse>
 }

@@ -11,10 +11,10 @@ class HealthCheckController(
     private val clock: Clock
 ) : HealthCheckApi {
 
-    override fun healthCheck(): ApiResponse<Map<String, Any>> {
-        val data = mapOf(
-            "status" to "UP",
-            "timestamp" to Instant.now(clock).toString()
+    override fun healthCheck(): ApiResponse<HealthCheckResponse> {
+        val data = HealthCheckResponse(
+            status = "UP",
+            timestamp = Instant.now(clock)
         )
         return ApiResponse.success(CommonSuccess.OK, data)
     }

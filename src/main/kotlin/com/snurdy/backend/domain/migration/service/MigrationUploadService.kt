@@ -294,7 +294,7 @@ class MigrationUploadService(
     private inline fun <T, K> rejectIfDuplicated(
         items: List<T>,
         error: MigrationError,
-        keySelector: (T) -> K
+        crossinline keySelector: (T) -> K
     ) {
         val duplicated = items.groupingBy(keySelector).eachCount().filterValues { it > 1 }
         if (duplicated.isNotEmpty()) throw ApiException(error)

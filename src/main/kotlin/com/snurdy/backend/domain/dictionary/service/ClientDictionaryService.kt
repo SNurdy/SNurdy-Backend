@@ -39,7 +39,7 @@ class ClientDictionaryService(
             termRepository.searchActiveTerms(sanitizedQuery, pageable)
         }
 
-        val termIds = termPage.content.mapNotNull { it.id }
+        val termIds = termPage.content.map { it.id }
         val bookmarkedTermIds = if (termIds.isEmpty()) {
             emptySet()
         } else {
@@ -56,7 +56,7 @@ class ClientDictionaryService(
             hasNext = termPage.hasNext(),
             terms = termPage.content.map { term ->
                 ClientTermSummary(
-                    id = term.id!!,
+                    id = term.id,
                     spelling = term.spelling,
                     meaning = term.meaning,
                     abbreviation = term.abbreviation,
@@ -128,9 +128,7 @@ class ClientDictionaryService(
             .orElseThrow { ApiException(DictionaryError.GLOSSARY_NOT_FOUND) }
 
         val normalizedFilter = normalizeFilter(filter)
-        val safeSize = size.coerceAtLeast(1)
-        val safePage = page.coerceAtLeast(0)
-        val pageable = PageRequest.of(safePage, safeSize)
+        val pageable = PageRequest.of(page, size)
 
         val pageResult = glossaryTermRepository.findPagedClientGlossaryTerms(
             userId = userId,
@@ -140,7 +138,7 @@ class ClientDictionaryService(
         )
 
         return ClientGlossaryTermsResponse(
-            glossaryId = glossary.id!!,
+            glossaryId = glossary.id,
             category = glossary.category,
             title = glossary.title,
             filter = normalizedFilter.responseValue,

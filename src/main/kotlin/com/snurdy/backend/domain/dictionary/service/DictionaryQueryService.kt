@@ -21,8 +21,10 @@ import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
+@Transactional(readOnly = true)
 class DictionaryQueryService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
@@ -30,7 +32,6 @@ class DictionaryQueryService(
     private val termMorphemeRepository: TermMorphemeRepository,
     private val morphemeVariantRepository: MorphemeVariantRepository,
     private val highlightCalculator: HighlightCalculator
-
 ) {
 
     companion object {
@@ -59,7 +60,7 @@ class DictionaryQueryService(
         val termPage = glossaryTermRepository.findPagedTermSummariesByGlossaryId(glossaryId, pageable)
 
         return GlossaryTermsResponse(
-            glossaryId = glossary.id!!,
+            glossaryId = glossary.id,
             category = glossary.category,
             title = glossary.title,
             page = termPage.number,
@@ -115,7 +116,7 @@ class DictionaryQueryService(
 
         return TermDetailResponse(
             term = TermDetail(
-                id = term.id!!,
+                id = term.id,
                 spelling = term.spelling,
                 meaning = term.meaning,
                 abbreviation = term.abbreviation,
@@ -144,7 +145,7 @@ class DictionaryQueryService(
         }
 
         val termIds = searchHits.map { it.termId }.distinct()
-        val termEntities = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
+        val termEntities = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
         val glossaryProjections = glossaryTermRepository.findGlossariesByTermIds(termIds)
         val glossariesByTermId = glossaryProjections.groupBy { it.termId }
 
@@ -155,7 +156,7 @@ class DictionaryQueryService(
             }
 
             MorphemeSearchTermItem(
-                id = term.id!!,
+                id = term.id,
                 spelling = term.spelling,
                 meaning = term.meaning,
                 abbreviation = term.abbreviation,

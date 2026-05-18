@@ -87,7 +87,17 @@ enum class DictionaryError(
 ) : ErrorCode {
     GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "DICTIONARY_E001", "단어장을 찾을 수 없습니다"),
     TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "DICTIONARY_E002", "단어를 찾을 수 없습니다"),
-    INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "DICTIONARY_E003", "키워드는 2자 이상 50자 이하여야 합니다")
+    INVALID_SEARCH_KEYWORD(HttpStatus.BAD_REQUEST, "DICTIONARY_E003", "키워드는 2자 이상 50자 이하여야 합니다"),
+    TERM_NOT_IN_GLOSSARY(HttpStatus.BAD_REQUEST, "DICTIONARY_E004", "해당 용어가 용어장에 속하지 않습니다"),
+    INVALID_FILTER(HttpStatus.BAD_REQUEST, "DICTIONARY_E005", "filter는 all|learned|notLearned 중 하나여야 합니다")
+}
+
+enum class LearningError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    INVALID_MONTH_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E001", "month는 1..12 범위여야 합니다")
 }
 
 enum class AdminError(

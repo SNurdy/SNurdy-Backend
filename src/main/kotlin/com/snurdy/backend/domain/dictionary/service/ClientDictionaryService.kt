@@ -12,7 +12,6 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -166,7 +165,7 @@ class ClientDictionaryService(
     private fun normalizeFilter(filter: String): TermFilter {
         val value = filter.trim().lowercase()
         return TermFilter.entries.firstOrNull { it.apiValue == value }
-            ?: throw ApiException(CommonError.BAD_REQUEST, "filter는 all|learned|notLearned 중 하나여야 합니다")
+            ?: throw ApiException(DictionaryError.INVALID_FILTER)
     }
 
     private enum class TermFilter(val apiValue: String, val responseValue: String, val queryValue: String) {

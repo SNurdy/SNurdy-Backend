@@ -2,8 +2,12 @@ package com.snurdy.backend.domain.bookmark.dto
 
 import java.time.Instant
 
-data class BookmarkListResponse(
-    val bookmarks: List<BookmarkItem>
+data class BookmarkPageResponse(
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val items: List<BookmarkItem>
 )
 
 data class BookmarkItem(

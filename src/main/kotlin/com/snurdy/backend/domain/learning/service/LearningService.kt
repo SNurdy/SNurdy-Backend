@@ -26,8 +26,9 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.DictionaryError
+import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -156,7 +157,7 @@ class LearningService(
 
     @Transactional(readOnly = true)
     fun getCalendar(userId: UUID, year: Int, month: Int): CalendarStatsResponse {
-        if (month !in 1..12) throw ApiException(CommonError.BAD_REQUEST, "month는 1..12 범위여야 합니다")
+        if (month !in 1..12) throw ApiException(LearningError.INVALID_MONTH_RANGE)
 
         val yearMonth = YearMonth.of(year, month)
         val from = yearMonth.atDay(1)
@@ -374,7 +375,7 @@ class LearningService(
 
     private fun validateGlossaryTermPair(glossaryId: Long, termId: Long) {
         if (!glossaryTermRepository.existsByIdGlossaryIdAndIdTermId(glossaryId, termId)) {
-            throw ApiException(CommonError.BAD_REQUEST, "용어장과 용어의 조합이 유효하지 않습니다")
+            throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)
         }
     }
 

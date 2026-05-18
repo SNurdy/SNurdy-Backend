@@ -18,7 +18,6 @@ import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.DictionaryError
-import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -90,9 +89,6 @@ class LearningQueryService(
 
     @Transactional(readOnly = true)
     fun getCalendar(userId: UUID, year: Int, month: Int): CalendarStatsResponse {
-        if (year !in VALID_YEAR_RANGE) throw ApiException(LearningError.INVALID_YEAR_RANGE)
-        if (month !in 1..12) throw ApiException(LearningError.INVALID_MONTH_RANGE)
-
         val yearMonth = YearMonth.of(year, month)
         val from = yearMonth.atDay(1)
         val to = yearMonth.atEndOfMonth()
@@ -148,6 +144,5 @@ class LearningQueryService(
 
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
-        private val VALID_YEAR_RANGE: IntRange = 2000..2100
     }
 }

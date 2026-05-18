@@ -92,15 +92,6 @@ enum class DictionaryError(
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "DICTIONARY_E005", "filter는 all|learned|notLearned 중 하나여야 합니다")
 }
 
-enum class LearningError(
-    override val status: HttpStatus,
-    override val code: String,
-    override val message: String
-) : ErrorCode {
-    INVALID_MONTH_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E001", "month는 1..12 범위여야 합니다"),
-    INVALID_YEAR_RANGE(HttpStatus.BAD_REQUEST, "LEARNING_E002", "year는 2000..2100 범위여야 합니다")
-}
-
 enum class AdminError(
     override val status: HttpStatus,
     override val code: String,

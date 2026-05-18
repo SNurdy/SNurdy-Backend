@@ -15,6 +15,7 @@ import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
 import com.snurdy.backend.domain.learning.entity.TermProgressEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.learning.service.SrsCalculator
 import com.snurdy.backend.domain.migration.dto.BookmarkPayload
 import com.snurdy.backend.domain.migration.dto.DailyProgressPayload
 import com.snurdy.backend.domain.migration.dto.GlossaryProgressPayload
@@ -141,7 +142,6 @@ class MigrationService(
                 throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
             }
 
-            val user = findUser(userId)
             val savedTermCount = saveTermProgresses(user, request.termProgresses)
             val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
             val savedBookmarkCount = saveBookmarks(user, request.bookmarks)
@@ -227,8 +227,8 @@ class MigrationService(
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val termIds = payloads.map { it.termId }.distinct()
 
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
-        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
 
         val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
         if (missingGlossaryIds.isNotEmpty()) {
@@ -278,7 +278,7 @@ class MigrationService(
         if (payloads.isEmpty()) return 0
 
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
 
         val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
         if (missingGlossaryIds.isNotEmpty()) {
@@ -308,8 +308,8 @@ class MigrationService(
         val glossaryIds = payloads.map { it.glossaryId }.distinct()
         val termIds = payloads.map { it.termId }.distinct()
 
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id!! }
-        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id!! }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
 
         val missingGlossaryIds = glossaryIds.filterNot(glossaries::containsKey)
         if (missingGlossaryIds.isNotEmpty()) {
@@ -389,41 +389,27 @@ class MigrationService(
     }
 
     private fun validateDuplicateEntries(request: MigrationUploadRequest) {
-        val duplicatedTermKeys = request.termProgresses
-            .groupingBy { it.glossaryId to it.termId }
-            .eachCount()
-            .filterValues { it > 1 }
-            .keys
-        if (duplicatedTermKeys.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_DUPLICATED_TERM_PROGRESS)
+        rejectIfDuplicated(request.termProgresses, MigrationError.MIGRATION_DUPLICATED_TERM_PROGRESS) {
+            it.glossaryId to it.termId
         }
+        rejectIfDuplicated(request.glossaryProgresses, MigrationError.MIGRATION_DUPLICATED_GLOSSARY_PROGRESS) {
+            it.glossaryId
+        }
+        rejectIfDuplicated(request.bookmarks, MigrationError.MIGRATION_DUPLICATED_BOOKMARK) {
+            it.glossaryId to it.termId
+        }
+        rejectIfDuplicated(request.dailyProgresses, MigrationError.MIGRATION_DUPLICATED_DAILY_PROGRESS) {
+            it.date
+        }
+    }
 
-        val duplicatedGlossaryIds = request.glossaryProgresses
-            .groupingBy { it.glossaryId }
-            .eachCount()
-            .filterValues { it > 1 }
-            .keys
-        if (duplicatedGlossaryIds.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_DUPLICATED_GLOSSARY_PROGRESS)
-        }
-
-        val duplicatedBookmarkKeys = request.bookmarks
-            .groupingBy { it.glossaryId to it.termId }
-            .eachCount()
-            .filterValues { it > 1 }
-            .keys
-        if (duplicatedBookmarkKeys.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_DUPLICATED_BOOKMARK)
-        }
-
-        val duplicatedDates = request.dailyProgresses
-            .groupingBy(DailyProgressPayload::date)
-            .eachCount()
-            .filterValues { it > 1 }
-            .keys
-        if (duplicatedDates.isNotEmpty()) {
-            throw ApiException(MigrationError.MIGRATION_DUPLICATED_DAILY_PROGRESS)
-        }
+    private inline fun <T, K> rejectIfDuplicated(
+        items: List<T>,
+        error: MigrationError,
+        keySelector: (T) -> K
+    ) {
+        val duplicated = items.groupingBy(keySelector).eachCount().filterValues { it > 1 }
+        if (duplicated.isNotEmpty()) throw ApiException(error)
     }
 
     private fun findUser(userId: UUID): UserEntity =
@@ -438,7 +424,7 @@ class MigrationService(
 
     private fun normalizeEaseFactor(value: Double): BigDecimal =
         value
-            .coerceAtLeast(MIN_EASE_FACTOR)
+            .coerceAtLeast(SrsCalculator.MIN_EASE_FACTOR.toDouble())
             .toBigDecimal()
             .setScale(2, RoundingMode.HALF_UP)
 
@@ -470,7 +456,4 @@ class MigrationService(
         eventPublisher.publishEvent(MigrationFailureEvent(sessionId = sessionId, reason = normalizedReason))
     }
 
-    companion object {
-        private const val MIN_EASE_FACTOR = 1.3
-    }
 }

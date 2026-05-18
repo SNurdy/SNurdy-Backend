@@ -16,7 +16,7 @@ import kotlin.math.ceil
 object SrsCalculator {
 
     val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
-    private val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
+    val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
     private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
 
     fun applyAnswer(progress: TermProgressEntity, event: LearningAnswerEvent, now: Instant): Boolean {

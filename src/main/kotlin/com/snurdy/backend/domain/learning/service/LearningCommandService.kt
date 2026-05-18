@@ -121,10 +121,6 @@ class LearningCommandService(
         glossaryProgressRepository.saveAll(toSave)
     }
 
-    /**
-     * daily_progresses 를 갱신하고, 오늘 엔트리가 '세션 전부터' 활성이었는지 여부를 돌려준다.
-     * streak 증분 계산에 필요한 유일한 기존 상태 신호.
-     */
     private fun updateDailyProgresses(
         user: UserEntity,
         byDate: Map<LocalDate, DailyDelta>,
@@ -153,12 +149,6 @@ class LearningCommandService(
         return todayWasActiveBefore
     }
 
-    /**
-     * streak 증분 계산 — 전체 daily 스캔 대신 오늘/어제 2건만 조회.
-     *   - 오늘이 세션 전부터 이미 활성이었다면 streak는 이미 오늘을 포함하므로 변경 없음
-     *   - 오늘이 신규 활성이면 어제가 활성이었는지로 +1 vs 1 결정
-     *   - 오늘에 학습이 없었다면 streak는 과거 값 유지(만료는 별도 배치 또는 조회 시점에서 해결)
-     */
     private fun updateUserSummary(
         user: UserEntity,
         learnedDelta: Int,
@@ -178,7 +168,6 @@ class LearningCommandService(
                     !yesterdayActive -> 1
                     user.currentStreak > 0 -> user.currentStreak + 1
                     // currentStreak 가 stale(0)인데 어제는 활성 → daily_progresses 기반으로 역산
-                    // 사례: userSummary 없이 마이그레이션한 사용자가 마이그레이션 이후 첫 학습.
                     else -> countStreakEndingAt(user.id, yesterday) + 1
                 }
             }
@@ -186,10 +175,6 @@ class LearningCommandService(
         user.applyLearningOutcome(learnedDelta = learnedDelta, newCurrentStreak = newStreak)
     }
 
-    /**
-     * [endDate] 에서 뒤로 연속된 활성일 수를 계산. 성능 보호를 위해 [MAX_STREAK_LOOKBACK] 로 상한 캡.
-     * 이 경로는 streak stale 감지/마이그레이션 직후 등 드문 케이스에서만 호출된다.
-     */
     private fun countStreakEndingAt(userId: UUID, endDate: LocalDate): Int {
         val rows = dailyProgressRepository.findByIdUserIdAndIdDateLessThanEqualOrderByIdDateDesc(
             userId = userId,
@@ -226,19 +211,9 @@ class LearningCommandService(
 
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
-        /**
-         * streak 역산 시 daily_progresses 를 돌아볼 최대 일수.
-         * 365일이면 1년 간 매일 활동한 사용자도 수용하며, 단건 쿼리로 끝난다.
-         */
         private const val MAX_STREAK_LOOKBACK: Int = 365
     }
 
-    /**
-     * submitLearning 한 번의 호출 동안 필요한 엔티티들을 미리 로드해 두는 in-memory 캐시.
-     * - validPairs: glossary-term 매핑 검증용
-     * - glossaries / terms: 신규 progress 생성 시 참조용
-     * - progresses: 기존 progress 캐시 + 신규 생성된 progress 도 같은 batch 내 재사용 위해 추가
-     */
     private class SubmitContext(
         private val validPairs: Set<GlossaryTermId>,
         private val glossaries: Map<Long, GlossaryEntity>,

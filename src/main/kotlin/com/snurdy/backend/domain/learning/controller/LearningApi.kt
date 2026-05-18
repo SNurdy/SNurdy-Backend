@@ -24,7 +24,7 @@ import java.util.UUID
 interface LearningApi {
 
     @Operation(summary = "학습 카드 시작")
-    @PostMapping("/v1/learning/glossaries/{glossaryId}/next-terms")
+    @GetMapping("/v1/learning/glossaries/{glossaryId}/next-terms")
     fun getNextTerms(
         @CurrentUserId userId: UUID,
         @PathVariable glossaryId: Long,

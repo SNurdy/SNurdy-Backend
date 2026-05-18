@@ -46,10 +46,9 @@ class LearningQueryService(
     @Transactional(readOnly = true)
     fun getNextTerms(userId: UUID, glossaryId: Long, size: Int): StudyNextTermsResponse {
         val glossary = findGlossary(glossaryId)
-        val safeSize = size.coerceIn(1, 100)
 
         val cards = glossaryTermRepository
-            .findNewLearningCards(userId, glossary.id, safeSize)
+            .findNewLearningCards(userId, glossary.id, size)
             .map { LearningTermCard.fromNewProjection(it) }
 
         return StudyNextTermsResponse(glossaryId = glossary.id, terms = cards)
@@ -58,7 +57,6 @@ class LearningQueryService(
     @Transactional(readOnly = true)
     fun getDueTerms(userId: UUID, glossaryId: Long, size: Int): ReviewDueTermsResponse {
         val glossary = findGlossary(glossaryId)
-        val safeSize = size.coerceIn(1, 100)
         val now = clock.instant()
 
         val dueProgresses = termProgressRepository.findDueProgresses(
@@ -66,7 +64,7 @@ class LearningQueryService(
             glossaryId = glossary.id,
             now = now,
             statuses = listOf(TermProgressStatus.LEARNING, TermProgressStatus.REVIEW),
-            pageable = PageRequest.of(0, safeSize)
+            pageable = PageRequest.of(0, size)
         )
 
         val termIds = dueProgresses.map { it.term.id }

@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.learning.entity
 
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
+import com.snurdy.backend.domain.learning.service.SrsCalculator
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
@@ -60,7 +61,7 @@ class TermProgressEntity(
     var occurredAt: Instant? = null,
 
     @Column(name = "ease_factor", nullable = false, precision = 4, scale = 2)
-    var easeFactor: BigDecimal = DEFAULT_EASE_FACTOR,
+    var easeFactor: BigDecimal = SrsCalculator.DEFAULT_EASE_FACTOR,
 
     @Column(name = "interval_days", nullable = false)
     var intervalDays: Int = 0,
@@ -86,9 +87,5 @@ class TermProgressEntity(
         status = TermProgressStatus.MASTERED
         lastReviewedAt = now
         nextReviewAt = null
-    }
-
-    companion object {
-        private val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
     }
 }

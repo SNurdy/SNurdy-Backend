@@ -92,7 +92,7 @@ class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
             jsonPath("$.data.bookmarked") { value(false) }
         }
 
-        mockMvc.post("/v1/learning/glossaries/${pairA.glossaryId}/next-terms") {
+        mockMvc.get("/v1/learning/glossaries/${pairA.glossaryId}/next-terms") {
             with(userAuth())
             param("size", "5")
         }.andExpect {

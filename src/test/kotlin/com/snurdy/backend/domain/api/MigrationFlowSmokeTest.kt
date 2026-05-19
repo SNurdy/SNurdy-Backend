@@ -17,7 +17,7 @@ import java.util.UUID
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
-class MigrationFlowSmokeTest : AbstractP0ApiTestSupport() {
+class MigrationFlowSmokeTest : ApiSmokeTestBase() {
 
     @Test
     fun `마이그레이션 정상 흐름 start-upload-finalize-status가 동작한다`() {

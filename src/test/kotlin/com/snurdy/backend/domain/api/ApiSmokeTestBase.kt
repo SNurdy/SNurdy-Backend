@@ -21,7 +21,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
-abstract class AbstractP0ApiTestSupport {
+abstract class ApiSmokeTestBase {
 
     @Autowired
     protected lateinit var mockMvc: MockMvc

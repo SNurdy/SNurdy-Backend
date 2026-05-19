@@ -30,7 +30,7 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew clean test \
-            --tests "*P0EndpointSmokeTest" \
+            --tests "*CoreApiSmokeTest" \
             --tests "*MigrationFlowSmokeTest"
 
   build-and-push:

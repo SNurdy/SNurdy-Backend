@@ -20,7 +20,7 @@ import java.time.ZoneId
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
-class P0EndpointSmokeTest : AbstractP0ApiTestSupport() {
+class CoreApiSmokeTest : ApiSmokeTestBase() {
 
     @Test
     fun `P0 API 스모크 테스트가 인증 사용자 기준으로 동작한다`() {

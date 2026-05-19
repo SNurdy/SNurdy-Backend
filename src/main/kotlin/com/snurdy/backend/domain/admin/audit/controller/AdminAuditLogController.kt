@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.admin.audit.controller
 
 import com.snurdy.backend.domain.admin.audit.dto.AuditLogPageResponse
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.service.AdminAuditLogService
 import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -12,7 +13,7 @@ class AdminAuditLogController(
 ) : AdminAuditLogApi {
 
     override fun list(
-        action: String?,
+        action: AdminAuditAction?,
         targetTable: String?,
         targetPk: String?,
         page: Int,

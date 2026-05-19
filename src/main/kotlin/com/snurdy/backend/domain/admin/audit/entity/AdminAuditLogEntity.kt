@@ -9,7 +9,7 @@ class AdminAuditLogEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
-    val id: Long? = null,
+    val id: Long = 0L,
 
     @Column(name = "actor_role", nullable = false, length = 30)
     var actorRole: String,

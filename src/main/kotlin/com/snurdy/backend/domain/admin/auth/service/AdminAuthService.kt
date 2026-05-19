@@ -1,9 +1,8 @@
 package com.snurdy.backend.domain.admin.auth.service
 
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
-import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditTarget
-import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
+import com.snurdy.backend.domain.admin.audit.service.AdminAuditLogService
 import com.snurdy.backend.domain.admin.auth.dto.AdminInfo
 import com.snurdy.backend.domain.admin.auth.dto.AdminTokenResponse
 import com.snurdy.backend.domain.admin.auth.repository.AdminUserRepository
@@ -21,7 +20,7 @@ class AdminAuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenProvider: JwtTokenProvider,
     private val rateLimiter: AdminLoginRateLimiter,
-    private val auditLogRepository: AdminAuditLogRepository,
+    private val auditLogService: AdminAuditLogService,
     private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) {
 
@@ -35,11 +34,13 @@ class AdminAuthService(
         val normalizedEmail = email.trim().lowercase()
         rateLimiter.ensureAllowed(normalizedEmail, ipAddress)
 
-        val admin = adminUserRepository.findByEmail(email.trim())
+        val admin = adminUserRepository.findByEmail(normalizedEmail)
         if (admin == null || !passwordEncoder.matches(password, admin.password)) {
             rateLimiter.recordFailure(normalizedEmail, ipAddress)
-            writeAudit(
+            auditLogService.write(
+                actorRole = ACTOR_ROLE,
                 action = AdminAuditAction.ADMIN_LOGIN_FAILED,
+                targetTable = AdminAuditTarget.ADMIN_USERS,
                 targetPk = normalizedEmail.ifBlank { UNKNOWN_TARGET },
                 ipAddress = ipAddress,
                 userAgent = userAgent
@@ -48,8 +49,10 @@ class AdminAuthService(
         }
 
         rateLimiter.recordSuccess(normalizedEmail, ipAddress)
-        writeAudit(
+        auditLogService.write(
+            actorRole = ACTOR_ROLE,
             action = AdminAuditAction.ADMIN_LOGIN_SUCCESS,
+            targetTable = AdminAuditTarget.ADMIN_USERS,
             targetPk = admin.id.toString(),
             ipAddress = ipAddress,
             userAgent = userAgent
@@ -67,24 +70,8 @@ class AdminAuthService(
         accessTokenBlacklistService.blacklistAccessToken(accessToken)
     }
 
-    private fun writeAudit(action: AdminAuditAction, targetPk: String, ipAddress: String?, userAgent: String?) {
-        auditLogRepository.save(
-            AdminAuditLogEntity(
-                actorRole = ACTOR_ROLE,
-                action = action.name,
-                targetTable = AdminAuditTarget.ADMIN_USERS,
-                targetPk = targetPk.take(MAX_PK_LENGTH),
-                ipAddress = ipAddress?.take(MAX_IP_LENGTH),
-                userAgent = userAgent?.take(MAX_UA_LENGTH)
-            )
-        )
-    }
-
     companion object {
         private const val ACTOR_ROLE = "ADMIN"
         private const val UNKNOWN_TARGET = "unknown"
-        private const val MAX_PK_LENGTH = 100
-        private const val MAX_IP_LENGTH = 45
-        private const val MAX_UA_LENGTH = 255
     }
 }

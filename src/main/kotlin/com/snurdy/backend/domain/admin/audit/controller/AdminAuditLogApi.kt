@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.admin.audit.controller
 
 import com.snurdy.backend.domain.admin.audit.dto.AuditLogPageResponse
+import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -19,7 +20,7 @@ interface AdminAuditLogApi {
     @Operation(summary = "감사 로그 목록 조회")
     @GetMapping
     fun list(
-        @RequestParam(required = false) action: String?,
+        @RequestParam(required = false) action: AdminAuditAction?,
         @RequestParam(required = false) targetTable: String?,
         @RequestParam(required = false) targetPk: String?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,

@@ -30,8 +30,8 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew clean test \
-            --tests "*SeedDataIntegrityTest" \
-            --tests "*SeedInternalApiTest"
+            --tests "*P0EndpointSmokeTest" \
+            --tests "*MigrationFlowSmokeTest"
 
   build-and-push:
     name: 빌드 및 이미지 푸시

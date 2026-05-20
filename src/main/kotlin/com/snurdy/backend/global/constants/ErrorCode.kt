@@ -50,7 +50,8 @@ enum class MigrationError(
     MIGRATION_DECLINED(HttpStatus.CONFLICT, "MIGRATION_E015", "사용자가 데이터 마이그레이션을 거부했습니다"),
     MIGRATION_UPLOAD_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E016", "마이그레이션 업로드 처리 중 서버 오류가 발생했습니다"),
     MIGRATION_FINALIZE_INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E017", "마이그레이션 완료 처리 중 서버 오류가 발생했습니다"),
-    MIGRATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E018", "마이그레이션 처리 중 오류가 발생했습니다")
+    MIGRATION_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "MIGRATION_E018", "마이그레이션 처리 중 오류가 발생했습니다"),
+    MIGRATION_SESSION_FORBIDDEN(HttpStatus.FORBIDDEN, "MIGRATION_E019", "본인의 마이그레이션 세션만 다룰 수 있습니다")
 }
 
 // 인증 관련 에러

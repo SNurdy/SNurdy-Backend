@@ -11,7 +11,7 @@ import com.snurdy.backend.domain.migration.entity.MigrationStatus
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.context.ApplicationEventPublisher
@@ -65,7 +65,7 @@ class MigrationSessionService(
             MigrationStartResponse(migrationId = session.id.toString())
         } catch (_: DataIntegrityViolationException) {
             val conflicted = migrationSessionRepository.findByUserId(userId)
-                ?: throw ApiException(CommonError.INTERNAL_ERROR)
+                ?: throw ApiException(MigrationError.MIGRATION_PROCESSING_ERROR)
             if (conflicted.isCompleted()) throw ApiException(MigrationError.MIGRATION_ALREADY_COMPLETED)
             MigrationStartResponse(migrationId = conflicted.id.toString())
         }
@@ -98,7 +98,7 @@ class MigrationSessionService(
         }
 
         val session = findSessionForUpdate(migrationId)
-        if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
+        if (session.user.id != userId) throw ApiException(MigrationError.MIGRATION_SESSION_FORBIDDEN)
 
         if (session.isCompleted()) {
             return MigrationStatusResponse(
@@ -171,7 +171,7 @@ class MigrationSessionService(
     }
 
     internal fun findUser(userId: UUID): UserEntity =
-        userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.NOT_FOUND)
+        userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.NOT_FOUND)
 
     private fun hasExistingLearningData(userId: UUID): Boolean =
         termProgressRepository.existsByUserId(userId) ||

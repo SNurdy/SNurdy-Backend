@@ -24,7 +24,6 @@ import com.snurdy.backend.domain.migration.dto.TermProgressPayload
 import com.snurdy.backend.domain.migration.dto.UserSummaryPayload
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
@@ -65,7 +64,7 @@ class MigrationUploadService(
         validateDuplicateEntries(request)
 
         val session = migrationSessionService.findSessionForUpdate(migrationId)
-        if (session.user.id != userId) throw ApiException(CommonError.FORBIDDEN)
+        if (session.user.id != userId) throw ApiException(MigrationError.MIGRATION_SESSION_FORBIDDEN)
 
         if (session.isUploaded() || session.isCompleted()) {
             return loadUploadCounts(migrationId, userId)

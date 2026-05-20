@@ -97,7 +97,16 @@ enum class AdminSuccess(
     VALIDATE_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S011", "변경 요청 검증에 성공했습니다"),
     APPLY_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S012", "변경 요청 반영에 성공했습니다"),
     CANCEL_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S013", "변경 요청 취소에 성공했습니다"),
-    ROLLBACK_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S014", "변경 요청 롤백에 성공했습니다")
+    ROLLBACK_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S014", "변경 요청 롤백에 성공했습니다"),
+    LIST_CHANGE_REQUESTS(HttpStatus.OK, "ADMIN_S015", "변경 요청 목록 조회에 성공했습니다"),
+    GET_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S016", "변경 요청 상세 조회에 성공했습니다"),
+    UPDATE_CHANGE_REQUEST(HttpStatus.OK, "ADMIN_S017", "변경 요청을 수정했습니다"),
+    LIST_AUDIT_LOGS(HttpStatus.OK, "ADMIN_S020", "감사 로그 목록 조회에 성공했습니다"),
+    LIST_GLOSSARIES(HttpStatus.OK, "ADMIN_S030", "용어집 목록 조회에 성공했습니다"),
+    LIST_TERMS(HttpStatus.OK, "ADMIN_S031", "용어 목록 조회에 성공했습니다"),
+    GET_TERM(HttpStatus.OK, "ADMIN_S032", "용어 상세 조회에 성공했습니다"),
+    LIST_MORPHEMES(HttpStatus.OK, "ADMIN_S033", "어근어미 목록 조회에 성공했습니다"),
+    LIST_MORPHEME_VARIANTS(HttpStatus.OK, "ADMIN_S034", "어근어미 변형 목록 조회에 성공했습니다")
 }
 
 enum class VersionSuccess(

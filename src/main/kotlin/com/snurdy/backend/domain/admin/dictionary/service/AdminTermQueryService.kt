@@ -7,7 +7,6 @@ import com.snurdy.backend.domain.admin.dictionary.dto.TermPageResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -38,7 +37,7 @@ class AdminTermQueryService(
             totalPages = data.totalPages,
             items = data.content.map {
                 TermItem(
-                    id = it.id ?: throw ApiException(CommonError.INTERNAL_ERROR),
+                    id = it.id,
                     spelling = it.spelling,
                     meaning = it.meaning,
                     abbreviation = it.abbreviation,
@@ -63,7 +62,7 @@ class AdminTermQueryService(
         }
 
         return TermDetailResponse(
-            id = term.id ?: throw ApiException(CommonError.INTERNAL_ERROR),
+            id = term.id,
             spelling = term.spelling,
             meaning = term.meaning,
             abbreviation = term.abbreviation,

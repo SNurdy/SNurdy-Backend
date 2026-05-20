@@ -6,8 +6,6 @@ import com.snurdy.backend.domain.admin.dictionary.dto.MorphemeVariantItem
 import com.snurdy.backend.domain.admin.dictionary.dto.MorphemeVariantPageResponse
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
-import com.snurdy.backend.global.constants.CommonError
-import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -36,7 +34,7 @@ class AdminMorphemeQueryService(
             totalPages = data.totalPages,
             items = data.content.map {
                 MorphemeItem(
-                    id = it.id ?: throw ApiException(CommonError.INTERNAL_ERROR),
+                    id = it.id,
                     spelling = it.spelling,
                     meaning = it.meaning
                 )
@@ -64,7 +62,7 @@ class AdminMorphemeQueryService(
             items = data.content.map {
                 MorphemeVariantItem(
                     id = it.id,
-                    morphemeId = it.morpheme.id ?: throw ApiException(CommonError.INTERNAL_ERROR),
+                    morphemeId = it.morpheme.id,
                     variant = it.variant,
                     base = it.base
                 )

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.snurdy.backend.domain.admin.workflow.service.model.MorphemePayload
 import com.snurdy.backend.domain.admin.workflow.service.model.TermPayload
 import com.snurdy.backend.global.constants.AdminError
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 
@@ -34,9 +33,9 @@ class ChangeRequestPayloadMapper(
     fun writeAsString(value: Any?): String? =
         value?.let {
             runCatching { objectMapper.writeValueAsString(it) }
-                .getOrElse { throw ApiException(CommonError.INTERNAL_ERROR, cause = it) }
+                .getOrElse { throw ApiException(AdminError.WORKFLOW_PAYLOAD_INVALID, cause = it) }
         }
 
     fun writeRequired(value: Any): String =
-        writeAsString(value) ?: throw ApiException(CommonError.INTERNAL_ERROR)
+        writeAsString(value) ?: throw ApiException(AdminError.WORKFLOW_PAYLOAD_INVALID)
 }

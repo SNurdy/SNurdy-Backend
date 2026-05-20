@@ -117,6 +117,10 @@ enum class AdminError(
     DUPLICATE_MORPHEME_SPELLING(HttpStatus.CONFLICT, "ADMIN_E024", "이미 존재하는 어근어미입니다"),
     INVALID_WORKFLOW_ENTITY_TYPE(HttpStatus.BAD_REQUEST, "ADMIN_E025", "지원하지 않는 요청 엔티티 유형입니다"),
     WORKFLOW_ROLLBACK_FAILED(HttpStatus.CONFLICT, "ADMIN_E026", "현재 상태에서 워크플로우를 롤백할 수 없습니다"),
+    CHANGE_REQUEST_TITLE_REQUIRED(HttpStatus.BAD_REQUEST, "ADMIN_E028", "변경 요청 제목은 비어 있을 수 없습니다"),
+    CHANGE_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN_E029", "변경 요청을 찾을 수 없습니다"),
+    CHANGE_REQUEST_INVALID_STATE(HttpStatus.INTERNAL_SERVER_ERROR, "ADMIN_E030", "변경 요청의 상태가 유효하지 않습니다"),
+    WORKFLOW_PAYLOAD_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "ADMIN_E031", "변경 요청 페이로드를 파싱할 수 없습니다"),
 }
 
 enum class VersionError(

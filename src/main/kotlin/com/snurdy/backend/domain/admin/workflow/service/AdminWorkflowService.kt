@@ -19,7 +19,6 @@ import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestBui
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestMapper
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
 import com.snurdy.backend.global.constants.AdminError
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -48,7 +47,7 @@ class AdminWorkflowService(
         val operation = ChangeRequestOperation.fromRequest(request.operation)
         if (entityType == ChangeRequestEntityType.MORPHEME && operation == ChangeRequestOperation.DELETE)
             throw ApiException(AdminError.INVALID_WORKFLOW_OPERATION)
-        if (request.title.isBlank()) throw ApiException(CommonError.BAD_REQUEST)
+        if (request.title.isBlank()) throw ApiException(AdminError.CHANGE_REQUEST_TITLE_REQUIRED)
 
         val saved = changeRequestRepository.save(builder.build(request, entityType, operation))
         audit(AdminAuditAction.REQUEST, saved.requireId(), null, saved)
@@ -139,10 +138,10 @@ class AdminWorkflowService(
         handlers[type] ?: throw ApiException(AdminError.INVALID_WORKFLOW_ENTITY_TYPE)
 
     private fun findRequest(id: Long): ChangeRequestEntity =
-        changeRequestRepository.findById(id).orElseThrow { ApiException(CommonError.NOT_FOUND) }
+        changeRequestRepository.findById(id).orElseThrow { ApiException(AdminError.CHANGE_REQUEST_NOT_FOUND) }
 
     private fun findByIdForUpdate(id: Long): ChangeRequestEntity =
-        changeRequestRepository.findByIdForUpdate(id) ?: throw ApiException(CommonError.NOT_FOUND)
+        changeRequestRepository.findByIdForUpdate(id) ?: throw ApiException(AdminError.CHANGE_REQUEST_NOT_FOUND)
 
     private fun applyValidationResult(changeRequest: ChangeRequestEntity, result: ValidationResult) {
         if (result.passed) {

@@ -3,8 +3,6 @@ package com.snurdy.backend.domain.admin.workflow.service.support
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeVariantEntity
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
-import com.snurdy.backend.global.constants.CommonError
-import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,8 +11,7 @@ class MorphemeVariantGenerator(
 ) {
 
     fun regenerate(morpheme: MorphemeEntity) {
-        val morphemeId = morpheme.id ?: throw ApiException(CommonError.INTERNAL_ERROR)
-        morphemeVariantRepository.deleteByMorphemeId(morphemeId)
+        morphemeVariantRepository.deleteByMorphemeId(morpheme.id)
         val tokens = parseSpelling(morpheme.spelling)
         if (tokens.isEmpty()) return
         morphemeVariantRepository.saveAll(

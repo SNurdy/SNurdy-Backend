@@ -3,8 +3,6 @@ package com.snurdy.backend.domain.admin.dictionary.service
 import com.snurdy.backend.domain.admin.dictionary.dto.GlossaryItem
 import com.snurdy.backend.domain.admin.dictionary.dto.GlossaryPageResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.global.constants.CommonError
-import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
@@ -32,7 +30,7 @@ class AdminGlossaryQueryService(
             totalPages = data.totalPages,
             items = data.content.map {
                 GlossaryItem(
-                    id = it.id ?: throw ApiException(CommonError.INTERNAL_ERROR),
+                    id = it.id,
                     category = it.category,
                     title = it.title
                 )

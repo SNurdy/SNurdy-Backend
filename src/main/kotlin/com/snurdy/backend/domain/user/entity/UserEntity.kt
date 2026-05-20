@@ -60,7 +60,22 @@ class UserEntity(
     var migrationDeclinedAt: Instant? = null,
 
     @Column(name = "deleted_at")
-    var deletedAt: Instant? = null
+    var deletedAt: Instant? = null,
+
+    @Column(name = "profile_image_url", length = 512)
+    var profileImageUrl: String? = null,
+
+    @Column(name = "level", nullable = false)
+    var level: Int = 1,
+
+    @Column(name = "exp", nullable = false)
+    var exp: Int = 0,
+
+    @Column(name = "marketing_consent", nullable = false)
+    var marketingConsent: Boolean = false,
+
+    @Column(name = "marketing_consent_at")
+    var marketingConsentAt: Instant? = null
 ) : BaseTimeEntity() {
 
     fun isDeleted(): Boolean = deletedAt != null

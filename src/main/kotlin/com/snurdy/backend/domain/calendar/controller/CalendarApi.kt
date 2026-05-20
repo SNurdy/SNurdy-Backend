@@ -1,6 +1,8 @@
-package com.snurdy.backend.domain.learning.controller
+package com.snurdy.backend.domain.calendar.controller
 
-import com.snurdy.backend.domain.learning.dto.CalendarStatsResponse
+import com.snurdy.backend.domain.calendar.dto.CalendarResponse
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -13,14 +15,16 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @Validated
-@Tag(name = "Stats", description = "학습 통계 API")
-interface StatsApi {
+@Tag(name = "Calendar", description = "학습 캘린더 API")
+interface CalendarApi {
 
-    @Operation(summary = "월별 캘린더 통계 조회")
-    @GetMapping("/v1/stats/calendar")
-    fun getCalendar(
+    @Operation(summary = "월별 학습 캘린더 조회")
+    @ApiSuccessCode("STATS_S001")
+    @ApiErrorCodes("USER_E010")
+    @GetMapping("/v1/calendar")
+    fun getMonthly(
         @CurrentUserId userId: UUID,
         @RequestParam @Min(2000) @Max(2100) year: Int,
         @RequestParam @Min(1) @Max(12) month: Int
-    ): ApiResponse<CalendarStatsResponse>
+    ): ApiResponse<CalendarResponse>
 }

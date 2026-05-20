@@ -73,12 +73,13 @@ enum class LearningSuccess(
     SUBMIT(HttpStatus.OK, "LEARNING_S012", "학습 결과를 반영했습니다")
 }
 
-enum class StatsSuccess(
+enum class CalendarSuccess(
     override val status: HttpStatus,
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    CALENDAR(HttpStatus.OK, "STATS_S001", "캘린더 통계 조회에 성공했습니다")
+    // 코드 문자열 STATS_S001 은 클라이언트 계약이라 enum 이름만 옮기고 유지한다
+    GET_MONTHLY(HttpStatus.OK, "STATS_S001", "월별 학습 캘린더 조회에 성공했습니다")
 }
 
 enum class DictionarySuccess(

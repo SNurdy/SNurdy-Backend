@@ -5,13 +5,10 @@ import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.dto.CalendarDailyItem
-import com.snurdy.backend.domain.learning.dto.CalendarStatsResponse
 import com.snurdy.backend.domain.learning.dto.LearningTermCard
 import com.snurdy.backend.domain.learning.dto.ReviewDueTermsResponse
 import com.snurdy.backend.domain.learning.dto.StudyNextTermsResponse
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
@@ -20,7 +17,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import java.time.YearMonth
 import java.util.UUID
 
 @Service
@@ -29,7 +25,6 @@ class LearningQueryService(
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
     private val termProgressRepository: TermProgressRepository,
-    private val dailyProgressRepository: DailyProgressRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val clock: Clock
 ) {
@@ -74,30 +69,6 @@ class LearningQueryService(
         }
 
         return ReviewDueTermsResponse(glossaryId = glossary.id, terms = cards)
-    }
-
-    @Transactional(readOnly = true)
-    fun getCalendar(userId: UUID, year: Int, month: Int): CalendarStatsResponse {
-        val yearMonth = YearMonth.of(year, month)
-        val from = yearMonth.atDay(1)
-        val to = yearMonth.atEndOfMonth()
-
-        val progresses = dailyProgressRepository.findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
-        val days = progresses.map {
-            CalendarDailyItem(
-                date = it.id.date,
-                learnedCount = it.learnedCount,
-                reviewedCount = it.reviewedCount
-            )
-        }
-
-        return CalendarStatsResponse(
-            year = year,
-            month = month,
-            days = days,
-            totalLearnedCount = days.sumOf { it.learnedCount },
-            totalReviewedCount = days.sumOf { it.reviewedCount }
-        )
     }
 
     private fun findGlossary(glossaryId: Long): GlossaryEntity =

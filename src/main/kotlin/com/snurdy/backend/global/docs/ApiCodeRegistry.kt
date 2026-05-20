@@ -5,6 +5,7 @@ import com.snurdy.backend.global.constants.AdminSuccess
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.AuthSuccess
 import com.snurdy.backend.global.constants.BookmarkSuccess
+import com.snurdy.backend.global.constants.CalendarSuccess
 import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.constants.DictionaryError
@@ -13,7 +14,6 @@ import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
-import com.snurdy.backend.global.constants.StatsSuccess
 import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.UserSuccess
@@ -33,7 +33,10 @@ object ApiCodeRegistry {
             DictionaryError.entries,
             AdminError.entries,
             VersionError.entries
-        ).flatten().forEach { put(it.code, it) }
+        ).flatten().forEach {
+            val prev = put(it.code, it)
+            require(prev == null) { "중복된 ErrorCode 문자열: ${it.code} (${prev!!::class.simpleName} vs ${it::class.simpleName})" }
+        }
     }
 
     val SUCCESSES: Map<String, SuccessCode> = buildMap {
@@ -43,11 +46,14 @@ object ApiCodeRegistry {
             UserSuccess.entries,
             BookmarkSuccess.entries,
             LearningSuccess.entries,
-            StatsSuccess.entries,
+            CalendarSuccess.entries,
             DictionarySuccess.entries,
             MigrationSuccess.entries,
             AdminSuccess.entries,
             VersionSuccess.entries
-        ).flatten().forEach { put(it.code, it) }
+        ).flatten().forEach {
+            val prev = put(it.code, it)
+            require(prev == null) { "중복된 SuccessCode 문자열: ${it.code} (${prev!!::class.simpleName} vs ${it::class.simpleName})" }
+        }
     }
 }

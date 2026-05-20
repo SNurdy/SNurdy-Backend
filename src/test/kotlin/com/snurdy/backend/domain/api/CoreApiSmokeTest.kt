@@ -129,7 +129,7 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
 
         val year = LocalDate.now(APP_ZONE_ID).year
         val month = LocalDate.now(APP_ZONE_ID).monthValue
-        mockMvc.get("/v1/stats/calendar") {
+        mockMvc.get("/v1/calendar") {
             with(userAuth())
             param("year", year.toString())
             param("month", month.toString())

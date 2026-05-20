@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.controller
 
-import com.snurdy.backend.domain.learning.dto.UserStreakResponse
+import com.snurdy.backend.domain.user.dto.UserStreakResponse
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation

@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.user.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.service.LearningQueryService
 import com.snurdy.backend.domain.user.dto.DashboardDailyStat
 import com.snurdy.backend.domain.user.dto.DashboardGlossaryStat
 import com.snurdy.backend.domain.user.dto.DashboardPeriod
@@ -20,7 +19,7 @@ import java.util.UUID
 // streak + glossary 별 진척도 + 날짜별 학습 지표를 한 응답으로 합친다
 @Service
 class UserDashboardService(
-    private val learningQueryService: LearningQueryService,
+    private val userStreakService: UserStreakService,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val glossaryRepository: GlossaryRepository,
     private val dailyProgressRepository: DailyProgressRepository,
@@ -33,7 +32,7 @@ class UserDashboardService(
         val resolvedTo = to ?: today
         val resolvedFrom = from ?: resolvedTo.minusDays(DEFAULT_PERIOD_DAYS - 1)
 
-        val streakResponse = learningQueryService.getStreak(userId)
+        val streakResponse = userStreakService.getStreak(userId)
         val glossaryStats = buildGlossaryStats(userId)
         val dailyStats = buildDailyStats(userId, resolvedFrom, resolvedTo)
 

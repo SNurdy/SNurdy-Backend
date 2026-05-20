@@ -10,13 +10,9 @@ import com.snurdy.backend.domain.learning.dto.CalendarStatsResponse
 import com.snurdy.backend.domain.learning.dto.LearningTermCard
 import com.snurdy.backend.domain.learning.dto.ReviewDueTermsResponse
 import com.snurdy.backend.domain.learning.dto.StudyNextTermsResponse
-import com.snurdy.backend.domain.learning.dto.UserStreakResponse
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -24,14 +20,11 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import java.time.LocalDate
 import java.time.YearMonth
-import java.time.ZoneId
 import java.util.UUID
 
 @Service
 class LearningQueryService(
-    private val userRepository: UserRepository,
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
@@ -40,8 +33,6 @@ class LearningQueryService(
     private val bookmarkRepository: BookmarkRepository,
     private val clock: Clock
 ) {
-
-    private fun today(): LocalDate = LocalDate.now(clock.withZone(APP_ZONE_ID))
 
     @Transactional(readOnly = true)
     fun getNextTerms(userId: UUID, glossaryId: Long, size: Int): StudyNextTermsResponse {
@@ -109,38 +100,7 @@ class LearningQueryService(
         )
     }
 
-    @Transactional(readOnly = true)
-    fun getStreak(userId: UUID): UserStreakResponse {
-        val user = findUser(userId)
-        val effectiveCurrent = if (isStreakStillAlive(userId, user.currentStreak)) {
-            user.currentStreak
-        } else {
-            0
-        }
-        return UserStreakResponse(
-            currentStreak = effectiveCurrent,
-            longestStreak = user.longestStreak,
-            totalLearningTerms = user.totalLearningTerms
-        )
-    }
-
-    private fun isStreakStillAlive(userId: UUID, storedStreak: Int): Boolean {
-        if (storedStreak == 0) return true
-        val today = today()
-        val yesterday = today.minusDays(1)
-        val recent = dailyProgressRepository
-            .findAllByIdUserIdAndIdDateIn(userId, listOf(today, yesterday))
-        return recent.any { (it.learnedCount + it.reviewedCount) > 0 }
-    }
-
-    private fun findUser(userId: UUID): UserEntity =
-        userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
-
     private fun findGlossary(glossaryId: Long): GlossaryEntity =
         glossaryRepository.findByIdOrNull(glossaryId)
             ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-
-    companion object {
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
-    }
 }

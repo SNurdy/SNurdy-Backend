@@ -103,8 +103,3 @@ data class CalendarDailyItem(
     val reviewedCount: Int
 )
 
-data class UserStreakResponse(
-    val currentStreak: Int,
-    val longestStreak: Int,
-    val totalLearningTerms: Int
-)

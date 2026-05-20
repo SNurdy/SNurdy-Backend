@@ -13,8 +13,8 @@ import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.DictionaryError
+import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -106,7 +106,7 @@ class BookmarkService(
 
     private fun findUser(userId: UUID): UserEntity =
         userRepository.findByIdOrNull(userId)
-            ?: throw ApiException(CommonError.UNAUTHORIZED)
+            ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
 
     private fun findTerm(termId: Long): TermEntity =
         termRepository.findByIdAndDeletedAtIsNull(termId)

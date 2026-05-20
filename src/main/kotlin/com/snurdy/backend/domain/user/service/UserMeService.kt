@@ -5,7 +5,6 @@ import com.snurdy.backend.domain.user.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.dto.UserProfileUpdateRequest
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CommonError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.repository.findByIdOrNull
@@ -49,7 +48,7 @@ class UserMeService(
 
     private fun findActiveUser(userId: UUID): UserEntity {
         val user = userRepository.findByIdOrNull(userId)
-            ?: throw ApiException(CommonError.UNAUTHORIZED)
+            ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
         if (user.isDeleted()) throw ApiException(UserError.ALREADY_DELETED)
         return user
     }

@@ -20,7 +20,7 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -207,7 +207,7 @@ class LearningCommandService(
     }
 
     private fun findUser(userId: UUID): UserEntity =
-        userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.UNAUTHORIZED)
+        userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
 
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")

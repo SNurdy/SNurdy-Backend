@@ -16,7 +16,7 @@ import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.entity.UserEntity
 import com.snurdy.backend.domain.user.repository.UserRepository
-import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -134,7 +134,7 @@ class LearningQueryService(
     }
 
     private fun findUser(userId: UUID): UserEntity =
-        userRepository.findByIdOrNull(userId) ?: throw ApiException(CommonError.UNAUTHORIZED)
+        userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
 
     private fun findGlossary(glossaryId: Long): GlossaryEntity =
         glossaryRepository.findByIdOrNull(glossaryId)

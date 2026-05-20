@@ -77,7 +77,9 @@ enum class UserError(
 ) : ErrorCode {
     NOT_FOUND(HttpStatus.NOT_FOUND, "USER_E001", "사용자를 찾을 수 없습니다"),
     DUPLICATED(HttpStatus.CONFLICT, "USER_E002", "이미 존재하는 사용자입니다"),
-    ALREADY_DELETED(HttpStatus.CONFLICT, "USER_E005", "이미 탈퇴한 사용자입니다")
+    ALREADY_DELETED(HttpStatus.CONFLICT, "USER_E005", "이미 탈퇴한 사용자입니다"),
+    // 토큰은 유효하지만 DB에 사용자가 없는 경우 (탈퇴 후 토큰 미만료 등)
+    ACCOUNT_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER_E010", "계정 정보가 유효하지 않습니다")
 }
 
 enum class DictionaryError(

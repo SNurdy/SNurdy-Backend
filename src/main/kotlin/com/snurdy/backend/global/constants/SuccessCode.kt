@@ -34,7 +34,11 @@ enum class UserSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    WITHDRAW(HttpStatus.OK, "USER_S002", "회원탈퇴에 성공했습니다")
+    WITHDRAW(HttpStatus.OK, "USER_S002", "회원탈퇴에 성공했습니다"),
+    GET_STREAK(HttpStatus.OK, "USER_S010", "스트릭 조회에 성공했습니다"),
+    GET_PROFILE(HttpStatus.OK, "USER_S011", "프로필 조회에 성공했습니다"),
+    UPDATE_PROFILE(HttpStatus.OK, "USER_S012", "프로필을 수정했습니다"),
+    UPDATE_MARKETING_CONSENT(HttpStatus.OK, "USER_S013", "마케팅 수신 동의를 변경했습니다")
 }
 
 enum class MigrationSuccess(

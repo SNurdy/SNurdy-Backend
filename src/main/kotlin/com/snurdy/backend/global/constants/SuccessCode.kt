@@ -62,12 +62,22 @@ enum class MigrationSuccess(
     STATUS(HttpStatus.OK, "MIGRATION_S004", "마이그레이션 상태 조회에 성공했습니다")
 }
 
-enum class LearningSuccess (
+enum class LearningSuccess(
     override val status: HttpStatus,
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    SEARCH(HttpStatus.OK, "LEARNING_S001", "조회에 성공했습니다")
+    GET_NEXT_TERMS(HttpStatus.OK, "LEARNING_S010", "학습할 다음 단어 목록 조회에 성공했습니다"),
+    GET_REVIEW_TERMS(HttpStatus.OK, "LEARNING_S011", "복습 대상 단어 목록 조회에 성공했습니다"),
+    SUBMIT(HttpStatus.OK, "LEARNING_S012", "학습 결과를 반영했습니다")
+}
+
+enum class StatsSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    CALENDAR(HttpStatus.OK, "STATS_S001", "캘린더 통계 조회에 성공했습니다")
 }
 
 enum class DictionarySuccess(

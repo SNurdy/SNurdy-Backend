@@ -6,7 +6,7 @@ import com.snurdy.backend.domain.learning.dto.ReviewDueTermsResponse
 import com.snurdy.backend.domain.learning.dto.StudyNextTermsResponse
 import com.snurdy.backend.domain.learning.service.LearningCommandService
 import com.snurdy.backend.domain.learning.service.LearningQueryService
-import com.snurdy.backend.global.constants.CommonSuccess
+import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -18,19 +18,19 @@ class LearningController(
 ) : LearningApi {
     override fun getNextTerms(userId: UUID, glossaryId: Long, size: Int): ApiResponse<StudyNextTermsResponse> =
         ApiResponse.success(
-            CommonSuccess.OK,
+            LearningSuccess.GET_NEXT_TERMS,
             learningQueryService.getNextTerms(userId, glossaryId, size)
         )
 
     override fun getDueTerms(userId: UUID, glossaryId: Long, size: Int): ApiResponse<ReviewDueTermsResponse> =
         ApiResponse.success(
-            CommonSuccess.OK,
+            LearningSuccess.GET_REVIEW_TERMS,
             learningQueryService.getDueTerms(userId, glossaryId, size)
         )
 
     override fun submitLearning(userId: UUID, request: LearningSubmitRequest): ApiResponse<LearningSubmitResponse> =
         ApiResponse.success(
-            CommonSuccess.OK,
+            LearningSuccess.SUBMIT,
             learningCommandService.submitLearning(userId, request)
         )
 }

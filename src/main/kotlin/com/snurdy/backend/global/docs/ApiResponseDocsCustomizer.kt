@@ -12,26 +12,20 @@ import org.springframework.web.method.HandlerMethod
 
 // endpoint 의 @ApiSuccessCode, @ApiErrorCodes 어노테이션을 읽어
 // Swagger 응답 example 을 endpoint 별로 정확히 생성한다
-// 명시 안 된 endpoint 는 OpenApiErrorResponseCustomizer 의 default 응답만 표시된다
+// success 는 $ref 해석이 필요해 marker extension 만 남기고 ApiSuccessExampleEnricher 가 후처리한다
+// error 는 wrapper 만 표시하면 충분하므로 이 단계에서 inline 생성한다
 @Component
 class ApiResponseDocsCustomizer : OperationCustomizer {
 
     override fun customize(operation: io.swagger.v3.oas.models.Operation, handlerMethod: HandlerMethod): io.swagger.v3.oas.models.Operation {
         val responses = operation.responses ?: return operation
 
-        // 1. success code 가 명시되어 있으면 200 응답에 example 덮어쓰기
         handlerMethod.getMethodAnnotation(ApiSuccessCode::class.java)?.let { ann ->
             val success = ApiCodeRegistry.SUCCESSES[ann.code]
                 ?: error("Unknown success code in @ApiSuccessCode: ${ann.code}")
-            val statusKey = success.status.value().toString()
-            val existing = responses[statusKey] ?: ApiResponse().also { responses[statusKey] = it }
-            existing.description = success.message
-            val schema = existing.content?.values?.firstOrNull()?.schema
-            val content = buildContent(success.code, success.message, schema, success = true)
-            existing.content = content
+            operation.addExtension(EXT_SUCCESS_CODE, success.code)
         }
 
-        // 2. 각 error code 마다 응답 추가 또는 example 보강
         handlerMethod.getMethodAnnotation(ApiErrorCodes::class.java)?.let { ann ->
             ann.codes.forEach { code ->
                 val error = ApiCodeRegistry.ERRORS[code]
@@ -69,28 +63,6 @@ class ApiResponseDocsCustomizer : OperationCustomizer {
         }
     }
 
-    private fun buildContent(code: String, message: String, schema: Schema<*>?, success: Boolean): Content {
-        val content = Content()
-        val mediaType = MediaType()
-        if (schema != null) mediaType.schema = schema
-        val examples = linkedMapOf<String, Example>()
-        examples[code] = Example()
-            .summary(code)
-            .value(if (success) buildSuccessBody(code, message) else mapOf<String, Any?>())
-        mediaType.examples = examples
-        content.addMediaType(JSON, mediaType)
-        return content
-    }
-
-    private fun buildSuccessBody(code: String, message: String): Map<String, Any?> = linkedMapOf(
-        "success" to true,
-        "status" to 200,
-        "code" to code,
-        "message" to message,
-        "data" to null,
-        "timestamp" to "2026-05-20T00:00:00Z"
-    )
-
     private fun buildErrorBody(error: ErrorCode): Map<String, Any?> = linkedMapOf(
         "success" to false,
         "status" to error.status.value(),
@@ -109,5 +81,6 @@ class ApiResponseDocsCustomizer : OperationCustomizer {
 
     companion object {
         private const val JSON = "application/json"
+        const val EXT_SUCCESS_CODE = "x-snurdy-success-code"
     }
 }

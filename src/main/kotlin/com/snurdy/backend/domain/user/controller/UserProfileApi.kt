@@ -4,6 +4,8 @@ import com.snurdy.backend.domain.user.dto.MarketingConsentRequest
 import com.snurdy.backend.domain.user.dto.MarketingConsentResponse
 import com.snurdy.backend.domain.user.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.dto.UserProfileUpdateRequest
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -21,10 +23,14 @@ import java.util.UUID
 interface UserProfileApi {
 
     @Operation(summary = "본인 프로필 조회")
+    @ApiSuccessCode("USER_S011")
+    @ApiErrorCodes("USER_E010", "USER_E005")
     @GetMapping
     fun getProfile(@CurrentUserId userId: UUID): ApiResponse<UserProfileResponse>
 
     @Operation(summary = "본인 프로필 부분 수정 (닉네임, 프로필 이미지)")
+    @ApiSuccessCode("USER_S012")
+    @ApiErrorCodes("USER_E010", "USER_E005")
     @PatchMapping
     fun updateProfile(
         @CurrentUserId userId: UUID,
@@ -32,6 +38,8 @@ interface UserProfileApi {
     ): ApiResponse<UserProfileResponse>
 
     @Operation(summary = "마케팅 수신 동의 변경")
+    @ApiSuccessCode("USER_S013")
+    @ApiErrorCodes("USER_E010", "USER_E005")
     @PutMapping("/marketing-consent")
     fun updateMarketingConsent(
         @CurrentUserId userId: UUID,

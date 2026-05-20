@@ -1,6 +1,8 @@
 package com.snurdy.backend.domain.user.controller
 
 import com.snurdy.backend.domain.user.dto.UserDashboardResponse
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -18,6 +20,8 @@ import java.util.UUID
 interface UserDashboardApi {
 
     @Operation(summary = "학습 리포트 대시보드 조회 (streak + 과별 + 일자별 통합)")
+    @ApiSuccessCode("USER_S020")
+    @ApiErrorCodes("USER_E010")
     @GetMapping("/dashboard")
     fun getDashboard(
         @CurrentUserId userId: UUID,

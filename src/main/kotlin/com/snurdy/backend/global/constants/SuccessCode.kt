@@ -29,6 +29,16 @@ enum class AuthSuccess(
     MERGE(HttpStatus.OK, "AUTH_S005", "데이터 병합에 성공했습니다")
 }
 
+enum class BookmarkSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST(HttpStatus.OK, "BOOKMARK_S001", "북마크 목록 조회에 성공했습니다"),
+    ADD(HttpStatus.OK, "BOOKMARK_S002", "북마크를 추가했습니다"),
+    REMOVE(HttpStatus.OK, "BOOKMARK_S003", "북마크를 삭제했습니다")
+}
+
 enum class UserSuccess(
     override val status: HttpStatus,
     override val code: String,

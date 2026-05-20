@@ -19,7 +19,7 @@ import java.util.UUID
 interface CalendarApi {
 
     @Operation(summary = "월별 학습 캘린더 조회")
-    @ApiSuccessCode("STATS_S001")
+    @ApiSuccessCode("CALENDAR_S001")
     @ApiErrorCodes("USER_E010")
     @GetMapping("/v1/calendar")
     fun getMonthly(

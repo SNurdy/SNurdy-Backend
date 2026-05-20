@@ -1,6 +1,8 @@
 package com.snurdy.backend.domain.version.controller
 
 import com.snurdy.backend.domain.version.dto.VersionCheckResponse
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam
 interface VersionApi {
 
     @Operation(summary = "앱 버전 체크")
+    @ApiSuccessCode("VERSION_S001")
+    @ApiErrorCodes("VERSION_E001", "VERSION_E002", "VERSION_E003")
     @SecurityRequirements
     @GetMapping("/check")
     fun checkVersion(

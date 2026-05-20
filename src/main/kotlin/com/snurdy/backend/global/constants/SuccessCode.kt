@@ -78,8 +78,7 @@ enum class CalendarSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    // 코드 문자열 STATS_S001 은 클라이언트 계약이라 enum 이름만 옮기고 유지한다
-    GET_MONTHLY(HttpStatus.OK, "STATS_S001", "월별 학습 캘린더 조회에 성공했습니다")
+    GET_MONTHLY(HttpStatus.OK, "CALENDAR_S001", "월별 학습 캘린더 조회에 성공했습니다")
 }
 
 enum class DictionarySuccess(
@@ -87,7 +86,13 @@ enum class DictionarySuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    SEARCH(HttpStatus.OK, "DICTIONARY_S001", "조회에 성공했습니다")
+    // SEARCH(S001) 는 이전 클라이언트 계약 보존을 위해 enum 에 남겨둔다. 신규 호출은 endpoint 별 세분화 코드를 사용한다
+    SEARCH(HttpStatus.OK, "DICTIONARY_S001", "조회에 성공했습니다"),
+    SEARCH_TERMS(HttpStatus.OK, "DICTIONARY_S002", "용어 검색에 성공했습니다"),
+    GET_TERM_DETAIL(HttpStatus.OK, "DICTIONARY_S003", "용어 상세 조회에 성공했습니다"),
+    GET_GLOSSARIES(HttpStatus.OK, "DICTIONARY_S004", "용어장 목록 조회에 성공했습니다"),
+    GET_GLOSSARY_TERMS(HttpStatus.OK, "DICTIONARY_S005", "용어장 용어 목록 조회에 성공했습니다"),
+    SEARCH_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S006", "어근어미 키워드 검색에 성공했습니다")
 }
 
 enum class AdminSuccess(

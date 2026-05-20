@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dictionary.controller
 
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 interface MorphemeSearchApi {
 
     @Operation(summary = "어근어미 키워드로 용어 검색")
+    @ApiSuccessCode("DICTIONARY_S006")
     @GetMapping("/terms/search/morpheme")
     fun searchTermsByMorpheme(
         @Parameter(description = "어근어미 키워드 (최소 2자)", example = "hepat")

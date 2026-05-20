@@ -38,7 +38,7 @@ class AccessTokenBlacklistService(
             )
         } catch (e: DataAccessException) {
             log.error("Access Token 블랙리스트 등록 실패 — 자격증명 재사용 방지를 위해 로그아웃 요청을 거부합니다", e)
-            throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
+            throw ApiException(CommonError.SERVICE_UNAVAILABLE, cause = e)
         }
     }
 
@@ -48,7 +48,7 @@ class AccessTokenBlacklistService(
             redisTemplate.hasKey(generateKey(token)) == true
         } catch (e: DataAccessException) {
             log.error("Access Token 블랙리스트 조회 실패 — 보안 원칙에 따라 인증을 차단합니다", e)
-            throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
+            throw ApiException(CommonError.SERVICE_UNAVAILABLE, cause = e)
         }
     }
 

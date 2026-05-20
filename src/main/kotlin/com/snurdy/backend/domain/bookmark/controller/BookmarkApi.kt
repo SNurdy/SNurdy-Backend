@@ -2,6 +2,8 @@ package com.snurdy.backend.domain.bookmark.controller
 
 import com.snurdy.backend.domain.bookmark.dto.BookmarkMutationResponse
 import com.snurdy.backend.domain.bookmark.dto.BookmarkPageResponse
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -19,6 +21,7 @@ import java.util.UUID
 interface BookmarkApi {
 
     @Operation(summary = "북마크 목록 조회")
+    @ApiSuccessCode("BOOKMARK_S001")
     @GetMapping("/v1/bookmarks")
     fun getBookmarks(
         @CurrentUserId userId: UUID,
@@ -27,6 +30,8 @@ interface BookmarkApi {
     ): ApiResponse<BookmarkPageResponse>
 
     @Operation(summary = "북마크 추가")
+    @ApiSuccessCode("BOOKMARK_S002")
+    @ApiErrorCodes("USER_E010", "DICTIONARY_E001", "DICTIONARY_E002", "DICTIONARY_E004")
     @PutMapping("/v1/bookmarks/{termId}")
     fun addBookmark(
         @CurrentUserId userId: UUID,
@@ -35,6 +40,7 @@ interface BookmarkApi {
     ): ApiResponse<BookmarkMutationResponse>
 
     @Operation(summary = "북마크 삭제")
+    @ApiSuccessCode("BOOKMARK_S003")
     @DeleteMapping("/v1/bookmarks/{termId}")
     fun removeBookmark(
         @CurrentUserId userId: UUID,

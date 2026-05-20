@@ -16,19 +16,19 @@ class ClientDictionaryController(
 ) : ClientDictionaryApi {
     override fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): ApiResponse<TermSearchResponse> =
         ApiResponse.success(
-            DictionarySuccess.SEARCH,
+            DictionarySuccess.SEARCH_TERMS,
             clientDictionaryService.searchTerms(userId, query, page, size)
         )
 
     override fun getTermDetail(userId: UUID, termId: Long): ApiResponse<ClientTermDetailResponse> =
         ApiResponse.success(
-            DictionarySuccess.SEARCH,
+            DictionarySuccess.GET_TERM_DETAIL,
             clientDictionaryService.getTermDetail(userId, termId)
         )
 
     override fun getGlossaries(userId: UUID, category: String?): ApiResponse<ClientGlossaryListResponse> =
         ApiResponse.success(
-            DictionarySuccess.SEARCH,
+            DictionarySuccess.GET_GLOSSARIES,
             clientDictionaryService.getGlossaries(userId, category)
         )
 
@@ -40,7 +40,7 @@ class ClientDictionaryController(
         size: Int
     ): ApiResponse<ClientGlossaryTermsResponse> =
         ApiResponse.success(
-            DictionarySuccess.SEARCH,
+            DictionarySuccess.GET_GLOSSARY_TERMS,
             clientDictionaryService.getGlossaryTerms(
                 userId = userId,
                 glossaryId = glossaryId,

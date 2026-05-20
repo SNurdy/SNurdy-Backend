@@ -42,7 +42,7 @@ class AdminLoginRateLimiter(
             redisTemplate.opsForValue().get(key)?.toLongOrNull() ?: 0L
         } catch (e: DataAccessException) {
             log.error("관리자 로그인 시도 제한 확인 중 Redis 조회 실패 — 보안 원칙에 따라 접근을 차단합니다", e)
-            throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
+            throw ApiException(CommonError.SERVICE_UNAVAILABLE, cause = e)
         }
 
     private fun increment(key: String) {
@@ -53,7 +53,7 @@ class AdminLoginRateLimiter(
             }
         } catch (e: DataAccessException) {
             log.error("관리자 로그인 실패 횟수 기록 중 Redis 쓰기 실패 — 보안 원칙에 따라 접근을 차단합니다", e)
-            throw ApiException(CommonError.INTERNAL_ERROR, cause = e)
+            throw ApiException(CommonError.SERVICE_UNAVAILABLE, cause = e)
         }
     }
 

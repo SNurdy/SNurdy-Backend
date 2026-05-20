@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.controller
 
+import com.snurdy.backend.global.docs.ApiErrorCodes
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
@@ -14,6 +16,8 @@ import java.util.UUID
 interface UserAccountApi {
 
     @Operation(summary = "회원 탈퇴")
+    @ApiSuccessCode("USER_S002")
+    @ApiErrorCodes("USER_E001", "USER_E005")
     @DeleteMapping
     fun withdraw(
         @CurrentUserId userId: UUID,

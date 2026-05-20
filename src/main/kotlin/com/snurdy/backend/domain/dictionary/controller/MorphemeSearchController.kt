@@ -12,5 +12,5 @@ class MorphemeSearchController(
 ) : MorphemeSearchApi {
 
     override fun searchTermsByMorpheme(keyword: String): ApiResponse<MorphemeSearchResponse> =
-        ApiResponse.success(DictionarySuccess.SEARCH, dictionaryQueryService.searchTermsByMorpheme(keyword))
+        ApiResponse.success(DictionarySuccess.SEARCH_BY_MORPHEME, dictionaryQueryService.searchTermsByMorpheme(keyword))
 }

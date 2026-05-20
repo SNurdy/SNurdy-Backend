@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.admin.audit.controller
 
 import com.snurdy.backend.domain.admin.audit.dto.AuditLogPageResponse
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
+import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam
 interface AdminAuditLogApi {
 
     @Operation(summary = "감사 로그 목록 조회")
+    @ApiSuccessCode("ADMIN_S020")
     @GetMapping
     fun list(
         @RequestParam(required = false) action: AdminAuditAction?,

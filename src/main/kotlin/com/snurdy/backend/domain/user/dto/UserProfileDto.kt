@@ -36,11 +36,11 @@ data class UserProfileResponse(
 @Schema(description = "v2 사용자 프로필 부분 수정 요청 (PATCH)")
 data class UserProfileUpdateRequest(
     @field:Size(max = 20)
-    @field:Schema(description = "변경할 닉네임. null이면 변경 안 함", example = "닉네임")
+    @field:Schema(description = "변경할 닉네임", example = "닉네임")
     val nickname: String? = null,
 
     @field:Size(max = 512)
-    @field:Schema(description = "변경할 프로필 이미지 URL. null이면 변경 안 함", example = "https://cdn.example.com/profiles/abc.png")
+    @field:Schema(description = "변경할 프로필 이미지 URL", example = "https://cdn.example.com/profiles/abc.png")
     val profileImageUrl: String? = null
 )
 

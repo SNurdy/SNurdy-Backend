@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-class UserMeV2Controller(
+class UserProfileController(
     private val userMeService: UserMeService
-) : UserMeV2Api {
+) : UserProfileApi {
 
     override fun getProfile(userId: UUID): ApiResponse<UserProfileResponse> =
         ApiResponse.success(CommonSuccess.OK, userMeService.getProfile(userId))

@@ -14,7 +14,7 @@ import java.time.Clock
 import java.util.UUID
 
 @Service
-class UserMeService(
+class UserProfileService(
     private val userRepository: UserRepository,
     private val clock: Clock
 ) {

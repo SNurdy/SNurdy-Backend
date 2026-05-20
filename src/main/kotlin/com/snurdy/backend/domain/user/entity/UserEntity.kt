@@ -92,6 +92,18 @@ class UserEntity(
         this.nickname = nickname?.take(MAX_NICKNAME_LENGTH)
     }
 
+    fun updateProfileImageUrl(url: String?) {
+        this.profileImageUrl = url?.take(MAX_PROFILE_IMAGE_URL_LENGTH)
+    }
+
+    // 마케팅 동의 토글
+    // 동의 시 동의 시각도 함께 기록
+    // 철회 시 시각은 null로 비움
+    fun setMarketingConsent(agreed: Boolean, now: Instant) {
+        this.marketingConsent = agreed
+        this.marketingConsentAt = if (agreed) now else null
+    }
+
     /**
      * 학습 이벤트 집계 결과를 반영.
      * streak 값은 호출자가 계산(증분 혹은 전체 재계산)해서 전달한다.
@@ -115,6 +127,7 @@ class UserEntity(
 
     companion object {
         private const val MAX_NICKNAME_LENGTH = 20
+        private const val MAX_PROFILE_IMAGE_URL_LENGTH = 512
 
         fun from(info: SocialUserInfo, type: SocialType) = UserEntity(
             socialId = info.socialId,

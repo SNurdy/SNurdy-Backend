@@ -14,6 +14,7 @@ import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
+import com.snurdy.backend.global.constants.StudyNoteSuccess
 import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.UserSuccess
@@ -48,6 +49,7 @@ object ApiCodeRegistry {
             LearningSuccess.entries,
             CalendarSuccess.entries,
             DictionarySuccess.entries,
+            StudyNoteSuccess.entries,
             MigrationSuccess.entries,
             AdminSuccess.entries,
             VersionSuccess.entries

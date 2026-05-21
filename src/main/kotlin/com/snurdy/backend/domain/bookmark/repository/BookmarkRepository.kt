@@ -33,4 +33,8 @@ interface BookmarkRepository : JpaRepository<BookmarkEntity, BookmarkId> {
     fun findAllByIdUserIdAndIdTermIdIn(userId: UUID, termIds: List<Long>): List<BookmarkEntity>
 
     fun findAllByIdUserIdAndIdTermId(userId: UUID, termId: Long): List<BookmarkEntity>
+
+    fun deleteByIdUserIdAndIdGlossaryId(userId: UUID, glossaryId: Long)
+
+    fun deleteByIdUserIdAndIdGlossaryIdAndIdTermId(userId: UUID, glossaryId: Long, termId: Long)
 }

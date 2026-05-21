@@ -11,8 +11,11 @@ import java.util.UUID
 
 interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTermId> {
     fun deleteByIdTermId(termId: Long)
+    fun deleteByIdGlossaryId(glossaryId: Long)
+    fun deleteByIdGlossaryIdAndIdTermId(glossaryId: Long, termId: Long)
     fun existsByIdGlossaryIdAndIdTermId(glossaryId: Long, termId: Long): Boolean
     fun countByIdGlossaryId(glossaryId: Long): Long
+    fun findAllByIdGlossaryIdAndIdTermIdIn(glossaryId: Long, termIds: Collection<Long>): List<GlossaryTermEntity>
 
     fun findAllByIdGlossaryIdInAndIdTermIdIn(
         glossaryIds: Collection<Long>,

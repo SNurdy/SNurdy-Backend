@@ -14,6 +14,10 @@ interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
 
     fun countByUserId(userId: UUID): Long
 
+    fun deleteByUserIdAndGlossaryId(userId: UUID, glossaryId: Long)
+
+    fun deleteByUserIdAndGlossaryIdAndTermId(userId: UUID, glossaryId: Long, termId: Long)
+
     fun findByUserIdAndGlossaryIdAndTermId(userId: UUID, glossaryId: Long, termId: Long): TermProgressEntity?
 
     fun findByUserIdAndGlossaryIdAndTermIdIn(

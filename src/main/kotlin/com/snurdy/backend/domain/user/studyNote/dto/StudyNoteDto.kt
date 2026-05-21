@@ -1,0 +1,55 @@
+package com.snurdy.backend.domain.user.studyNote.dto
+
+import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.Positive
+import jakarta.validation.constraints.Size
+import java.time.Instant
+
+@Schema(description = "커스텀 단어장 생성 요청")
+data class CreateStudyNoteRequest(
+    @field:Size(max = 14, message = "단어장 제목은 최대 14자까지 입력할 수 있습니다")
+    @field:Schema(description = "단어장 제목. null/blank 면 '단어장 N' 으로 자동 생성", example = "외과 단어장")
+    val title: String? = null
+)
+
+@Schema(description = "커스텀 단어장 수정 요청")
+data class UpdateStudyNoteRequest(
+    @field:Size(min = 1, max = 14, message = "단어장 제목은 1~14자여야 합니다")
+    @field:Schema(description = "변경할 단어장 제목", example = "신경계 단어장")
+    val title: String
+)
+
+@Schema(description = "단어장에 단어 추가 요청")
+data class AddTermsToStudyNoteRequest(
+    @field:NotEmpty(message = "추가할 단어 ID 목록이 비어 있을 수 없습니다")
+    @field:Size(max = 100, message = "한 번에 최대 100개까지 추가할 수 있습니다")
+    @field:Schema(description = "추가할 사전 단어 ID 목록")
+    val termIds: List<@Positive Long>
+)
+
+@Schema(description = "커스텀 단어장 요약")
+data class StudyNoteResponse(
+    val id: Long,
+    val title: String,
+    val termCount: Long,
+    val learnedCount: Int,
+    val progressRate: Double,
+    val level: Int,
+    val createdAt: Instant?
+)
+
+@Schema(description = "커스텀 단어장 목록 응답")
+data class StudyNoteListResponse(
+    val notes: List<StudyNoteResponse>
+)
+
+@Schema(description = "단어 추가 결과")
+data class AddTermsResult(
+    @field:Schema(description = "실제로 새로 추가된 단어 수")
+    val added: Int,
+    @field:Schema(description = "이미 단어장에 있어 건너뛴 단어 수")
+    val skipped: Int,
+    @field:Schema(description = "추가 후 단어장의 총 단어 수")
+    val totalTermCount: Long
+)

@@ -47,7 +47,7 @@ interface LearningApi {
 
     @Operation(summary = "학습 결과 반영")
     @ApiSuccessCode("LEARNING_S012")
-    @ApiErrorCodes("USER_E010", "DICTIONARY_E001", "DICTIONARY_E002", "DICTIONARY_E004")
+    @ApiErrorCodes("USER_E010", "DICTIONARY_E001", "DICTIONARY_E002", "DICTIONARY_E004", "LEARNING_E001")
     @PostMapping("/v1/learning/submit")
     fun submitLearning(
         @CurrentUserId userId: UUID,

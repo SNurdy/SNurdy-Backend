@@ -84,6 +84,14 @@ enum class UserError(
     ACCOUNT_NOT_FOUND(HttpStatus.UNAUTHORIZED, "USER_E010", "계정 정보가 유효하지 않습니다")
 }
 
+enum class LearningError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    MULTIPLE_GLOSSARIES_IN_SUBMIT(HttpStatus.BAD_REQUEST, "LEARNING_E001", "한 번의 학습 제출에는 단일 단어장만 포함될 수 있습니다")
+}
+
 enum class DictionaryError(
     override val status: HttpStatus,
     override val code: String,

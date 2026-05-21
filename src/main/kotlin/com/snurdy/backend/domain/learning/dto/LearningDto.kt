@@ -84,7 +84,17 @@ data class LearningAnswerEvent(
 
 data class LearningSubmitResponse(
     val processedCount: Int,
+    val correctCount: Int,
+    val incorrectCount: Int,
     val learnedCount: Int,
-    val reviewedCount: Int
+    val reviewedCount: Int,
+    val levelUp: GlossaryLevelUp?
+)
+
+data class GlossaryLevelUp(
+    val glossaryId: Long,
+    val title: String,
+    val previousLevel: Int,
+    val newLevel: Int
 )
 

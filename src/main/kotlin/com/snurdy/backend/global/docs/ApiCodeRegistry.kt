@@ -11,6 +11,7 @@ import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.DictionarySuccess
 import com.snurdy.backend.global.constants.ErrorCode
+import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
@@ -29,6 +30,7 @@ object ApiCodeRegistry {
             CommonError.entries,
             AuthError.entries,
             UserError.entries,
+            LearningError.entries,
             MigrationError.entries,
             DictionaryError.entries,
             AdminError.entries,

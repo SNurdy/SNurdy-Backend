@@ -13,9 +13,36 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     fun deleteByIdTermId(termId: Long)
     fun deleteByIdGlossaryId(glossaryId: Long)
     fun deleteByIdGlossaryIdAndIdTermId(glossaryId: Long, termId: Long)
+    fun deleteAllByIdGlossaryIdAndIdTermIdIn(glossaryId: Long, termIds: Collection<Long>)
     fun existsByIdGlossaryIdAndIdTermId(glossaryId: Long, termId: Long): Boolean
     fun countByIdGlossaryId(glossaryId: Long): Long
     fun findAllByIdGlossaryIdAndIdTermIdIn(glossaryId: Long, termIds: Collection<Long>): List<GlossaryTermEntity>
+
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation
+        FROM glossary_terms gt
+        JOIN terms t ON t.id = gt.term_id
+        WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
+        ORDER BY t.id
+        """,
+        countQuery = """
+        SELECT COUNT(*)
+        FROM glossary_terms gt
+        JOIN terms t ON t.id = gt.term_id
+        WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
+        """,
+        nativeQuery = true
+    )
+    fun findPagedSimpleTermsByGlossaryId(
+        @Param("glossaryId") glossaryId: Long,
+        pageable: Pageable
+    ): Page<SimpleTermProjection>
 
     fun findAllByIdGlossaryIdInAndIdTermIdIn(
         glossaryIds: Collection<Long>,
@@ -198,6 +225,13 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         @Param("size") size: Int
     ): List<NewLearningCardProjection>
 
+}
+
+interface SimpleTermProjection {
+    val termId: Long
+    val spelling: String
+    val meaning: String
+    val abbreviation: String?
 }
 
 interface NewLearningCardProjection {

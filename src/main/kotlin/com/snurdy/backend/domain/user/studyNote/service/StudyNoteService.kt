@@ -13,9 +13,14 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesResult
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
+import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermItem
+import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
 import com.snurdy.backend.domain.user.studyNote.dto.UpdateStudyNoteRequest
+import org.springframework.data.domain.PageRequest
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.StudyNoteError
 import com.snurdy.backend.global.exception.ApiException
@@ -163,6 +168,71 @@ class StudyNoteService(
             skipped = distinctTermIds.size - newPairs.size,
             totalTermCount = currentTermCount + newPairs.size
         )
+    }
+
+    @Transactional(readOnly = true)
+    fun listTerms(userId: UUID, noteId: Long, page: Int, size: Int): StudyNoteTermsResponse {
+        val glossary = findOwnedCustomNote(userId, noteId)
+        val pageable = PageRequest.of(page, size)
+        val result = glossaryTermRepository.findPagedSimpleTermsByGlossaryId(noteId, pageable)
+        return StudyNoteTermsResponse(
+            noteId = glossary.id,
+            title = glossary.title,
+            page = result.number,
+            size = result.size,
+            totalElements = result.totalElements,
+            totalPages = result.totalPages,
+            hasNext = result.hasNext(),
+            terms = result.content.map {
+                StudyNoteTermItem(
+                    id = it.termId,
+                    spelling = it.spelling,
+                    meaning = it.meaning,
+                    abbreviation = it.abbreviation
+                )
+            }
+        )
+    }
+
+    @Transactional
+    fun removeTerms(userId: UUID, noteId: Long, termIds: List<Long>): RemoveTermsResult {
+        findOwnedCustomNote(userId, noteId)
+        val distinctTermIds = termIds.distinct()
+
+        val existing = glossaryTermRepository
+            .findAllByIdGlossaryIdAndIdTermIdIn(noteId, distinctTermIds)
+            .mapTo(mutableSetOf()) { it.id.termId }
+
+        if (existing.isEmpty()) {
+            val total = glossaryTermRepository.countByIdGlossaryId(noteId)
+            return RemoveTermsResult(removed = 0, skipped = distinctTermIds.size, totalTermCount = total)
+        }
+
+        // cascade: 단어장 한정으로 해당 단어들의 북마크/진행도 정리
+        existing.forEach { termId ->
+            bookmarkRepository.deleteByIdUserIdAndIdGlossaryIdAndIdTermId(userId, noteId, termId)
+            termProgressRepository.deleteByUserIdAndGlossaryIdAndTermId(userId, noteId, termId)
+        }
+        glossaryTermRepository.deleteAllByIdGlossaryIdAndIdTermIdIn(noteId, existing)
+
+        val total = glossaryTermRepository.countByIdGlossaryId(noteId)
+        return RemoveTermsResult(
+            removed = existing.size,
+            skipped = distinctTermIds.size - existing.size,
+            totalTermCount = total
+        )
+    }
+
+    @Transactional
+    fun deleteMany(userId: UUID, noteIds: List<Long>): RemoveStudyNotesResult {
+        val distinctNoteIds = noteIds.distinct()
+        val notes = glossaryRepository.findAllById(distinctNoteIds)
+
+        // 본인 소유 CUSTOM 만 대상. 그 외는 조용히 건너뛴다 (다중 삭제는 부분 성공 허용).
+        val targets = notes.filter { it.type == GlossaryType.CUSTOM && it.ownerId == userId }
+        targets.forEach { cascadeDeleteNote(userId, it.id) }
+
+        return RemoveStudyNotesResult(removed = targets.size)
     }
 
     @Transactional

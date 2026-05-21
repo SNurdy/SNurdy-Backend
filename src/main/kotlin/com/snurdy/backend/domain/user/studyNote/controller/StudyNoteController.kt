@@ -3,8 +3,13 @@ package com.snurdy.backend.domain.user.studyNote.controller
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsToStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesRequest
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesResult
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsFromStudyNoteRequest
+import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
+import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
 import com.snurdy.backend.domain.user.studyNote.dto.UpdateStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.service.StudyNoteService
 import com.snurdy.backend.global.constants.StudyNoteSuccess
@@ -52,4 +57,34 @@ class StudyNoteController(
         studyNoteService.removeTerm(userId, noteId, termId)
         return ApiResponse.success(StudyNoteSuccess.REMOVE_TERM)
     }
+
+    override fun listTerms(
+        userId: UUID,
+        noteId: Long,
+        page: Int,
+        size: Int
+    ): ApiResponse<StudyNoteTermsResponse> =
+        ApiResponse.success(
+            StudyNoteSuccess.LIST_TERMS,
+            studyNoteService.listTerms(userId, noteId, page, size)
+        )
+
+    override fun removeTerms(
+        userId: UUID,
+        noteId: Long,
+        request: RemoveTermsFromStudyNoteRequest
+    ): ApiResponse<RemoveTermsResult> =
+        ApiResponse.success(
+            StudyNoteSuccess.REMOVE_TERMS,
+            studyNoteService.removeTerms(userId, noteId, request.termIds)
+        )
+
+    override fun deleteMany(
+        userId: UUID,
+        request: RemoveStudyNotesRequest
+    ): ApiResponse<RemoveStudyNotesResult> =
+        ApiResponse.success(
+            StudyNoteSuccess.DELETE_MANY,
+            studyNoteService.deleteMany(userId, request.noteIds)
+        )
 }

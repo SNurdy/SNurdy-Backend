@@ -106,7 +106,10 @@ enum class StudyNoteSuccess(
     UPDATE(HttpStatus.OK, "STUDY_NOTE_S004", "단어장을 수정했습니다"),
     DELETE(HttpStatus.OK, "STUDY_NOTE_S005", "단어장을 삭제했습니다"),
     ADD_TERMS(HttpStatus.OK, "STUDY_NOTE_S006", "단어를 추가했습니다"),
-    REMOVE_TERM(HttpStatus.OK, "STUDY_NOTE_S007", "단어를 삭제했습니다")
+    REMOVE_TERM(HttpStatus.OK, "STUDY_NOTE_S007", "단어를 삭제했습니다"),
+    LIST_TERMS(HttpStatus.OK, "STUDY_NOTE_S008", "단어장 단어 목록 조회에 성공했습니다"),
+    REMOVE_TERMS(HttpStatus.OK, "STUDY_NOTE_S009", "선택한 단어들을 삭제했습니다"),
+    DELETE_MANY(HttpStatus.OK, "STUDY_NOTE_S010", "선택한 단어장들을 삭제했습니다")
 }
 
 enum class AdminSuccess(

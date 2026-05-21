@@ -1,18 +1,17 @@
-package com.snurdy.backend.domain.user.studyNote.service
+package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
+import com.snurdy.backend.domain.dictionary.dto.ClientGlossarySummary
+import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermItem
+import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
+import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
+import com.snurdy.backend.domain.dictionary.dto.ClientTermSummary
+import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.service.DictionaryQueryService
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteSummary
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermDetailResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermItem
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermSearchResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermSummary
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
@@ -21,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
-class StudyNoteService(
+class ClientDictionaryService(
     private val dictionaryQueryService: DictionaryQueryService,
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
@@ -30,7 +29,7 @@ class StudyNoteService(
     private val bookmarkRepository: BookmarkRepository
 ) {
     @Transactional(readOnly = true)
-    fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): StudyNoteTermSearchResponse {
+    fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): TermSearchResponse {
         val pageable = PageRequest.of(page, size)
         // BOOLEAN MODE 연산자(+, -, *, " 등)를 제거해 쿼리 오류 방지
         val sanitizedQuery = query?.trim()?.replace(Regex("[+\\-><()~*\"@]+"), " ")?.trim()
@@ -49,14 +48,14 @@ class StudyNoteService(
                 .toSet()
         }
 
-        return StudyNoteTermSearchResponse(
+        return TermSearchResponse(
             page = termPage.number,
             size = termPage.size,
             totalElements = termPage.totalElements,
             totalPages = termPage.totalPages,
             hasNext = termPage.hasNext(),
             terms = termPage.content.map { term ->
-                StudyNoteTermSummary(
+                ClientTermSummary(
                     id = term.id,
                     spelling = term.spelling,
                     meaning = term.meaning,
@@ -68,11 +67,11 @@ class StudyNoteService(
     }
 
     @Transactional(readOnly = true)
-    fun getTermDetail(userId: UUID, termId: Long): StudyNoteTermDetailResponse {
+    fun getTermDetail(userId: UUID, termId: Long): ClientTermDetailResponse {
         val detail = dictionaryQueryService.getTermDetail(termId)
         val bookmarks = bookmarkRepository.findAllByIdUserIdAndIdTermId(userId, termId)
 
-        return StudyNoteTermDetailResponse(
+        return ClientTermDetailResponse(
             term = detail.term,
             glossaries = detail.glossaries,
             morphemes = detail.morphemes,
@@ -82,13 +81,13 @@ class StudyNoteService(
     }
 
     @Transactional(readOnly = true)
-    fun list(userId: UUID, category: String?): StudyNoteListResponse {
+    fun getGlossaries(userId: UUID, category: String?): ClientGlossaryListResponse {
         val normalizedCategory = category?.trim().orEmpty()
 
         val glossaryProgressMap = glossaryProgressRepository.findAllByIdUserId(userId)
             .associateBy { it.id.glossaryId }
 
-        val notes = glossaryRepository.findGlossaryTermCounts()
+        val glossaries = glossaryRepository.findGlossaryTermCounts()
             .asSequence()
             .filter {
                 normalizedCategory.isBlank() ||
@@ -103,7 +102,7 @@ class StudyNoteService(
                         .toInt() / 10.0
                 }
 
-                StudyNoteSummary(
+                ClientGlossarySummary(
                     id = projection.glossaryId,
                     category = projection.category,
                     title = projection.title,
@@ -114,31 +113,31 @@ class StudyNoteService(
             }
             .toList()
 
-        return StudyNoteListResponse(notes = notes)
+        return ClientGlossaryListResponse(glossaries = glossaries)
     }
 
     @Transactional(readOnly = true)
-    fun getTerms(
+    fun getGlossaryTerms(
         userId: UUID,
         glossaryId: Long,
         filter: String,
         page: Int,
         size: Int
-    ): StudyNoteTermsResponse {
+    ): ClientGlossaryTermsResponse {
         val glossary = glossaryRepository.findById(glossaryId)
             .orElseThrow { ApiException(DictionaryError.GLOSSARY_NOT_FOUND) }
 
         val normalizedFilter = normalizeFilter(filter)
         val pageable = PageRequest.of(page, size)
 
-        val pageResult = glossaryTermRepository.findPagedStudyNoteTerms(
+        val pageResult = glossaryTermRepository.findPagedClientGlossaryTerms(
             userId = userId,
             glossaryId = glossaryId,
             filter = normalizedFilter.queryValue,
             pageable = pageable
         )
 
-        return StudyNoteTermsResponse(
+        return ClientGlossaryTermsResponse(
             glossaryId = glossary.id,
             category = glossary.category,
             title = glossary.title,
@@ -149,7 +148,7 @@ class StudyNoteService(
             totalPages = pageResult.totalPages,
             hasNext = pageResult.hasNext(),
             terms = pageResult.content.map { projection ->
-                StudyNoteTermItem(
+                ClientGlossaryTermItem(
                     id = projection.termId,
                     spelling = projection.spelling,
                     meaning = projection.meaning,

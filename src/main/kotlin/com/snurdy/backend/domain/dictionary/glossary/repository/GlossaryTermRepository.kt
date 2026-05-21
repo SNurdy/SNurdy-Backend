@@ -137,12 +137,12 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         """,
         nativeQuery = true
     )
-    fun findPagedStudyNoteTerms(
+    fun findPagedClientGlossaryTerms(
         @Param("userId") userId: UUID,
         @Param("glossaryId") glossaryId: Long,
         @Param("filter") filter: String,
         pageable: Pageable
-    ): Page<StudyNoteTermProjection>
+    ): Page<ClientGlossaryTermProjection>
 
     @Query(
         value = """
@@ -211,7 +211,7 @@ interface BulkTermGlossaryProjection {
     val title: String
 }
 
-interface StudyNoteTermProjection {
+interface ClientGlossaryTermProjection {
     val termId: Long
     val spelling: String
     val meaning: String

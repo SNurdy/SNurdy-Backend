@@ -29,7 +29,7 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
         mockMvc.post("/v1/migration/$migrationId/finalize") { with(userAuth()) }
             .andExpect { status { isOk() } }
 
-        val termsResponse = mockMvc.get("/v1/study-notes/terms") {
+        val termsResponse = mockMvc.get("/v1/dictionary/terms") {
             with(userAuth())
             param("query", "")
             param("page", "0")
@@ -41,7 +41,7 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
 
         val firstTermId = json(termsResponse).path("data").path("terms").first().path("id").asLong()
 
-        mockMvc.get("/v1/study-notes/terms/$firstTermId") {
+        mockMvc.get("/v1/dictionary/terms/$firstTermId") {
             with(userAuth())
         }.andExpect {
             status { isOk() }
@@ -49,7 +49,7 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
             jsonPath("$.data.term.id") { value(firstTermId) }
         }
 
-        mockMvc.get("/v1/study-notes") {
+        mockMvc.get("/v1/dictionary/glossaries") {
             with(userAuth())
             param("category", "")
         }.andExpect {
@@ -57,7 +57,7 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
             jsonPath("$.success") { value(true) }
         }
 
-        mockMvc.get("/v1/study-notes/${pairA.glossaryId}/terms") {
+        mockMvc.get("/v1/dictionary/glossaries/${pairA.glossaryId}/terms") {
             with(userAuth())
             param("filter", "all")
             param("page", "0")

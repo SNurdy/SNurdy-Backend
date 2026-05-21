@@ -69,6 +69,9 @@ class TermProgressEntity(
     @Column(name = "review_count", nullable = false)
     var reviewCount: Int = 0,
 
+    @Column(name = "incorrect_count", nullable = false)
+    var incorrectCount: Int = 0,
+
     @Column(name = "last_reviewed_at")
     var lastReviewedAt: Instant? = null,
 

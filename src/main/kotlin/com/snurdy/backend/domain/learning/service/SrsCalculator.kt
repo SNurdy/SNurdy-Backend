@@ -40,6 +40,7 @@ object SrsCalculator {
             .setScale(2, RoundingMode.HALF_UP)
         progress.intervalDays = 1
         progress.reviewCount = 0
+        progress.incorrectCount += 1
         progress.status = TermProgressStatus.LEARNING
         progress.lastReviewedAt = now
         progress.nextReviewAt = now.plus(1, ChronoUnit.DAYS)

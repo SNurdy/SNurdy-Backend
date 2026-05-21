@@ -88,7 +88,8 @@ class ClientDictionaryService(
         val glossaryProgressMap = glossaryProgressRepository.findAllByIdUserId(userId)
             .associateBy { it.id.glossaryId }
 
-        val glossaries = glossaryRepository.findGlossaryTermCounts()
+        // 사전 카탈로그 endpoint 라 type=DEFAULT 만 노출한다. CUSTOM/WRONG_ANSWER 는 study-note 도메인 책임.
+        val glossaries = glossaryRepository.findDefaultGlossaryTermCounts()
             .asSequence()
             .filter {
                 normalizedCategory.isBlank() ||

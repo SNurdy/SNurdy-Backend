@@ -12,8 +12,6 @@ data class UserProfileResponse(
     val email: String?,
     val nickname: String?,
     val profileImageUrl: String?,
-    val level: Int,
-    val exp: Int,
     val marketingConsent: Boolean,
     val marketingConsentAt: Instant?,
     val createdAt: Instant?
@@ -24,8 +22,6 @@ data class UserProfileResponse(
             email = user.email,
             nickname = user.nickname,
             profileImageUrl = user.profileImageUrl,
-            level = user.level,
-            exp = user.exp,
             marketingConsent = user.marketingConsent,
             marketingConsentAt = user.marketingConsentAt,
             createdAt = user.createdAt

@@ -65,12 +65,6 @@ class UserEntity(
     @Column(name = "profile_image_url", length = 512)
     var profileImageUrl: String? = null,
 
-    @Column(name = "level", nullable = false)
-    var level: Int = 0,
-
-    @Column(name = "exp", nullable = false)
-    var exp: Int = 0,
-
     @Column(name = "marketing_consent", nullable = false)
     var marketingConsent: Boolean = false,
 

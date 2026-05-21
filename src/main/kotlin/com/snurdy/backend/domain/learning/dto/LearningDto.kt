@@ -5,6 +5,7 @@ import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.service.SrsCalculator
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotEmpty
@@ -82,12 +83,19 @@ data class LearningAnswerEvent(
     val correct: Boolean
 )
 
+@Schema(description = "학습 제출 응답. learnedCount + reviewedCount = processedCount 가 항상 성립한다")
 data class LearningSubmitResponse(
+    @field:Schema(description = "처리된 이벤트 총 개수")
     val processedCount: Int,
+    @field:Schema(description = "정답으로 푼 이벤트 개수")
     val correctCount: Int,
+    @field:Schema(description = "오답으로 푼 이벤트 개수")
     val incorrectCount: Int,
+    @field:Schema(description = "처음으로 학습된 단어 개수 (NEW -> LEARNING 전환)")
     val learnedCount: Int,
+    @field:Schema(description = "이미 학습된 단어를 복습한 이벤트 개수 (= processedCount - learnedCount)")
     val reviewedCount: Int,
+    @field:Schema(description = "이번 제출로 단어장 레벨이 올랐을 때만 채워지는 이벤트, 변화 없으면 null")
     val levelUp: GlossaryLevelUp?
 )
 

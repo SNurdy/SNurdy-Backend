@@ -102,12 +102,14 @@ class LearningCommandService(
         } else null
 
         val correctCount = request.events.count { it.correct }
+        // reviewedCount = 이미 학습된 단어를 복습한 이벤트 수
+        // learnedCount + reviewedCount = processedCount 가 되도록 분해한다
         return LearningSubmitResponse(
             processedCount = request.events.size,
             correctCount = correctCount,
             incorrectCount = request.events.size - correctCount,
             learnedCount = aggregation.learnedTotal,
-            reviewedCount = aggregation.reviewedTotal,
+            reviewedCount = request.events.size - aggregation.learnedTotal,
             levelUp = levelUp
         )
     }

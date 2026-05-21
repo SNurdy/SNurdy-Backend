@@ -104,6 +104,19 @@ enum class DictionaryError(
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "DICTIONARY_E005", "filter는 all|learned|notLearned 중 하나여야 합니다")
 }
 
+enum class StudyNoteError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    NOT_FOUND(HttpStatus.NOT_FOUND, "STUDY_NOTE_E001", "단어장을 찾을 수 없습니다"),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "STUDY_NOTE_E002", "본인 소유 단어장만 접근할 수 있습니다"),
+    GLOSSARY_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "STUDY_NOTE_E003", "사용자당 최대 단어장 수를 초과했습니다"),
+    TERM_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "STUDY_NOTE_E004", "단어장당 최대 단어 수를 초과했습니다"),
+    SYSTEM_NOTE_NOT_EDITABLE(HttpStatus.BAD_REQUEST, "STUDY_NOTE_E005", "시스템이 관리하는 단어장은 직접 수정할 수 없습니다"),
+    DUPLICATED_TITLE(HttpStatus.CONFLICT, "STUDY_NOTE_E006", "이미 존재하는 단어장입니다")
+}
+
 enum class AdminError(
     override val status: HttpStatus,
     override val code: String,

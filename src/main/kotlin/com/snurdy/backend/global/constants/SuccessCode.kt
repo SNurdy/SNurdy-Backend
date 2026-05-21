@@ -95,6 +95,20 @@ enum class DictionarySuccess(
     SEARCH_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S006", "어근어미 키워드 검색에 성공했습니다")
 }
 
+enum class StudyNoteSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    CREATE(HttpStatus.CREATED, "STUDY_NOTE_S001", "단어장을 생성했습니다"),
+    LIST(HttpStatus.OK, "STUDY_NOTE_S002", "단어장 목록 조회에 성공했습니다"),
+    GET(HttpStatus.OK, "STUDY_NOTE_S003", "단어장 상세 조회에 성공했습니다"),
+    UPDATE(HttpStatus.OK, "STUDY_NOTE_S004", "단어장을 수정했습니다"),
+    DELETE(HttpStatus.OK, "STUDY_NOTE_S005", "단어장을 삭제했습니다"),
+    ADD_TERMS(HttpStatus.OK, "STUDY_NOTE_S006", "단어를 추가했습니다"),
+    REMOVE_TERM(HttpStatus.OK, "STUDY_NOTE_S007", "단어를 삭제했습니다")
+}
+
 enum class AdminSuccess(
     override val status: HttpStatus,
     override val code: String,

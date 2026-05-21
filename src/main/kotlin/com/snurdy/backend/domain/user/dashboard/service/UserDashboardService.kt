@@ -3,8 +3,8 @@ package com.snurdy.backend.domain.user.dashboard.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStat
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStat
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStatistic
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatistic
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardPeriod
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
@@ -34,8 +34,8 @@ class UserDashboardService(
         val resolvedFrom = from ?: resolvedTo.minusDays(DEFAULT_PERIOD_DAYS - 1)
 
         val streakResponse = userStreakService.getStreak(userId)
-        val glossaryStats = buildGlossaryStats(userId)
-        val dailyStats = buildDailyStats(userId, resolvedFrom, resolvedTo)
+        val glossaryStatistics = buildGlossaryStatistics(userId)
+        val dailyStatistics = buildDailyStatistics(userId, resolvedFrom, resolvedTo)
 
         return UserDashboardResponse(
             period = DashboardPeriod(from = resolvedFrom, to = resolvedTo),
@@ -44,15 +44,15 @@ class UserDashboardService(
                 longestStreak = streakResponse.longestStreak,
                 totalLearningTerms = streakResponse.totalLearningTerms
             ),
-            glossaryStats = glossaryStats,
-            dailyStats = dailyStats,
+            glossaryStatistics = glossaryStatistics,
+            dailyStatistics = dailyStatistics,
             generatedAt = clock.instant()
         )
     }
 
     // 사용자가 학습 시작한 glossary 만 모음
     // 학습 안 한 glossary 는 대시보드에서 제외 (dictionary 메뉴에서 따로 봄)
-    private fun buildGlossaryStats(userId: UUID): List<DashboardGlossaryStat> {
+    private fun buildGlossaryStatistics(userId: UUID): List<DashboardGlossaryStatistic> {
         val progresses = glossaryProgressRepository.findAllByIdUserId(userId)
         if (progresses.isEmpty()) return emptyList()
 
@@ -69,7 +69,7 @@ class UserDashboardService(
                 ((progress.learnedCount.toDouble() / totalTermCount.toDouble()) * 1000.0)
                     .toInt() / 10.0
             }
-            DashboardGlossaryStat(
+            DashboardGlossaryStatistic(
                 glossaryId = glossaryId,
                 category = meta.category,
                 title = meta.title,
@@ -81,11 +81,11 @@ class UserDashboardService(
         }.sortedByDescending { it.lastLearnedAt }
     }
 
-    private fun buildDailyStats(userId: UUID, from: LocalDate, to: LocalDate): List<DashboardDailyStat> {
+    private fun buildDailyStatistics(userId: UUID, from: LocalDate, to: LocalDate): List<DashboardDailyStatistic> {
         return dailyProgressRepository
             .findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
             .map {
-                DashboardDailyStat(
+                DashboardDailyStatistic(
                     date = it.id.date,
                     learnedCount = it.learnedCount,
                     reviewedCount = it.reviewedCount

@@ -8,8 +8,8 @@ import java.time.LocalDate
 data class UserDashboardResponse(
     val period: DashboardPeriod,
     val streak: DashboardStreak,
-    val glossaryStats: List<DashboardGlossaryStat>,
-    val dailyStats: List<DashboardDailyStat>,
+    val glossaryStatistics: List<DashboardGlossaryStatistic>,
+    val dailyStatistics: List<DashboardDailyStatistic>,
     val generatedAt: Instant
 )
 
@@ -27,7 +27,7 @@ data class DashboardStreak(
 )
 
 @Schema(description = "용어집(과목)별 학습 지표")
-data class DashboardGlossaryStat(
+data class DashboardGlossaryStatistic(
     val glossaryId: Long,
     val category: String,
     val title: String,
@@ -38,7 +38,7 @@ data class DashboardGlossaryStat(
 )
 
 @Schema(description = "날짜별 학습/복습 지표")
-data class DashboardDailyStat(
+data class DashboardDailyStatistic(
     val date: LocalDate,
     val learnedCount: Int,
     val reviewedCount: Int

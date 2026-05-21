@@ -24,7 +24,7 @@ class CalendarService(
             CalendarDailyItem(
                 date = it.id.date,
                 learnedCount = it.learnedCount,
-                reviewedCount = it.reviewedCount
+                completedCount = it.completedCount
             )
         }
 
@@ -33,7 +33,7 @@ class CalendarService(
             month = month,
             days = days,
             totalLearnedCount = days.sumOf { it.learnedCount },
-            totalReviewedCount = days.sumOf { it.reviewedCount }
+            totalCompletedCount = days.sumOf { it.completedCount }
         )
     }
 }

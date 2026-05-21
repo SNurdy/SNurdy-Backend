@@ -7,11 +7,11 @@ data class CalendarResponse(
     val month: Int,
     val days: List<CalendarDailyItem>,
     val totalLearnedCount: Int,
-    val totalReviewedCount: Int
+    val totalCompletedCount: Int
 )
 
 data class CalendarDailyItem(
     val date: LocalDate,
     val learnedCount: Int,
-    val reviewedCount: Int
+    val completedCount: Int
 )

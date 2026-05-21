@@ -42,5 +42,5 @@ data class DashboardGlossaryStatistic(
 data class DashboardDailyStatistic(
     val date: LocalDate,
     val learnedCount: Int,
-    val reviewedCount: Int
+    val completedCount: Int
 )

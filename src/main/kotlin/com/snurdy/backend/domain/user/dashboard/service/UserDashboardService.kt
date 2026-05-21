@@ -90,7 +90,7 @@ class UserDashboardService(
                 DashboardDailyStatistic(
                     date = it.id.date,
                     learnedCount = it.learnedCount,
-                    reviewedCount = it.reviewedCount
+                    completedCount = it.completedCount
                 )
             }
     }

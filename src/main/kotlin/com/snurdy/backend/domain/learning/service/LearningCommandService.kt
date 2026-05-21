@@ -179,7 +179,7 @@ class LearningCommandService(
 
         val todayBefore = existing[today]
         val todayWasActiveBefore = todayBefore != null &&
-            (todayBefore.learnedCount + todayBefore.reviewedCount) > 0
+            (todayBefore.learnedCount + todayBefore.completedCount) > 0
 
         val toSave = byDate.map { (date, delta) ->
             val progress = existing[date] ?: DailyProgressEntity(
@@ -187,7 +187,7 @@ class LearningCommandService(
                 user = user
             )
             progress.learnedCount += delta.learned
-            progress.reviewedCount += delta.reviewed
+            progress.completedCount += delta.completed
             progress
         }
         dailyProgressRepository.saveAll(toSave)
@@ -207,7 +207,7 @@ class LearningCommandService(
                 val yesterday = today.minusDays(1)
                 val yesterdayActive = dailyProgressRepository
                     .findByIdOrNull(DailyProgressId(user.id, yesterday))
-                    ?.let { (it.learnedCount + it.reviewedCount) > 0 }
+                    ?.let { (it.learnedCount + it.completedCount) > 0 }
                     ?: false
                 when {
                     !yesterdayActive -> 1
@@ -227,7 +227,7 @@ class LearningCommandService(
             pageable = PageRequest.of(0, MAX_STREAK_LOOKBACK)
         )
         val activeDates = rows.asSequence()
-            .filter { (it.learnedCount + it.reviewedCount) > 0 }
+            .filter { (it.learnedCount + it.completedCount) > 0 }
             .map { it.id.date }
             .toHashSet()
 
@@ -295,8 +295,8 @@ class LearningCommandService(
         }
     }
 
-    private data class DailyDelta(val learned: Int, val reviewed: Int) {
-        operator fun plus(other: DailyDelta) = DailyDelta(learned + other.learned, reviewed + other.reviewed)
+    private data class DailyDelta(val learned: Int, val completed: Int) {
+        operator fun plus(other: DailyDelta) = DailyDelta(learned + other.learned, completed + other.completed)
 
         companion object {
             val EMPTY = DailyDelta(0, 0)
@@ -305,12 +305,12 @@ class LearningCommandService(
 
     private class LearningAggregation {
         var learnedTotal: Int = 0
-        var reviewedTotal: Int = 0
+        var completedTotal: Int = 0
         val learnedByGlossary: MutableMap<Long, Int> = mutableMapOf()
         val byDate: MutableMap<LocalDate, DailyDelta> = mutableMapOf()
 
         fun accumulate(glossaryId: Long, dailyDate: LocalDate, wasFirstLearned: Boolean) {
-            reviewedTotal += 1
+            completedTotal += 1
             if (wasFirstLearned) {
                 learnedTotal += 1
                 learnedByGlossary[glossaryId] = (learnedByGlossary[glossaryId] ?: 0) + 1

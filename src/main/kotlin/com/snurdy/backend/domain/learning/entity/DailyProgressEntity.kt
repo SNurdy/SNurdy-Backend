@@ -25,6 +25,6 @@ class DailyProgressEntity(
     @Column(name = "learned_count", nullable = false)
     var learnedCount: Int = 0,
 
-    @Column(name = "reviewed_count", nullable = false)
-    var reviewedCount: Int = 0
+    @Column(name = "completed_count", nullable = false)
+    var completedCount: Int = 0
 ) : BaseTimeEntity()

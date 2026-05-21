@@ -8,6 +8,7 @@ import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermSummary
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
+import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
@@ -108,7 +109,8 @@ class ClientDictionaryService(
                     title = projection.title,
                     termCount = projection.termCount,
                     learnedCount = learnedCount,
-                    progressRate = progressRate
+                    progressRate = progressRate,
+                    level = LevelCalculator.fromProgressRate(progressRate)
                 )
             }
             .toList()

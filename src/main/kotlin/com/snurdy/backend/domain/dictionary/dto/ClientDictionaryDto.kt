@@ -42,7 +42,8 @@ data class ClientGlossarySummary(
     val title: String,
     val termCount: Long,
     val learnedCount: Int,
-    val progressRate: Double
+    val progressRate: Double,
+    val level: Int
 )
 
 @Schema(description = "앱용 용어장 용어 목록 응답")

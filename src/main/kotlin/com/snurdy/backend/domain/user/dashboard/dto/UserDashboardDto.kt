@@ -34,6 +34,7 @@ data class DashboardGlossaryStatistic(
     val learnedCount: Int,
     val totalTermCount: Long,
     val progressRate: Double,
+    val level: Int,
     val lastLearnedAt: Instant?
 )
 

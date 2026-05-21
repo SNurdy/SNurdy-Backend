@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.dashboard.service
 
+import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
@@ -76,6 +77,7 @@ class UserDashboardService(
                 learnedCount = progress.learnedCount,
                 totalTermCount = totalTermCount,
                 progressRate = progressRate,
+                level = LevelCalculator.fromProgressRate(progressRate),
                 lastLearnedAt = progress.lastLearnedAt
             )
         }.sortedByDescending { it.lastLearnedAt }

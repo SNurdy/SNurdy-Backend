@@ -66,7 +66,7 @@ class UserEntity(
     var profileImageUrl: String? = null,
 
     @Column(name = "level", nullable = false)
-    var level: Int = 1,
+    var level: Int = 0,
 
     @Column(name = "exp", nullable = false)
     var exp: Int = 0,

@@ -18,8 +18,8 @@ import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
+import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException

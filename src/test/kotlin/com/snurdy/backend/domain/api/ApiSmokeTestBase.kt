@@ -2,9 +2,9 @@ package com.snurdy.backend.domain.api
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
+import com.snurdy.backend.domain.user.account.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.domain.user.account.repository.UserRepository
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach

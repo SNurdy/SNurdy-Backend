@@ -8,9 +8,9 @@ import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
 import com.snurdy.backend.domain.auth.model.RefreshToken
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
+import com.snurdy.backend.domain.user.account.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException

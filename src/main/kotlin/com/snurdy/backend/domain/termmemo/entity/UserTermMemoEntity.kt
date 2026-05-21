@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.termMemo.entity
 
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.EmbeddedId

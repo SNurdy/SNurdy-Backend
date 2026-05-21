@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.migration.entity
 
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.*
 import java.time.Instant

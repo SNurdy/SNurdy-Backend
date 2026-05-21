@@ -3,7 +3,7 @@ package com.snurdy.backend.domain.learning.entity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.learning.service.SrsCalculator
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity

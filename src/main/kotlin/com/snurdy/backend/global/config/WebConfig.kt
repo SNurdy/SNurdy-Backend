@@ -1,6 +1,6 @@
 package com.snurdy.backend.global.config
 
-import com.snurdy.backend.domain.user.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.SocialType
 import com.snurdy.backend.global.security.CurrentUserIdArgumentResolver
 import org.springframework.context.annotation.Configuration
 import org.springframework.format.FormatterRegistry

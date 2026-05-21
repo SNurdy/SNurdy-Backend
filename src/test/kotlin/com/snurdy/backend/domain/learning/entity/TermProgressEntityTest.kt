@@ -2,8 +2,8 @@ package com.snurdy.backend.domain.learning.entity
 
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test

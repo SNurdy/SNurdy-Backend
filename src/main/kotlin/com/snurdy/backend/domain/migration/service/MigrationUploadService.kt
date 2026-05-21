@@ -23,7 +23,7 @@ import com.snurdy.backend.domain.migration.dto.MigrationUploadResponse
 import com.snurdy.backend.domain.migration.dto.TermProgressPayload
 import com.snurdy.backend.domain.migration.dto.UserSummaryPayload
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service

@@ -27,6 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.http.HttpStatus
 import java.util.UUID
 
 @Validated
@@ -37,6 +39,7 @@ interface CustomNoteApi {
     @Operation(summary = "커스텀 단어장 생성")
     @ApiSuccessCode("CUSTOM_NOTE_S001")
     @ApiErrorCodes("CUSTOM_NOTE_E003", "CUSTOM_NOTE_E006")
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     fun createNote(
         @CurrentUserId userId: UUID,

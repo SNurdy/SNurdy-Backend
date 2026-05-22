@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import org.springframework.http.HttpStatus
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
@@ -26,6 +27,7 @@ interface AdminWorkflowApi {
         "ADMIN_E028",
         "ADMIN_E031"
     )
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/change-requests")
     fun create(@RequestBody request: CreateChangeRequest): ApiResponse<ChangeRequestDetailResponse>
 

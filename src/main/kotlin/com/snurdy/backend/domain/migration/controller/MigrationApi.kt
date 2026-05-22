@@ -8,6 +8,7 @@ import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
 
@@ -24,6 +25,7 @@ interface MigrationApi {
         "MIGRATION_E015",
         "MIGRATION_E018"
     )
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/start")
     fun start(@CurrentUserId userId: UUID): ApiResponse<MigrationStartResponse>
 

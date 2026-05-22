@@ -24,7 +24,8 @@ class CalendarService(
             CalendarDailyItem(
                 date = it.id.date,
                 learnedCount = it.learnedCount,
-                completedCount = it.completedCount
+                completedCount = it.completedCount,
+                studied = it.completedCount > 0
             )
         }
 

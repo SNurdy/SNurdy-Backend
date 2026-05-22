@@ -15,8 +15,8 @@ import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
-import com.snurdy.backend.global.constants.StudyNoteError
-import com.snurdy.backend.global.constants.StudyNoteSuccess
+import com.snurdy.backend.global.constants.CustomNoteError
+import com.snurdy.backend.global.constants.CustomNoteSuccess
 import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.UserSuccess
@@ -35,7 +35,7 @@ object ApiCodeRegistry {
             LearningError.entries,
             MigrationError.entries,
             DictionaryError.entries,
-            StudyNoteError.entries,
+            CustomNoteError.entries,
             AdminError.entries,
             VersionError.entries
         ).flatten().forEach {
@@ -53,7 +53,7 @@ object ApiCodeRegistry {
             LearningSuccess.entries,
             CalendarSuccess.entries,
             DictionarySuccess.entries,
-            StudyNoteSuccess.entries,
+            CustomNoteSuccess.entries,
             MigrationSuccess.entries,
             AdminSuccess.entries,
             VersionSuccess.entries

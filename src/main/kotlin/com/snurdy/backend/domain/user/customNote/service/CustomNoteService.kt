@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.user.studyNote.service
+package com.snurdy.backend.domain.user.customNote.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
@@ -10,16 +10,16 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepo
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResponse
-import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermItem
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
-import com.snurdy.backend.domain.user.studyNote.dto.UpdateStudyNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermItem
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import org.springframework.data.domain.PageRequest
 import com.snurdy.backend.global.constants.DictionaryError
-import com.snurdy.backend.global.constants.StudyNoteError
+import com.snurdy.backend.global.constants.CustomNoteError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
 @Service
-class StudyNoteService(
+class CustomNoteService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
@@ -38,16 +38,16 @@ class StudyNoteService(
 ) {
 
     @Transactional
-    fun create(userId: UUID, request: CreateStudyNoteRequest): StudyNoteResponse {
+    fun create(userId: UUID, request: CreateCustomNoteRequest): CustomNoteResponse {
         if (glossaryRepository.countByOwnerIdAndType(userId, GlossaryType.CUSTOM) >= MAX_NOTES_PER_USER) {
-            throw ApiException(StudyNoteError.GLOSSARY_LIMIT_EXCEEDED)
+            throw ApiException(CustomNoteError.NOTE_LIMIT_EXCEEDED)
         }
 
         val resolvedTitle = resolveTitle(userId, request.title)
 
         // 사전 중복 체크 (자동 생성 경로에서는 충돌하지 않지만 안전망)
         if (glossaryRepository.existsByOwnerIdAndTitle(userId, resolvedTitle)) {
-            throw ApiException(StudyNoteError.DUPLICATED_TITLE)
+            throw ApiException(CustomNoteError.DUPLICATED_TITLE)
         }
 
         val saved = try {
@@ -61,16 +61,16 @@ class StudyNoteService(
             )
         } catch (_: DataIntegrityViolationException) {
             // (owner_id, title) UNIQUE 제약 충돌
-            throw ApiException(StudyNoteError.DUPLICATED_TITLE)
+            throw ApiException(CustomNoteError.DUPLICATED_TITLE)
         }
 
-        return StudyNoteResponse.from(saved, learnedCount = 0, termCount = 0L)
+        return CustomNoteResponse.from(saved, learnedCount = 0, termCount = 0L)
     }
 
     @Transactional(readOnly = true)
-    fun list(userId: UUID): StudyNoteListResponse {
+    fun list(userId: UUID): CustomNoteListResponse {
         val notes = glossaryRepository.findAllByOwnerIdAndTypeOrderByCreatedAtDesc(userId, GlossaryType.CUSTOM)
-        if (notes.isEmpty()) return StudyNoteListResponse(notes = emptyList())
+        if (notes.isEmpty()) return CustomNoteListResponse(notes = emptyList())
 
         val progressByGlossaryId = glossaryProgressRepository.findAllByIdUserId(userId)
             .associateBy { it.id.glossaryId }
@@ -78,43 +78,43 @@ class StudyNoteService(
         val responses = notes.map { glossary ->
             val termCount = glossaryTermRepository.countByIdGlossaryId(glossary.id)
             val learnedCount = progressByGlossaryId[glossary.id]?.learnedCount ?: 0
-            StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+            CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
         }
 
-        return StudyNoteListResponse(notes = responses)
+        return CustomNoteListResponse(notes = responses)
     }
 
     @Transactional(readOnly = true)
-    fun get(userId: UUID, noteId: Long): StudyNoteResponse {
+    fun get(userId: UUID, noteId: Long): CustomNoteResponse {
         val glossary = findOwnedCustomNote(userId, noteId)
         val termCount = glossaryTermRepository.countByIdGlossaryId(noteId)
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+        return CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
-    fun update(userId: UUID, noteId: Long, request: UpdateStudyNoteRequest): StudyNoteResponse {
+    fun update(userId: UUID, noteId: Long, request: UpdateCustomNoteRequest): CustomNoteResponse {
         val glossary = findOwnedCustomNote(userId, noteId)
 
         val newTitle = request.title.trim()
         if (newTitle != glossary.title && glossaryRepository.existsByOwnerIdAndTitle(userId, newTitle)) {
-            throw ApiException(StudyNoteError.DUPLICATED_TITLE)
+            throw ApiException(CustomNoteError.DUPLICATED_TITLE)
         }
 
         glossary.title = newTitle
         try {
             glossaryRepository.save(glossary)
         } catch (_: DataIntegrityViolationException) {
-            throw ApiException(StudyNoteError.DUPLICATED_TITLE)
+            throw ApiException(CustomNoteError.DUPLICATED_TITLE)
         }
 
         val termCount = glossaryTermRepository.countByIdGlossaryId(noteId)
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+        return CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
@@ -129,7 +129,7 @@ class StudyNoteService(
 
         val currentTermCount = glossaryTermRepository.countByIdGlossaryId(noteId)
         if (currentTermCount + termIds.size > MAX_TERMS_PER_NOTE) {
-            throw ApiException(StudyNoteError.TERM_LIMIT_EXCEEDED)
+            throw ApiException(CustomNoteError.TERM_LIMIT_EXCEEDED)
         }
 
         val distinctTermIds = termIds.distinct()
@@ -168,11 +168,11 @@ class StudyNoteService(
     }
 
     @Transactional(readOnly = true)
-    fun listTerms(userId: UUID, noteId: Long, page: Int, size: Int): StudyNoteTermsResponse {
+    fun listTerms(userId: UUID, noteId: Long, page: Int, size: Int): CustomNoteTermsResponse {
         val glossary = findOwnedCustomNote(userId, noteId)
         val pageable = PageRequest.of(page, size)
         val result = glossaryTermRepository.findPagedSimpleTermsByGlossaryId(noteId, pageable)
-        return StudyNoteTermsResponse(
+        return CustomNoteTermsResponse(
             noteId = glossary.id,
             title = glossary.title,
             page = result.number,
@@ -181,7 +181,7 @@ class StudyNoteService(
             totalPages = result.totalPages,
             hasNext = result.hasNext(),
             terms = result.content.map {
-                StudyNoteTermItem(
+                CustomNoteTermItem(
                     id = it.termId,
                     spelling = it.spelling,
                     meaning = it.meaning,
@@ -202,7 +202,7 @@ class StudyNoteService(
 
         // 단어장에 없는 termId 가 하나라도 있으면 전체 거부 (단일 삭제와 일관)
         if (existing.size != distinctTermIds.size) {
-            throw ApiException(StudyNoteError.TERM_NOT_IN_NOTE)
+            throw ApiException(CustomNoteError.TERM_NOT_IN_NOTE)
         }
 
         // cascade: 단어장 한정으로 해당 단어들의 북마크/진행도 정리
@@ -220,12 +220,12 @@ class StudyNoteService(
 
         // 입력한 ID 중 존재하지 않는 단어장이 있으면 전체 거부
         if (notes.size != distinctNoteIds.size) {
-            throw ApiException(StudyNoteError.NOT_FOUND)
+            throw ApiException(CustomNoteError.NOT_FOUND)
         }
         // 본인 소유 + CUSTOM 만 허용. 하나라도 위반이면 전체 거부 (단일 삭제와 일관)
         notes.forEach { note ->
-            if (note.type != GlossaryType.CUSTOM) throw ApiException(StudyNoteError.SYSTEM_NOTE_NOT_EDITABLE)
-            if (note.ownerId != userId) throw ApiException(StudyNoteError.FORBIDDEN)
+            if (note.type != GlossaryType.CUSTOM) throw ApiException(CustomNoteError.NOT_CUSTOM_NOTE)
+            if (note.ownerId != userId) throw ApiException(CustomNoteError.FORBIDDEN)
         }
 
         notes.forEach { cascadeDeleteNote(userId, it.id) }
@@ -235,7 +235,7 @@ class StudyNoteService(
     fun deleteTerm(userId: UUID, noteId: Long, termId: Long) {
         findOwnedCustomNote(userId, noteId)
         if (!glossaryTermRepository.existsByIdGlossaryIdAndIdTermId(noteId, termId)) {
-            throw ApiException(StudyNoteError.TERM_NOT_IN_NOTE)
+            throw ApiException(CustomNoteError.TERM_NOT_IN_NOTE)
         }
 
         // cascade: 이 단어장 한정으로 단어 관련 사용자 데이터를 모두 정리
@@ -247,12 +247,12 @@ class StudyNoteService(
 
     private fun findOwnedCustomNote(userId: UUID, noteId: Long): GlossaryEntity {
         val glossary = glossaryRepository.findByIdOrNull(noteId)
-            ?: throw ApiException(StudyNoteError.NOT_FOUND)
+            ?: throw ApiException(CustomNoteError.NOT_FOUND)
         if (glossary.type != GlossaryType.CUSTOM) {
-            throw ApiException(StudyNoteError.SYSTEM_NOTE_NOT_EDITABLE)
+            throw ApiException(CustomNoteError.NOT_CUSTOM_NOTE)
         }
         if (glossary.ownerId != userId) {
-            throw ApiException(StudyNoteError.FORBIDDEN)
+            throw ApiException(CustomNoteError.FORBIDDEN)
         }
         return glossary
     }

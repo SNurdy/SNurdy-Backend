@@ -1,14 +1,14 @@
-package com.snurdy.backend.domain.user.studyNote.controller
+package com.snurdy.backend.domain.user.customNote.controller
 
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResponse
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsToStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.DeleteStudyNotesRequest
-import com.snurdy.backend.domain.user.studyNote.dto.DeleteTermsFromStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
-import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
-import com.snurdy.backend.domain.user.studyNote.dto.UpdateStudyNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.DeleteCustomNotesRequest
+import com.snurdy.backend.domain.user.customNote.dto.DeleteTermsFromCustomNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -30,46 +30,46 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @Validated
-@Tag(name = "Study-Note", description = "사용자 커스텀 단어장 API")
-@RequestMapping("/v2/study-notes")
-interface StudyNoteApi {
+@Tag(name = "Custom-Note", description = "사용자 커스텀 단어장 API")
+@RequestMapping("/v2/custom-notes")
+interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장 생성")
-    @ApiSuccessCode("STUDY_NOTE_S001")
-    @ApiErrorCodes("STUDY_NOTE_E003", "STUDY_NOTE_E006")
+    @ApiSuccessCode("CUSTOM_NOTE_S001")
+    @ApiErrorCodes("CUSTOM_NOTE_E003", "CUSTOM_NOTE_E006")
     @PostMapping
     fun createNote(
         @CurrentUserId userId: UUID,
-        @RequestBody @Valid request: CreateStudyNoteRequest
-    ): ApiResponse<StudyNoteResponse>
+        @RequestBody @Valid request: CreateCustomNoteRequest
+    ): ApiResponse<CustomNoteResponse>
 
     @Operation(summary = "내 커스텀 단어장 목록 조회 (최근 생성 순)")
-    @ApiSuccessCode("STUDY_NOTE_S002")
+    @ApiSuccessCode("CUSTOM_NOTE_S002")
     @GetMapping
-    fun listNotes(@CurrentUserId userId: UUID): ApiResponse<StudyNoteListResponse>
+    fun listNotes(@CurrentUserId userId: UUID): ApiResponse<CustomNoteListResponse>
 
     @Operation(summary = "커스텀 단어장 상세 조회")
-    @ApiSuccessCode("STUDY_NOTE_S003")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005")
+    @ApiSuccessCode("CUSTOM_NOTE_S003")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
     @GetMapping("/{noteId}")
     fun getNote(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long
-    ): ApiResponse<StudyNoteResponse>
+    ): ApiResponse<CustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장 제목 수정")
-    @ApiSuccessCode("STUDY_NOTE_S004")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005", "STUDY_NOTE_E006")
+    @ApiSuccessCode("CUSTOM_NOTE_S004")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005", "CUSTOM_NOTE_E006")
     @PatchMapping("/{noteId}")
     fun updateNote(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
-        @RequestBody @Valid request: UpdateStudyNoteRequest
-    ): ApiResponse<StudyNoteResponse>
+        @RequestBody @Valid request: UpdateCustomNoteRequest
+    ): ApiResponse<CustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장 단일 삭제")
-    @ApiSuccessCode("STUDY_NOTE_S005")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005")
+    @ApiSuccessCode("CUSTOM_NOTE_S005")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
     @DeleteMapping("/{noteId}")
     fun deleteNote(
         @CurrentUserId userId: UUID,
@@ -77,28 +77,28 @@ interface StudyNoteApi {
     ): ApiResponse<Unit>
 
     @Operation(summary = "커스텀 단어장에 사전 단어 추가 (배치)")
-    @ApiSuccessCode("STUDY_NOTE_S006")
+    @ApiSuccessCode("CUSTOM_NOTE_S006")
     @ApiErrorCodes(
-        "STUDY_NOTE_E001",
-        "STUDY_NOTE_E002",
-        "STUDY_NOTE_E004",
-        "STUDY_NOTE_E005",
+        "CUSTOM_NOTE_E001",
+        "CUSTOM_NOTE_E002",
+        "CUSTOM_NOTE_E004",
+        "CUSTOM_NOTE_E005",
         "DICTIONARY_E002"
     )
     @PostMapping("/{noteId}/terms")
     fun addTerms(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
-        @RequestBody @Valid request: AddTermsToStudyNoteRequest
+        @RequestBody @Valid request: AddTermsToCustomNoteRequest
     ): ApiResponse<AddTermsResponse>
 
     @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
-    @ApiSuccessCode("STUDY_NOTE_S007")
+    @ApiSuccessCode("CUSTOM_NOTE_S007")
     @ApiErrorCodes(
-        "STUDY_NOTE_E001",
-        "STUDY_NOTE_E002",
-        "STUDY_NOTE_E005",
-        "STUDY_NOTE_E007"
+        "CUSTOM_NOTE_E001",
+        "CUSTOM_NOTE_E002",
+        "CUSTOM_NOTE_E005",
+        "CUSTOM_NOTE_E007"
     )
     @DeleteMapping("/{noteId}/terms/{termId}")
     fun deleteTerm(
@@ -108,32 +108,32 @@ interface StudyNoteApi {
     ): ApiResponse<Unit>
 
     @Operation(summary = "커스텀 단어장 내 단어 목록 조회 (페이징)")
-    @ApiSuccessCode("STUDY_NOTE_S008")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005")
+    @ApiSuccessCode("CUSTOM_NOTE_S008")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
     @GetMapping("/{noteId}/terms")
     fun listTerms(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
-    ): ApiResponse<StudyNoteTermsResponse>
+    ): ApiResponse<CustomNoteTermsResponse>
 
     @Operation(summary = "커스텀 단어장에서 단어 다중 삭제. 입력한 단어가 단어장에 모두 있어야 처리")
-    @ApiSuccessCode("STUDY_NOTE_S009")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005", "STUDY_NOTE_E007")
+    @ApiSuccessCode("CUSTOM_NOTE_S009")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005", "CUSTOM_NOTE_E007")
     @DeleteMapping("/{noteId}/terms")
     fun deleteTerms(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
-        @RequestBody @Valid request: DeleteTermsFromStudyNoteRequest
+        @RequestBody @Valid request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit>
 
     @Operation(summary = "커스텀 단어장 다중 삭제. 모두 본인 소유 CUSTOM 이어야 처리")
-    @ApiSuccessCode("STUDY_NOTE_S010")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005")
+    @ApiSuccessCode("CUSTOM_NOTE_S010")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
     @DeleteMapping
     fun deleteNotes(
         @CurrentUserId userId: UUID,
-        @RequestBody @Valid request: DeleteStudyNotesRequest
+        @RequestBody @Valid request: DeleteCustomNotesRequest
     ): ApiResponse<Unit>
 }

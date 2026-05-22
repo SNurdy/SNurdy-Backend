@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.user.studyNote.dto
+package com.snurdy.backend.domain.user.customNote.dto
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
@@ -9,21 +9,21 @@ import jakarta.validation.constraints.Size
 import java.time.Instant
 
 @Schema(description = "커스텀 단어장 생성 요청")
-data class CreateStudyNoteRequest(
+data class CreateCustomNoteRequest(
     @field:Size(max = 14, message = "단어장 제목은 최대 14자까지 입력할 수 있습니다")
     @field:Schema(description = "단어장 제목. null/blank 면 '단어장 N' 으로 자동 생성", example = "외과 단어장")
     val title: String? = null
 )
 
 @Schema(description = "커스텀 단어장 수정 요청")
-data class UpdateStudyNoteRequest(
+data class UpdateCustomNoteRequest(
     @field:Size(min = 1, max = 14, message = "단어장 제목은 1~14자여야 합니다")
     @field:Schema(description = "변경할 단어장 제목", example = "신경계 단어장")
     val title: String
 )
 
 @Schema(description = "단어장에 단어 추가 요청")
-data class AddTermsToStudyNoteRequest(
+data class AddTermsToCustomNoteRequest(
     @field:NotEmpty(message = "추가할 단어 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 추가할 수 있습니다")
     @field:Schema(description = "추가할 사전 단어 ID 목록")
@@ -31,7 +31,7 @@ data class AddTermsToStudyNoteRequest(
 )
 
 @Schema(description = "커스텀 단어장 요약")
-data class StudyNoteResponse(
+data class CustomNoteResponse(
     val id: Long,
     val title: String,
     val termCount: Long,
@@ -41,9 +41,9 @@ data class StudyNoteResponse(
     val createdAt: Instant?
 ) {
     companion object {
-        fun from(glossary: GlossaryEntity, learnedCount: Int, termCount: Long): StudyNoteResponse {
+        fun from(glossary: GlossaryEntity, learnedCount: Int, termCount: Long): CustomNoteResponse {
             val rate = GlossaryProgressCalculator.progressRate(learnedCount, termCount)
-            return StudyNoteResponse(
+            return CustomNoteResponse(
                 id = glossary.id,
                 title = glossary.title,
                 termCount = termCount,
@@ -57,8 +57,8 @@ data class StudyNoteResponse(
 }
 
 @Schema(description = "커스텀 단어장 목록 응답")
-data class StudyNoteListResponse(
-    val notes: List<StudyNoteResponse>
+data class CustomNoteListResponse(
+    val notes: List<CustomNoteResponse>
 )
 
 @Schema(description = "단어 추가 결과")
@@ -72,21 +72,21 @@ data class AddTermsResponse(
 )
 
 @Schema(description = "단어장에서 단어 다중 삭제 요청")
-data class DeleteTermsFromStudyNoteRequest(
+data class DeleteTermsFromCustomNoteRequest(
     @field:NotEmpty(message = "삭제할 단어 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
     val termIds: List<@Positive Long>
 )
 
 @Schema(description = "단어장 다중 삭제 요청")
-data class DeleteStudyNotesRequest(
+data class DeleteCustomNotesRequest(
     @field:NotEmpty(message = "삭제할 단어장 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 50, message = "한 번에 최대 50개까지 삭제할 수 있습니다")
     val noteIds: List<@Positive Long>
 )
 
 @Schema(description = "단어장 내 단어 페이지 응답")
-data class StudyNoteTermsResponse(
+data class CustomNoteTermsResponse(
     val noteId: Long,
     val title: String,
     val page: Int,
@@ -94,11 +94,11 @@ data class StudyNoteTermsResponse(
     val totalElements: Long,
     val totalPages: Int,
     val hasNext: Boolean,
-    val terms: List<StudyNoteTermItem>
+    val terms: List<CustomNoteTermItem>
 )
 
 @Schema(description = "단어장 내 단어 항목")
-data class StudyNoteTermItem(
+data class CustomNoteTermItem(
     val id: Long,
     val spelling: String,
     val meaning: String,

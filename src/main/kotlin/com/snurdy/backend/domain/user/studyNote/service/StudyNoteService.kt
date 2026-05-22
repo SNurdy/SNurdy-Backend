@@ -13,8 +13,6 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesResult
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermItem
@@ -121,7 +119,7 @@ class StudyNoteService(
     }
 
     @Transactional
-    fun delete(userId: UUID, noteId: Long) {
+    fun deleteNote(userId: UUID, noteId: Long) {
         val glossary = findOwnedCustomNote(userId, noteId)
         cascadeDeleteNote(userId, glossary.id)
     }
@@ -195,7 +193,7 @@ class StudyNoteService(
     }
 
     @Transactional
-    fun removeTerms(userId: UUID, noteId: Long, termIds: List<Long>): RemoveTermsResult {
+    fun deleteTerms(userId: UUID, noteId: Long, termIds: List<Long>) {
         findOwnedCustomNote(userId, noteId)
         val distinctTermIds = termIds.distinct()
 
@@ -203,40 +201,39 @@ class StudyNoteService(
             .findAllByIdGlossaryIdAndIdTermIdIn(noteId, distinctTermIds)
             .mapTo(mutableSetOf()) { it.id.termId }
 
-        if (existing.isEmpty()) {
-            val total = glossaryTermRepository.countByIdGlossaryId(noteId)
-            return RemoveTermsResult(removed = 0, skipped = distinctTermIds.size, totalTermCount = total)
+        // 단어장에 없는 termId 가 하나라도 있으면 전체 거부 (단일 삭제와 일관)
+        if (existing.size != distinctTermIds.size) {
+            throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)
         }
 
         // cascade: 단어장 한정으로 해당 단어들의 북마크/진행도 정리
-        existing.forEach { termId ->
+        distinctTermIds.forEach { termId ->
             bookmarkRepository.deleteByIdUserIdAndIdGlossaryIdAndIdTermId(userId, noteId, termId)
             termProgressRepository.deleteByUserIdAndGlossaryIdAndTermId(userId, noteId, termId)
         }
-        glossaryTermRepository.deleteAllByIdGlossaryIdAndIdTermIdIn(noteId, existing)
-
-        val total = glossaryTermRepository.countByIdGlossaryId(noteId)
-        return RemoveTermsResult(
-            removed = existing.size,
-            skipped = distinctTermIds.size - existing.size,
-            totalTermCount = total
-        )
+        glossaryTermRepository.deleteAllByIdGlossaryIdAndIdTermIdIn(noteId, distinctTermIds)
     }
 
     @Transactional
-    fun deleteMany(userId: UUID, noteIds: List<Long>): RemoveStudyNotesResult {
+    fun deleteNotes(userId: UUID, noteIds: List<Long>) {
         val distinctNoteIds = noteIds.distinct()
         val notes = glossaryRepository.findAllById(distinctNoteIds)
 
-        // 본인 소유 CUSTOM 만 대상. 그 외는 조용히 건너뛴다 (다중 삭제는 부분 성공 허용).
-        val targets = notes.filter { it.type == GlossaryType.CUSTOM && it.ownerId == userId }
-        targets.forEach { cascadeDeleteNote(userId, it.id) }
+        // 입력한 ID 중 존재하지 않는 단어장이 있으면 전체 거부
+        if (notes.size != distinctNoteIds.size) {
+            throw ApiException(StudyNoteError.NOT_FOUND)
+        }
+        // 본인 소유 + CUSTOM 만 허용. 하나라도 위반이면 전체 거부 (단일 삭제와 일관)
+        notes.forEach { note ->
+            if (note.type != GlossaryType.CUSTOM) throw ApiException(StudyNoteError.SYSTEM_NOTE_NOT_EDITABLE)
+            if (note.ownerId != userId) throw ApiException(StudyNoteError.FORBIDDEN)
+        }
 
-        return RemoveStudyNotesResult(removed = targets.size)
+        notes.forEach { cascadeDeleteNote(userId, it.id) }
     }
 
     @Transactional
-    fun removeTerm(userId: UUID, noteId: Long, termId: Long) {
+    fun deleteTerm(userId: UUID, noteId: Long, termId: Long) {
         findOwnedCustomNote(userId, noteId)
         if (!glossaryTermRepository.existsByIdGlossaryIdAndIdTermId(noteId, termId)) {
             throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)

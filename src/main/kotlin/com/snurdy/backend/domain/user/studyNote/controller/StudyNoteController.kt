@@ -3,10 +3,8 @@ package com.snurdy.backend.domain.user.studyNote.controller
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsToStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesRequest
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveStudyNotesResult
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsFromStudyNoteRequest
-import com.snurdy.backend.domain.user.studyNote.dto.RemoveTermsResult
+import com.snurdy.backend.domain.user.studyNote.dto.DeleteStudyNotesRequest
+import com.snurdy.backend.domain.user.studyNote.dto.DeleteTermsFromStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteTermsResponse
@@ -22,25 +20,25 @@ class StudyNoteController(
     private val studyNoteService: StudyNoteService
 ) : StudyNoteApi {
 
-    override fun create(userId: UUID, request: CreateStudyNoteRequest): ApiResponse<StudyNoteResponse> =
-        ApiResponse.success(StudyNoteSuccess.CREATE, studyNoteService.create(userId, request))
+    override fun createNote(userId: UUID, request: CreateStudyNoteRequest): ApiResponse<StudyNoteResponse> =
+        ApiResponse.success(StudyNoteSuccess.CREATE_NOTE, studyNoteService.create(userId, request))
 
-    override fun list(userId: UUID): ApiResponse<StudyNoteListResponse> =
-        ApiResponse.success(StudyNoteSuccess.LIST, studyNoteService.list(userId))
+    override fun listNotes(userId: UUID): ApiResponse<StudyNoteListResponse> =
+        ApiResponse.success(StudyNoteSuccess.LIST_NOTES, studyNoteService.list(userId))
 
-    override fun get(userId: UUID, noteId: Long): ApiResponse<StudyNoteResponse> =
-        ApiResponse.success(StudyNoteSuccess.GET, studyNoteService.get(userId, noteId))
+    override fun getNote(userId: UUID, noteId: Long): ApiResponse<StudyNoteResponse> =
+        ApiResponse.success(StudyNoteSuccess.GET_NOTE, studyNoteService.get(userId, noteId))
 
-    override fun update(
+    override fun updateNote(
         userId: UUID,
         noteId: Long,
         request: UpdateStudyNoteRequest
     ): ApiResponse<StudyNoteResponse> =
-        ApiResponse.success(StudyNoteSuccess.UPDATE, studyNoteService.update(userId, noteId, request))
+        ApiResponse.success(StudyNoteSuccess.UPDATE_NOTE, studyNoteService.update(userId, noteId, request))
 
-    override fun delete(userId: UUID, noteId: Long): ApiResponse<Unit> {
-        studyNoteService.delete(userId, noteId)
-        return ApiResponse.success(StudyNoteSuccess.DELETE)
+    override fun deleteNote(userId: UUID, noteId: Long): ApiResponse<Unit> {
+        studyNoteService.deleteNote(userId, noteId)
+        return ApiResponse.success(StudyNoteSuccess.DELETE_NOTE)
     }
 
     override fun addTerms(
@@ -53,9 +51,9 @@ class StudyNoteController(
             studyNoteService.addTerms(userId, noteId, request.termIds)
         )
 
-    override fun removeTerm(userId: UUID, noteId: Long, termId: Long): ApiResponse<Unit> {
-        studyNoteService.removeTerm(userId, noteId, termId)
-        return ApiResponse.success(StudyNoteSuccess.REMOVE_TERM)
+    override fun deleteTerm(userId: UUID, noteId: Long, termId: Long): ApiResponse<Unit> {
+        studyNoteService.deleteTerm(userId, noteId, termId)
+        return ApiResponse.success(StudyNoteSuccess.DELETE_TERM)
     }
 
     override fun listTerms(
@@ -69,22 +67,20 @@ class StudyNoteController(
             studyNoteService.listTerms(userId, noteId, page, size)
         )
 
-    override fun removeTerms(
+    override fun deleteTerms(
         userId: UUID,
         noteId: Long,
-        request: RemoveTermsFromStudyNoteRequest
-    ): ApiResponse<RemoveTermsResult> =
-        ApiResponse.success(
-            StudyNoteSuccess.REMOVE_TERMS,
-            studyNoteService.removeTerms(userId, noteId, request.termIds)
-        )
+        request: DeleteTermsFromStudyNoteRequest
+    ): ApiResponse<Unit> {
+        studyNoteService.deleteTerms(userId, noteId, request.termIds)
+        return ApiResponse.success(StudyNoteSuccess.DELETE_TERMS)
+    }
 
-    override fun deleteMany(
+    override fun deleteNotes(
         userId: UUID,
-        request: RemoveStudyNotesRequest
-    ): ApiResponse<RemoveStudyNotesResult> =
-        ApiResponse.success(
-            StudyNoteSuccess.DELETE_MANY,
-            studyNoteService.deleteMany(userId, request.noteIds)
-        )
+        request: DeleteStudyNotesRequest
+    ): ApiResponse<Unit> {
+        studyNoteService.deleteNotes(userId, request.noteIds)
+        return ApiResponse.success(StudyNoteSuccess.DELETE_NOTES)
+    }
 }

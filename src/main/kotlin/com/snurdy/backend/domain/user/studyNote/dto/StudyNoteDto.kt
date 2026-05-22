@@ -55,33 +55,17 @@ data class AddTermsResult(
 )
 
 @Schema(description = "단어장에서 단어 다중 삭제 요청")
-data class RemoveTermsFromStudyNoteRequest(
+data class DeleteTermsFromStudyNoteRequest(
     @field:NotEmpty(message = "삭제할 단어 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
     val termIds: List<@Positive Long>
 )
 
-@Schema(description = "단어 다중 삭제 결과")
-data class RemoveTermsResult(
-    @field:Schema(description = "실제로 삭제된 단어 수")
-    val removed: Int,
-    @field:Schema(description = "단어장에 없어 건너뛴 단어 수")
-    val skipped: Int,
-    @field:Schema(description = "삭제 후 단어장의 총 단어 수")
-    val totalTermCount: Long
-)
-
 @Schema(description = "단어장 다중 삭제 요청")
-data class RemoveStudyNotesRequest(
+data class DeleteStudyNotesRequest(
     @field:NotEmpty(message = "삭제할 단어장 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 50, message = "한 번에 최대 50개까지 삭제할 수 있습니다")
     val noteIds: List<@Positive Long>
-)
-
-@Schema(description = "단어장 다중 삭제 결과")
-data class RemoveStudyNotesResult(
-    @field:Schema(description = "실제로 삭제된 단어장 수")
-    val removed: Int
 )
 
 @Schema(description = "단어장 내 단어 페이지 응답")

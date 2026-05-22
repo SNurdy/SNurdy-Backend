@@ -60,7 +60,8 @@ enum class MigrationSuccess(
     START(HttpStatus.CREATED, "MIGRATION_S001", "마이그레이션이 시작되었습니다"),
     UPLOAD(HttpStatus.OK, "MIGRATION_S002", "업로드가 완료되었습니다"),
     FINALIZE(HttpStatus.OK, "MIGRATION_S003", "마이그레이션이 완료되었습니다"),
-    STATUS(HttpStatus.OK, "MIGRATION_S004", "마이그레이션 상태 조회에 성공했습니다")
+    STATUS(HttpStatus.OK, "MIGRATION_S004", "마이그레이션 상태 조회에 성공했습니다"),
+    DECLINE(HttpStatus.OK, "MIGRATION_S005", "마이그레이션을 거부했습니다")
 }
 
 enum class LearningSuccess(

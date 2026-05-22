@@ -30,7 +30,7 @@ interface MigrationApi {
     fun start(@CurrentUserId userId: UUID): ApiResponse<MigrationStartResponse>
 
     @Operation(summary = "마이그레이션 거부 처리")
-    @ApiSuccessCode("MIGRATION_S004")
+    @ApiSuccessCode("MIGRATION_S005")
     @ApiErrorCodes("USER_E001")
     @PostMapping("/decline")
     fun decline(@CurrentUserId userId: UUID): ApiResponse<MigrationStatusResponse>

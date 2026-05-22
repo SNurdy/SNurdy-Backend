@@ -3,6 +3,7 @@ package com.snurdy.backend.global.dto.response
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.snurdy.backend.global.constants.ErrorCode
 import com.snurdy.backend.global.constants.SuccessCode
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -16,6 +17,12 @@ data class ApiResponse<T>(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val data: T? = null,
 
+    @field:Schema(
+        type = "string",
+        format = "date-time",
+        example = "2026-05-20T00:00:00Z",
+        description = "응답 생성 시각 (UTC ISO 8601)"
+    )
     val timestamp: String = OffsetDateTime.now(ZoneOffset.UTC)
         .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 ) {

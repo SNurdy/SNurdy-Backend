@@ -114,7 +114,8 @@ enum class StudyNoteError(
     GLOSSARY_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "STUDY_NOTE_E003", "사용자당 최대 단어장 수를 초과했습니다"),
     TERM_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "STUDY_NOTE_E004", "단어장당 최대 단어 수를 초과했습니다"),
     SYSTEM_NOTE_NOT_EDITABLE(HttpStatus.BAD_REQUEST, "STUDY_NOTE_E005", "시스템이 관리하는 단어장은 직접 수정할 수 없습니다"),
-    DUPLICATED_TITLE(HttpStatus.CONFLICT, "STUDY_NOTE_E006", "이미 존재하는 단어장입니다")
+    DUPLICATED_TITLE(HttpStatus.CONFLICT, "STUDY_NOTE_E006", "이미 존재하는 단어장입니다"),
+    TERM_NOT_IN_NOTE(HttpStatus.BAD_REQUEST, "STUDY_NOTE_E007", "해당 단어가 학습 노트에 포함되어 있지 않습니다")
 }
 
 enum class AdminError(

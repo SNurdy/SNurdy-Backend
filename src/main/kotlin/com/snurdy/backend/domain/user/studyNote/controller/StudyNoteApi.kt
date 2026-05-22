@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.studyNote.controller
 
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
+import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsToStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.DeleteStudyNotesRequest
@@ -90,7 +90,7 @@ interface StudyNoteApi {
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
         @RequestBody @Valid request: AddTermsToStudyNoteRequest
-    ): ApiResponse<AddTermsResult>
+    ): ApiResponse<AddTermsResponse>
 
     @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
     @ApiSuccessCode("STUDY_NOTE_S007")
@@ -98,7 +98,7 @@ interface StudyNoteApi {
         "STUDY_NOTE_E001",
         "STUDY_NOTE_E002",
         "STUDY_NOTE_E005",
-        "DICTIONARY_E004"
+        "STUDY_NOTE_E007"
     )
     @DeleteMapping("/{noteId}/terms/{termId}")
     fun deleteTerm(
@@ -120,7 +120,7 @@ interface StudyNoteApi {
 
     @Operation(summary = "커스텀 단어장에서 단어 다중 삭제. 입력한 단어가 단어장에 모두 있어야 처리")
     @ApiSuccessCode("STUDY_NOTE_S009")
-    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005", "DICTIONARY_E004")
+    @ApiErrorCodes("STUDY_NOTE_E001", "STUDY_NOTE_E002", "STUDY_NOTE_E005", "STUDY_NOTE_E007")
     @DeleteMapping("/{noteId}/terms")
     fun deleteTerms(
         @CurrentUserId userId: UUID,

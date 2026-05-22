@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.studyNote.controller
 
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
+import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.studyNote.dto.AddTermsToStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.DeleteStudyNotesRequest
@@ -45,7 +45,7 @@ class StudyNoteController(
         userId: UUID,
         noteId: Long,
         request: AddTermsToStudyNoteRequest
-    ): ApiResponse<AddTermsResult> =
+    ): ApiResponse<AddTermsResponse> =
         ApiResponse.success(
             StudyNoteSuccess.ADD_TERMS,
             studyNoteService.addTerms(userId, noteId, request.termIds)

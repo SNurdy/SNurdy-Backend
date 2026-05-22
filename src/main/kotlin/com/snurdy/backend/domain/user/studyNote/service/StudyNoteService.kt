@@ -11,7 +11,7 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepo
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
-import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResult
+import com.snurdy.backend.domain.user.studyNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.studyNote.dto.CreateStudyNoteRequest
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteListResponse
 import com.snurdy.backend.domain.user.studyNote.dto.StudyNoteResponse
@@ -125,7 +125,7 @@ class StudyNoteService(
     }
 
     @Transactional
-    fun addTerms(userId: UUID, noteId: Long, termIds: List<Long>): AddTermsResult {
+    fun addTerms(userId: UUID, noteId: Long, termIds: List<Long>): AddTermsResponse {
         val glossary = findOwnedCustomNote(userId, noteId)
 
         val currentTermCount = glossaryTermRepository.countByIdGlossaryId(noteId)
@@ -145,7 +145,7 @@ class StudyNoteService(
 
         val newPairs = distinctTermIds.filter { it !in existingTermIds }
         if (newPairs.isEmpty()) {
-            return AddTermsResult(
+            return AddTermsResponse(
                 added = 0,
                 skipped = distinctTermIds.size,
                 totalTermCount = currentTermCount
@@ -161,7 +161,7 @@ class StudyNoteService(
         }
         glossaryTermRepository.saveAll(newEntities)
 
-        return AddTermsResult(
+        return AddTermsResponse(
             added = newPairs.size,
             skipped = distinctTermIds.size - newPairs.size,
             totalTermCount = currentTermCount + newPairs.size
@@ -203,7 +203,7 @@ class StudyNoteService(
 
         // 단어장에 없는 termId 가 하나라도 있으면 전체 거부 (단일 삭제와 일관)
         if (existing.size != distinctTermIds.size) {
-            throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)
+            throw ApiException(StudyNoteError.TERM_NOT_IN_NOTE)
         }
 
         // cascade: 단어장 한정으로 해당 단어들의 북마크/진행도 정리
@@ -236,7 +236,7 @@ class StudyNoteService(
     fun deleteTerm(userId: UUID, noteId: Long, termId: Long) {
         findOwnedCustomNote(userId, noteId)
         if (!glossaryTermRepository.existsByIdGlossaryIdAndIdTermId(noteId, termId)) {
-            throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)
+            throw ApiException(StudyNoteError.TERM_NOT_IN_NOTE)
         }
 
         // cascade: 이 단어장 한정으로 단어 관련 사용자 데이터를 모두 정리

@@ -45,7 +45,7 @@ data class StudyNoteListResponse(
 )
 
 @Schema(description = "단어 추가 결과")
-data class AddTermsResult(
+data class AddTermsResponse(
     @field:Schema(description = "실제로 새로 추가된 단어 수")
     val added: Int,
     @field:Schema(description = "이미 단어장에 있어 건너뛴 단어 수")

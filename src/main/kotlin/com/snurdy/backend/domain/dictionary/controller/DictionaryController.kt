@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.dictionary.controller
 
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
-import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
+import com.snurdy.backend.domain.dictionary.dto.TermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.domain.dictionary.service.GlossaryListingService
@@ -26,7 +26,7 @@ class DictionaryController(
             termSearchService.searchTerms(userId, query, page, size)
         )
 
-    override fun getTermDetail(userId: UUID, termId: Long): ApiResponse<ClientTermDetailResponse> =
+    override fun getTermDetail(userId: UUID, termId: Long): ApiResponse<TermDetailResponse> =
         ApiResponse.success(
             DictionarySuccess.GET_TERM_DETAIL,
             termDetailService.getTermDetail(userId, termId)
@@ -38,7 +38,7 @@ class DictionaryController(
             termSearchService.searchTermsByMorpheme(keyword)
         )
 
-    override fun getGlossaries(userId: UUID, category: String?): ApiResponse<ClientGlossaryListResponse> =
+    override fun getGlossaries(userId: UUID, category: String?): ApiResponse<GlossaryListResponse> =
         ApiResponse.success(
             DictionarySuccess.GET_GLOSSARIES,
             glossaryListingService.getGlossaries(userId, category)
@@ -50,7 +50,7 @@ class DictionaryController(
         filter: String,
         page: Int,
         size: Int
-    ): ApiResponse<ClientGlossaryTermsResponse> =
+    ): ApiResponse<GlossaryTermsResponse> =
         ApiResponse.success(
             DictionarySuccess.GET_GLOSSARY_TERMS,
             glossaryListingService.getGlossaryTerms(

@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.dto.ClientTermSummary
+import com.snurdy.backend.domain.dictionary.dto.TermSummary
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
@@ -51,7 +51,7 @@ class TermSearchService(
             totalPages = termPage.totalPages,
             hasNext = termPage.hasNext(),
             terms = termPage.content.map { term ->
-                ClientTermSummary(
+                TermSummary(
                     id = term.id,
                     spelling = term.spelling,
                     meaning = term.meaning,

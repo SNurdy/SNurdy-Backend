@@ -1,7 +1,6 @@
 package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.MorphemeHighlight
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.dto.TermDetail
@@ -34,15 +33,15 @@ class TermDetailService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getTermDetail(userId: UUID, termId: Long): ClientTermDetailResponse {
-        val raw = assembleRawDetail(termId)
+    fun getTermDetail(userId: UUID, termId: Long): TermDetailResponse {
+        val parts = assembleTermDetail(termId)
         val bookmarks = bookmarkRepository.findAllByIdUserIdAndIdTermId(userId, termId)
         val memo = userTermMemoRepository.findByIdUserIdAndIdTermId(userId, termId)
 
-        return ClientTermDetailResponse(
-            term = raw.term,
-            glossaries = raw.glossaries,
-            morphemes = raw.morphemes,
+        return TermDetailResponse(
+            term = parts.term,
+            glossaries = parts.glossaries,
+            morphemes = parts.morphemes,
             bookmarked = bookmarks.isNotEmpty(),
             bookmarkedGlossaryIds = bookmarks.map { it.id.glossaryId }.distinct().sorted(),
             memo = memo?.content
@@ -50,8 +49,8 @@ class TermDetailService(
     }
 
     // 단어 상세의 사전 raw 부분 (사용자 무관) 조립.
-    // 관리자 도메인에서도 같은 raw 가 필요할 경우 재사용할 수 있도록 별도 메서드로 노출.
-    fun assembleRawDetail(termId: Long): TermDetailResponse {
+    // 외부 노출하지 않고 사용자 컨텍스트와 합쳐 BFF 응답으로만 반환한다.
+    private fun assembleTermDetail(termId: Long): AssembledTermDetail {
         val term = termRepository.findByIdAndDeletedAtIsNull(termId)
             .orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
@@ -85,7 +84,7 @@ class TermDetailService(
             )
         }
 
-        return TermDetailResponse(
+        return AssembledTermDetail(
             term = TermDetail(
                 id = term.id,
                 spelling = term.spelling,
@@ -97,4 +96,10 @@ class TermDetailService(
             morphemes = orderedMorphemes
         )
     }
+
+    private data class AssembledTermDetail(
+        val term: TermDetail,
+        val glossaries: List<TermGlossaryTag>,
+        val morphemes: List<OrderedMorpheme>
+    )
 }

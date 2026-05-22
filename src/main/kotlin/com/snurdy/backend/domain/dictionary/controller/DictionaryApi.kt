@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.dictionary.controller
 
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
-import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
+import com.snurdy.backend.domain.dictionary.dto.TermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
@@ -44,7 +44,7 @@ interface DictionaryApi {
     fun getTermDetail(
         @CurrentUserId userId: UUID,
         @PathVariable termId: Long
-    ): ApiResponse<ClientTermDetailResponse>
+    ): ApiResponse<TermDetailResponse>
 
     @Operation(summary = "어근어미 키워드로 용어 검색")
     @ApiSuccessCode("DICTIONARY_S006")
@@ -64,7 +64,7 @@ interface DictionaryApi {
         @CurrentUserId userId: UUID,
         @Parameter(description = "카테고리 필터")
         @RequestParam(required = false) category: String?
-    ): ApiResponse<ClientGlossaryListResponse>
+    ): ApiResponse<GlossaryListResponse>
 
     @Operation(summary = "용어장 용어 목록 조회")
     @ApiSuccessCode("DICTIONARY_S005")
@@ -76,5 +76,5 @@ interface DictionaryApi {
         @RequestParam(defaultValue = "all") filter: String,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
-    ): ApiResponse<ClientGlossaryTermsResponse>
+    ): ApiResponse<GlossaryTermsResponse>
 }

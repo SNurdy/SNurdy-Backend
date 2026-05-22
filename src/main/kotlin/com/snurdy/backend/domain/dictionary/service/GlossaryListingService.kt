@@ -1,9 +1,9 @@
 package com.snurdy.backend.domain.dictionary.service
 
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossarySummary
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermItem
-import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
+import com.snurdy.backend.domain.dictionary.dto.GlossarySummary
+import com.snurdy.backend.domain.dictionary.dto.GlossaryTermItem
+import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
@@ -25,7 +25,7 @@ class GlossaryListingService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getGlossaries(userId: UUID, category: String?): ClientGlossaryListResponse {
+    fun getGlossaries(userId: UUID, category: String?): GlossaryListResponse {
         val normalizedCategory = category?.trim().orEmpty()
 
         val glossaryProgressMap = glossaryProgressRepository.findAllByIdUserId(userId)
@@ -42,7 +42,7 @@ class GlossaryListingService(
                 val learnedCount = glossaryProgressMap[projection.glossaryId]?.learnedCount ?: 0
                 val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, projection.termCount)
 
-                ClientGlossarySummary(
+                GlossarySummary(
                     id = projection.glossaryId,
                     category = projection.category,
                     title = projection.title,
@@ -54,7 +54,7 @@ class GlossaryListingService(
             }
             .toList()
 
-        return ClientGlossaryListResponse(glossaries = glossaries)
+        return GlossaryListResponse(glossaries = glossaries)
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +64,7 @@ class GlossaryListingService(
         filter: String,
         page: Int,
         size: Int
-    ): ClientGlossaryTermsResponse {
+    ): GlossaryTermsResponse {
         val glossary = glossaryRepository.findById(glossaryId)
             .orElseThrow { ApiException(DictionaryError.GLOSSARY_NOT_FOUND) }
 
@@ -78,7 +78,7 @@ class GlossaryListingService(
             pageable = pageable
         )
 
-        return ClientGlossaryTermsResponse(
+        return GlossaryTermsResponse(
             glossaryId = glossary.id,
             category = glossary.category,
             title = glossary.title,
@@ -89,7 +89,7 @@ class GlossaryListingService(
             totalPages = pageResult.totalPages,
             hasNext = pageResult.hasNext(),
             terms = pageResult.content.map { projection ->
-                ClientGlossaryTermItem(
+                GlossaryTermItem(
                     id = projection.termId,
                     spelling = projection.spelling,
                     meaning = projection.meaning,

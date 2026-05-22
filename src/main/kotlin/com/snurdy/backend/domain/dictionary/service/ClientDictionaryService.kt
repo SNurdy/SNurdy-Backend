@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.user.termMemo.repository.UserTermMemoRepository
 import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientGlossarySummary
 import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermItem
@@ -27,7 +28,8 @@ class ClientDictionaryService(
     private val glossaryTermRepository: GlossaryTermRepository,
     private val termRepository: TermRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
-    private val bookmarkRepository: BookmarkRepository
+    private val bookmarkRepository: BookmarkRepository,
+    private val userTermMemoRepository: UserTermMemoRepository
 ) {
     @Transactional(readOnly = true)
     fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): TermSearchResponse {
@@ -71,13 +73,15 @@ class ClientDictionaryService(
     fun getTermDetail(userId: UUID, termId: Long): ClientTermDetailResponse {
         val detail = dictionaryQueryService.getTermDetail(termId)
         val bookmarks = bookmarkRepository.findAllByIdUserIdAndIdTermId(userId, termId)
+        val memo = userTermMemoRepository.findByIdUserIdAndIdTermId(userId, termId)
 
         return ClientTermDetailResponse(
             term = detail.term,
             glossaries = detail.glossaries,
             morphemes = detail.morphemes,
             bookmarked = bookmarks.isNotEmpty(),
-            bookmarkedGlossaryIds = bookmarks.map { it.id.glossaryId }.distinct().sorted()
+            bookmarkedGlossaryIds = bookmarks.map { it.id.glossaryId }.distinct().sorted(),
+            memo = memo?.content
         )
     }
 

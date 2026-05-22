@@ -27,7 +27,9 @@ data class ClientTermDetailResponse(
     val glossaries: List<TermGlossaryTag>,
     val morphemes: List<OrderedMorpheme>,
     val bookmarked: Boolean,
-    val bookmarkedGlossaryIds: List<Long>
+    val bookmarkedGlossaryIds: List<Long>,
+    @field:Schema(description = "본인이 이 단어에 작성한 메모. 없으면 null", example = "혈전 관련 검사 항목")
+    val memo: String?
 )
 
 @Schema(description = "앱용 용어장 목록 응답")

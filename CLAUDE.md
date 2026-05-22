@@ -204,7 +204,7 @@ DEALLOCATE PREPARE stmt;
 ## 9. 코드 주석
 
 ### 9.1 ASCII + 한국어만
-이모지, 화살표, 체크 표시 등 특수문자 사용 금지. 일반 ASCII + 한국어 만.
+이모지, 화살표, 체크 표시 등 특수문자(온점 포함) 사용 금지. 일반 ASCII + 한국어 만.
 
 ### 9.2 WHY 만, WHAT 은 금지
 코드가 무엇을 하는지는 코드 자체가 표현. 주석은 그렇게 한 이유 (제약, 의도, 비즈니스 규칙) 만 작성.
@@ -227,9 +227,12 @@ DEALLOCATE PREPARE stmt;
 "도메인 책임 분리" 원칙이라도 본질에 어긋나면 분리 안 함. 예: 사전 화면이 본질적으로 user-aware BFF 라면 `dictionary` 도메인이 user 데이터 결합하는 게 자연스러움.
 
 ### 10.3 이름 결정 시 한국 개발자 직관 고려
-영어 단어 후보 중 한국 개발자에게 직관적인 것 선택 (예: `library` 는 "도서관" 연상으로 거부 → `studyNote` 채택).
+영어 단어 후보 중 한국 개발자에게 직관적인 것 선택 (예: `library` 는 "도서관" 연상으로 거부).
 
-### 10.4 부정확한 작업은 솔직히 인정 후 정정
+### 10.4 추상 super 도메인 금지 — 타입별 평평한 분리
+여러 타입을 한 추상 super 패키지 (`studyNote/`) 로 묶으면 안 됨. 타입별 별도 도메인 패키지 (`customNote/`, `wrongAnswerNote/`) 로 평평하게 분리. 타입 명이 클래스/필드 이름에 명시되어야 책임이 자명.
+
+### 10.5 부정확한 작업은 솔직히 인정 후 정정
 이전 답변/결정이 잘못되었으면 정직하게 인정. 합리화하지 않음. 사용자가 의문 제기 = 거의 항상 사용자가 옳음.
 
 ---
@@ -239,12 +242,16 @@ DEALLOCATE PREPARE stmt;
 ### 11.1 사용자 시점 도메인 구조 (v2)
 ```
 domain/user/
-├── account/       UserEntity, 탈퇴
-├── profile/       프로필, 마케팅 동의
-├── streak/        학습 streak
-├── dashboard/     학습 리포트 BFF
-└── studyNote/     사용자 소유 단어장 (CUSTOM, WRONG_ANSWER 향후)
+├── account/         UserEntity, 탈퇴
+├── profile/         프로필, 마케팅 동의
+├── streak/          학습 streak
+├── dashboard/       학습 리포트 BFF
+├── customNote/      사용자 소유 커스텀 단어장 (GlossaryType.CUSTOM)
+└── (wrongAnswerNote/) 향후 — 오답노트 (GlossaryType.WRONG_ANSWER)
 ```
+
+각 단어장 type 별로 별도 도메인 패키지를 둔다 (`studyNote` 같은 추상 super 도메인 금지).
+이름 접미사는 `Note` 로 통일 (`CustomNote`, `WrongAnswerNote`).
 
 ### 11.2 사전 도메인 (공용, 단 사용자 시점 BFF 포함)
 ```
@@ -262,7 +269,8 @@ domain/dictionary/
 - `COMMON_*` — 공통 (400/401/403/404/500/503 등)
 - `AUTH_*` — 인증
 - `USER_*` — 사용자 (account/profile/streak/dashboard 통합)
-- `STUDY_NOTE_*` — 학습 노트
+- `CUSTOM_NOTE_*` — 사용자 커스텀 단어장
+- (`WRONG_ANSWER_NOTE_*` — 향후 오답노트)
 - `DICTIONARY_*` — 사전
 - `CALENDAR_*` — 캘린더
 - `LEARNING_*` — 학습 활동

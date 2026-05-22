@@ -104,6 +104,14 @@ enum class DictionaryError(
     INVALID_FILTER(HttpStatus.BAD_REQUEST, "DICTIONARY_E005", "filter는 all|learned|notLearned 중 하나여야 합니다")
 }
 
+enum class TermMemoError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    NOT_FOUND(HttpStatus.NOT_FOUND, "TERM_MEMO_E001", "메모를 찾을 수 없습니다")
+}
+
 enum class CustomNoteError(
     override val status: HttpStatus,
     override val code: String,

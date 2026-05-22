@@ -96,6 +96,15 @@ enum class DictionarySuccess(
     SEARCH_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S006", "어근어미 키워드 검색에 성공했습니다")
 }
 
+enum class TermMemoSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    UPSERT_MEMO(HttpStatus.OK, "TERM_MEMO_S001", "메모를 저장했습니다"),
+    DELETE_MEMO(HttpStatus.OK, "TERM_MEMO_S002", "메모를 삭제했습니다")
+}
+
 enum class CustomNoteSuccess(
     override val status: HttpStatus,
     override val code: String,

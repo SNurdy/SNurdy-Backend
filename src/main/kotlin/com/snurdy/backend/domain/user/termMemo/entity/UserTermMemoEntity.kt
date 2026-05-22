@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.termMemo.entity
+package com.snurdy.backend.domain.user.termMemo.entity
 
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.user.account.entity.UserEntity

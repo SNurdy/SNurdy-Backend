@@ -18,6 +18,8 @@ import com.snurdy.backend.global.constants.MigrationSuccess
 import com.snurdy.backend.global.constants.CustomNoteError
 import com.snurdy.backend.global.constants.CustomNoteSuccess
 import com.snurdy.backend.global.constants.SuccessCode
+import com.snurdy.backend.global.constants.TermMemoError
+import com.snurdy.backend.global.constants.TermMemoSuccess
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.UserSuccess
 import com.snurdy.backend.global.constants.VersionError
@@ -36,6 +38,7 @@ object ApiCodeRegistry {
             MigrationError.entries,
             DictionaryError.entries,
             CustomNoteError.entries,
+            TermMemoError.entries,
             AdminError.entries,
             VersionError.entries
         ).flatten().forEach {
@@ -54,6 +57,7 @@ object ApiCodeRegistry {
             CalendarSuccess.entries,
             DictionarySuccess.entries,
             CustomNoteSuccess.entries,
+            TermMemoSuccess.entries,
             MigrationSuccess.entries,
             AdminSuccess.entries,
             VersionSuccess.entries

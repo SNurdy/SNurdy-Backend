@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryListResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
+import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.domain.dictionary.service.GlossaryListingService
 import com.snurdy.backend.domain.dictionary.service.TermDetailService
 import com.snurdy.backend.domain.dictionary.service.TermSearchService
@@ -13,11 +14,12 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-class ClientDictionaryController(
+class DictionaryController(
     private val termSearchService: TermSearchService,
     private val termDetailService: TermDetailService,
     private val glossaryListingService: GlossaryListingService
-) : ClientDictionaryApi {
+) : DictionaryApi {
+
     override fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): ApiResponse<TermSearchResponse> =
         ApiResponse.success(
             DictionarySuccess.SEARCH_TERMS,
@@ -28,6 +30,12 @@ class ClientDictionaryController(
         ApiResponse.success(
             DictionarySuccess.GET_TERM_DETAIL,
             termDetailService.getTermDetail(userId, termId)
+        )
+
+    override fun searchTermsByMorpheme(keyword: String): ApiResponse<MorphemeSearchResponse> =
+        ApiResponse.success(
+            DictionarySuccess.SEARCH_BY_MORPHEME,
+            termSearchService.searchTermsByMorpheme(keyword)
         )
 
     override fun getGlossaries(userId: UUID, category: String?): ApiResponse<ClientGlossaryListResponse> =

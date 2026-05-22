@@ -1,14 +1,10 @@
 package com.snurdy.backend.domain.dictionary.service
 
-import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
-import com.snurdy.backend.domain.dictionary.dto.GlossarySummary
-import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.MorphemeHighlight
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.dto.TermDetail
 import com.snurdy.backend.domain.dictionary.dto.TermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
-import com.snurdy.backend.domain.dictionary.dto.TermSummary
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
@@ -36,47 +32,6 @@ class DictionaryQueryService(
 
     companion object {
         private const val MAX_SEARCH_RESULTS = 200
-    }
-
-    fun getGlossaries(): GlossaryListResponse {
-        val glossaries = glossaryRepository.findGlossaryTermCounts()
-            .map {
-                GlossarySummary(
-                    id = it.glossaryId,
-                    category = it.category,
-                    title = it.title,
-                    termCount = it.termCount
-                )
-            }
-
-        return GlossaryListResponse(glossaries = glossaries)
-    }
-
-    fun getGlossaryTerms(glossaryId: Long, page: Int, size: Int): GlossaryTermsResponse {
-        val glossary = glossaryRepository.findById(glossaryId)
-            .orElseThrow { ApiException(DictionaryError.GLOSSARY_NOT_FOUND) }
-
-        val pageable = PageRequest.of(page, size)
-        val termPage = glossaryTermRepository.findPagedTermSummariesByGlossaryId(glossaryId, pageable)
-
-        return GlossaryTermsResponse(
-            glossaryId = glossary.id,
-            category = glossary.category,
-            title = glossary.title,
-            page = termPage.number,
-            size = termPage.size,
-            totalElements = termPage.totalElements,
-            totalPages = termPage.totalPages,
-            hasNext = termPage.hasNext(),
-            terms = termPage.content.map {
-                TermSummary(
-                    id = it.termId,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    abbreviation = it.abbreviation
-                )
-            }
-        )
     }
 
     fun getTermDetail(termId: Long): TermDetailResponse {

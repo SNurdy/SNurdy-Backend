@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.studyNote.dto
 
+import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
@@ -37,7 +39,22 @@ data class StudyNoteResponse(
     val progressRate: Double,
     val level: Int,
     val createdAt: Instant?
-)
+) {
+    companion object {
+        fun from(glossary: GlossaryEntity, learnedCount: Int, termCount: Long): StudyNoteResponse {
+            val rate = GlossaryProgressCalculator.progressRate(learnedCount, termCount)
+            return StudyNoteResponse(
+                id = glossary.id,
+                title = glossary.title,
+                termCount = termCount,
+                learnedCount = learnedCount,
+                progressRate = rate,
+                level = GlossaryProgressCalculator.levelFromRate(rate),
+                createdAt = glossary.createdAt
+            )
+        }
+    }
+}
 
 @Schema(description = "커스텀 단어장 목록 응답")
 data class StudyNoteListResponse(

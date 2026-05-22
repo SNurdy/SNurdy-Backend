@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.learning.service
 
-import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
+import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
@@ -120,7 +120,7 @@ class LearningCommandService(
             .findByIdOrNull(GlossaryProgressId(userId, glossaryId))
             ?.learnedCount ?: 0
         val termCount = glossaryTermRepository.countByIdGlossaryId(glossaryId)
-        return LevelCalculator.fromCounts(learnedCount, termCount)
+        return GlossaryProgressCalculator.levelFromCounts(learnedCount, termCount)
     }
 
     /**

@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.dashboard.service
 
-import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
+import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
@@ -64,12 +64,7 @@ class UserDashboardService(
             val glossaryId = progress.id.glossaryId
             val meta = termCountByGlossaryId[glossaryId] ?: return@mapNotNull null
             val totalTermCount = meta.termCount
-            val progressRate = if (totalTermCount == 0L) {
-                0.0
-            } else {
-                ((progress.learnedCount.toDouble() / totalTermCount.toDouble()) * 1000.0)
-                    .toInt() / 10.0
-            }
+            val progressRate = GlossaryProgressCalculator.progressRate(progress.learnedCount, totalTermCount)
             DashboardGlossaryStatistic(
                 glossaryId = glossaryId,
                 category = meta.category,
@@ -77,7 +72,7 @@ class UserDashboardService(
                 learnedCount = progress.learnedCount,
                 totalTermCount = totalTermCount,
                 progressRate = progressRate,
-                level = LevelCalculator.fromProgressRate(progressRate),
+                level = GlossaryProgressCalculator.levelFromRate(progressRate),
                 lastLearnedAt = progress.lastLearnedAt
             )
         }.sortedByDescending { it.lastLearnedAt }

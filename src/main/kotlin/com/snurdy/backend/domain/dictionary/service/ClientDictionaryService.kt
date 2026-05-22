@@ -8,7 +8,7 @@ import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermSummary
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
-import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
+import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
@@ -97,12 +97,7 @@ class ClientDictionaryService(
             }
             .map { projection ->
                 val learnedCount = glossaryProgressMap[projection.glossaryId]?.learnedCount ?: 0
-                val progressRate = if (projection.termCount == 0L) {
-                    0.0
-                } else {
-                    ((learnedCount.toDouble() / projection.termCount.toDouble()) * 1000.0)
-                        .toInt() / 10.0
-                }
+                val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, projection.termCount)
 
                 ClientGlossarySummary(
                     id = projection.glossaryId,
@@ -111,7 +106,7 @@ class ClientDictionaryService(
                     termCount = projection.termCount,
                     learnedCount = learnedCount,
                     progressRate = progressRate,
-                    level = LevelCalculator.fromProgressRate(progressRate)
+                    level = GlossaryProgressCalculator.levelFromRate(progressRate)
                 )
             }
             .toList()

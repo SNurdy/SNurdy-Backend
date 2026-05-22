@@ -1,7 +1,6 @@
 package com.snurdy.backend.domain.user.studyNote.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.glossary.LevelCalculator
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermEntity
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
@@ -65,7 +64,7 @@ class StudyNoteService(
             throw ApiException(StudyNoteError.DUPLICATED_TITLE)
         }
 
-        return toResponse(saved, learnedCount = 0, termCount = 0L)
+        return StudyNoteResponse.from(saved, learnedCount = 0, termCount = 0L)
     }
 
     @Transactional(readOnly = true)
@@ -79,7 +78,7 @@ class StudyNoteService(
         val responses = notes.map { glossary ->
             val termCount = glossaryTermRepository.countByIdGlossaryId(glossary.id)
             val learnedCount = progressByGlossaryId[glossary.id]?.learnedCount ?: 0
-            toResponse(glossary, learnedCount = learnedCount, termCount = termCount)
+            StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
         }
 
         return StudyNoteListResponse(notes = responses)
@@ -92,7 +91,7 @@ class StudyNoteService(
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return toResponse(glossary, learnedCount = learnedCount, termCount = termCount)
+        return StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
@@ -115,7 +114,7 @@ class StudyNoteService(
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return toResponse(glossary, learnedCount = learnedCount, termCount = termCount)
+        return StudyNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
@@ -278,27 +277,6 @@ class StudyNoteService(
             ?.let { it + 1 }
             ?: 1
         return "$AUTO_TITLE_PREFIX $nextNumber"
-    }
-
-    private fun toResponse(
-        glossary: GlossaryEntity,
-        learnedCount: Int,
-        termCount: Long
-    ): StudyNoteResponse {
-        val progressRate = if (termCount == 0L) {
-            0.0
-        } else {
-            (learnedCount.toDouble() / termCount.toDouble() * 1000.0).toInt() / 10.0
-        }
-        return StudyNoteResponse(
-            id = glossary.id,
-            title = glossary.title,
-            termCount = termCount,
-            learnedCount = learnedCount,
-            progressRate = progressRate,
-            level = LevelCalculator.fromProgressRate(progressRate),
-            createdAt = glossary.createdAt
-        )
     }
 
     companion object {

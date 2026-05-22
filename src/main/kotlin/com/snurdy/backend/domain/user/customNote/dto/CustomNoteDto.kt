@@ -26,7 +26,10 @@ data class UpdateCustomNoteRequest(
 data class AddTermsToCustomNoteRequest(
     @field:NotEmpty(message = "추가할 단어 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 추가할 수 있습니다")
-    @field:Schema(description = "추가할 사전 단어 ID 목록")
+    @field:Schema(
+        description = "추가할 사전 단어 ID 목록 (최대 100개)",
+        example = "[123, 456, 789]"
+    )
     val termIds: List<@Positive Long>
 )
 
@@ -71,17 +74,25 @@ data class AddTermsResponse(
     val totalTermCount: Long
 )
 
-@Schema(description = "단어장에서 단어 다중 삭제 요청")
+@Schema(description = "단어장에서 단어 다중 삭제 요청. 입력한 단어가 모두 단어장에 있어야 처리")
 data class DeleteTermsFromCustomNoteRequest(
     @field:NotEmpty(message = "삭제할 단어 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
+    @field:Schema(
+        description = "삭제할 단어 ID 목록 (최대 100개)",
+        example = "[123, 456]"
+    )
     val termIds: List<@Positive Long>
 )
 
-@Schema(description = "단어장 다중 삭제 요청")
+@Schema(description = "단어장 다중 삭제 요청. 모두 본인 소유 CUSTOM 이어야 처리")
 data class DeleteCustomNotesRequest(
     @field:NotEmpty(message = "삭제할 단어장 ID 목록이 비어 있을 수 없습니다")
     @field:Size(max = 50, message = "한 번에 최대 50개까지 삭제할 수 있습니다")
+    @field:Schema(
+        description = "삭제할 단어장 ID 목록 (최대 50개)",
+        example = "[7, 12]"
+    )
     val noteIds: List<@Positive Long>
 )
 

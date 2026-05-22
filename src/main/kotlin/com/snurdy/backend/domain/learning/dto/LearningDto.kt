@@ -69,17 +69,23 @@ data class LearningTermCard(
     }
 }
 
+@Schema(description = "학습 결과 제출 요청. 한 번의 제출에는 단일 단어장의 학습 이벤트들만 포함되어야 한다")
 data class LearningSubmitRequest(
     @field:Valid
-    @field:NotEmpty
+    @field:NotEmpty(message = "학습 이벤트가 비어 있을 수 없습니다")
+    @field:Schema(description = "학습 이벤트 목록 (한 단어=한 이벤트)")
     val events: List<LearningAnswerEvent>
 )
 
+@Schema(description = "학습 이벤트 (한 단어에 대한 정답/오답 결과)")
 data class LearningAnswerEvent(
     @field:Positive
+    @field:Schema(description = "학습 중인 단어장 ID", example = "12")
     val glossaryId: Long,
     @field:Positive
+    @field:Schema(description = "학습한 단어 ID", example = "586")
     val termId: Long,
+    @field:Schema(description = "정답 여부 (클라이언트가 사용자 답과 정답을 비교해서 결정)", example = "true")
     val correct: Boolean
 )
 

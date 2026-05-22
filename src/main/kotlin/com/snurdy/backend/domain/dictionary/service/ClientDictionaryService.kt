@@ -8,10 +8,14 @@ import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermItem
 import com.snurdy.backend.domain.dictionary.dto.ClientGlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.ClientTermSummary
+import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
+import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchTermItem
+import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.global.constants.DictionaryError
@@ -29,8 +33,14 @@ class ClientDictionaryService(
     private val termRepository: TermRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val bookmarkRepository: BookmarkRepository,
-    private val userTermMemoRepository: UserTermMemoRepository
+    private val userTermMemoRepository: UserTermMemoRepository,
+    private val morphemeVariantRepository: MorphemeVariantRepository
 ) {
+
+    companion object {
+        private const val MORPHEME_SEARCH_MAX_RESULTS = 200
+        private const val MORPHEME_SEARCH_MIN_LENGTH = 2
+    }
     @Transactional(readOnly = true)
     fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): TermSearchResponse {
         val pageable = PageRequest.of(page, size)
@@ -159,6 +169,50 @@ class ClientDictionaryService(
                     bookmarked = projection.bookmarked == 1
                 )
             }
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun searchTermsByMorpheme(keyword: String): MorphemeSearchResponse {
+        val normalizedKeyword = keyword.lowercase().trim()
+            .replace("-", "")
+            .replace("%", "")
+            .replace("_", "")
+        if (normalizedKeyword.length < MORPHEME_SEARCH_MIN_LENGTH) {
+            return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
+        }
+
+        val searchHits = morphemeVariantRepository.findTermIdsByVariantPrefix(
+            normalizedKeyword,
+            MORPHEME_SEARCH_MAX_RESULTS
+        )
+        if (searchHits.isEmpty()) {
+            return MorphemeSearchResponse(keyword = keyword, totalCount = 0, terms = emptyList())
+        }
+
+        val termIds = searchHits.map { it.termId }.distinct()
+        val termEntities = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
+        val glossariesByTermId = glossaryTermRepository.findGlossariesByTermIds(termIds)
+            .groupBy { it.termId }
+
+        val resultTerms = termIds.mapNotNull { termId ->
+            val term = termEntities[termId] ?: return@mapNotNull null
+            val glossaries = (glossariesByTermId[termId] ?: emptyList()).map {
+                TermGlossaryTag(id = it.glossaryId, category = it.category, title = it.title)
+            }
+            MorphemeSearchTermItem(
+                id = term.id,
+                spelling = term.spelling,
+                meaning = term.meaning,
+                abbreviation = term.abbreviation,
+                glossaries = glossaries
+            )
+        }
+
+        return MorphemeSearchResponse(
+            keyword = keyword,
+            totalCount = resultTerms.size,
+            terms = resultTerms
         )
     }
 

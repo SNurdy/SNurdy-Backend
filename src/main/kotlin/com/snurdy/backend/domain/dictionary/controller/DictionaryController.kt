@@ -20,10 +20,17 @@ class DictionaryController(
     private val glossaryListingService: GlossaryListingService
 ) : DictionaryApi {
 
-    override fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): ApiResponse<TermSearchResponse> =
+    override fun searchTerms(
+        userId: UUID,
+        query: String?,
+        category: String?,
+        glossaryId: Long?,
+        page: Int,
+        size: Int
+    ): ApiResponse<TermSearchResponse> =
         ApiResponse.success(
             DictionarySuccess.SEARCH_TERMS,
-            termSearchService.searchTerms(userId, query, page, size)
+            termSearchService.searchTerms(userId, query, category, glossaryId, page, size)
         )
 
     override fun getTermDetail(userId: UUID, termId: Long): ApiResponse<TermDetailResponse> =

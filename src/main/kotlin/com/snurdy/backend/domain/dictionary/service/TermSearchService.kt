@@ -25,15 +25,25 @@ class TermSearchService(
 ) {
 
     @Transactional(readOnly = true)
-    fun searchTerms(userId: UUID, query: String?, page: Int, size: Int): TermSearchResponse {
+    fun searchTerms(
+        userId: UUID,
+        query: String?,
+        category: String?,
+        glossaryId: Long?,
+        page: Int,
+        size: Int
+    ): TermSearchResponse {
         val pageable = PageRequest.of(page, size)
-        // BOOLEAN MODE 연산자(+, -, *, " 등)를 제거해 쿼리 오류 방지
+        // BOOLEAN MODE 연산자(+, -, *, " 등)를 제거해 쿼리 오류 방지. blank 면 null 로 처리해 query 조건 무시
         val sanitizedQuery = query?.trim()?.replace(Regex("[+\\-><()~*\"@]+"), " ")?.trim()
-        val termPage = if (sanitizedQuery.isNullOrBlank()) {
-            termRepository.findByDeletedAtIsNull(pageable)
-        } else {
-            termRepository.searchActiveTerms(sanitizedQuery, pageable)
-        }
+            ?.takeIf { it.isNotEmpty() }
+        val normalizedCategory = category?.trim()?.takeIf { it.isNotEmpty() }
+        val termPage = termRepository.findFilteredTerms(
+            query = sanitizedQuery,
+            category = normalizedCategory,
+            glossaryId = glossaryId,
+            pageable = pageable
+        )
 
         val termIds = termPage.content.map { it.id }
         val bookmarkedTermIds = if (termIds.isEmpty()) {

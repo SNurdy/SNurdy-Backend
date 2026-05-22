@@ -27,12 +27,17 @@ import java.util.UUID
 @RequestMapping("/v1/dictionary")
 interface DictionaryApi {
 
-    @Operation(summary = "용어 검색")
+    @Operation(summary = "용어 검색 (keyword + category/glossaryId 필터)")
     @ApiSuccessCode("DICTIONARY_S002")
     @GetMapping("/terms")
     fun searchTerms(
         @CurrentUserId userId: UUID,
+        @Parameter(description = "검색 키워드 (없으면 전체)")
         @RequestParam(required = false) query: String?,
+        @Parameter(description = "대분류 필터 (예: 외과, 내과, 기타)")
+        @RequestParam(required = false) category: String?,
+        @Parameter(description = "특정 단어장 ID 필터")
+        @RequestParam(required = false) glossaryId: Long?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<TermSearchResponse>

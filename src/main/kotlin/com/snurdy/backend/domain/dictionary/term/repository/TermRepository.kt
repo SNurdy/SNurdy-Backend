@@ -66,4 +66,39 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
     fun findAllBySpellingIgnoreCase(spelling: String): List<TermEntity>
 
     fun findByIdAndDeletedAtIsNull(id: Long): Optional<TermEntity>
+
+    // 사전 화면용 통합 검색: keyword 검색 + category/glossaryId 필터를 모두 지원.
+    // 각 파라미터가 NULL 이면 해당 조건은 무시된다.
+    // 정렬: 항상 spelling 알파벳 오름차순 (사전 화면 인덱스 일관성을 위해)
+    // glossary 필터 적용 시 JOIN 에 의한 중복 행은 DISTINCT 로 제거한다.
+    @Query(
+        value = """
+        SELECT DISTINCT t.*
+        FROM terms t
+        LEFT JOIN glossary_terms gt ON gt.term_id = t.id
+        LEFT JOIN glossaries g ON g.id = gt.glossary_id
+        WHERE t.deleted_at IS NULL
+          AND (:query IS NULL OR MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE))
+          AND (:category IS NULL OR g.category = :category)
+          AND (:glossaryId IS NULL OR g.id = :glossaryId)
+        ORDER BY t.spelling
+        """,
+        countQuery = """
+        SELECT COUNT(DISTINCT t.id)
+        FROM terms t
+        LEFT JOIN glossary_terms gt ON gt.term_id = t.id
+        LEFT JOIN glossaries g ON g.id = gt.glossary_id
+        WHERE t.deleted_at IS NULL
+          AND (:query IS NULL OR MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE))
+          AND (:category IS NULL OR g.category = :category)
+          AND (:glossaryId IS NULL OR g.id = :glossaryId)
+        """,
+        nativeQuery = true
+    )
+    fun findFilteredTerms(
+        @Param("query") query: String?,
+        @Param("category") category: String?,
+        @Param("glossaryId") glossaryId: Long?,
+        pageable: Pageable
+    ): Page<TermEntity>
 }

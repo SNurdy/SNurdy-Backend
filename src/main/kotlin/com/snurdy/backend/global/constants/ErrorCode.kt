@@ -112,6 +112,15 @@ enum class TermMemoError(
     NOT_FOUND(HttpStatus.NOT_FOUND, "TERM_MEMO_E001", "메모를 찾을 수 없습니다")
 }
 
+enum class WrongAnswerNoteError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    TERM_NOT_IN_NOTE(HttpStatus.BAD_REQUEST, "WRONG_ANSWER_NOTE_E001", "오답노트에 없는 단어입니다"),
+    INVALID_PERIOD(HttpStatus.BAD_REQUEST, "WRONG_ANSWER_NOTE_E002", "유효하지 않은 기간입니다")
+}
+
 enum class CustomNoteError(
     override val status: HttpStatus,
     override val code: String,

@@ -22,6 +22,7 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
+import com.snurdy.backend.domain.user.wrongAnswerNote.service.WrongAnswerNoteService
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.LearningError
@@ -45,6 +46,7 @@ class LearningCommandService(
     private val termProgressRepository: TermProgressRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
+    private val wrongAnswerNoteService: WrongAnswerNoteService,
     private val clock: Clock
 ) {
 
@@ -84,6 +86,9 @@ class LearningCommandService(
             val progress = context.getOrCreateProgress(user, event, newProgresses)
             val wasFirstLearned = SrsCalculator.applyAnswer(progress, event, now)
             aggregation.accumulate(event.glossaryId, dailyDate, wasFirstLearned)
+            if (!event.correct) {
+                wrongAnswerNoteService.recordIncorrect(userId, event.termId, event.glossaryId, now)
+            }
         }
 
         if (newProgresses.isNotEmpty()) {

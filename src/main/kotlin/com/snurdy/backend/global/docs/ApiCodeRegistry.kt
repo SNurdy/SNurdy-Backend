@@ -24,6 +24,8 @@ import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.UserSuccess
 import com.snurdy.backend.global.constants.VersionError
 import com.snurdy.backend.global.constants.VersionSuccess
+import com.snurdy.backend.global.constants.WrongAnswerNoteError
+import com.snurdy.backend.global.constants.WrongAnswerNoteSuccess
 
 // 코드 문자열로 ErrorCode/SuccessCode enum 항목을 빠르게 찾기 위한 인-메모리 인덱스
 // 새 enum 을 정의하면 여기에 등록만 추가하면 Swagger 문서에 자동 노출된다
@@ -38,6 +40,7 @@ object ApiCodeRegistry {
             MigrationError.entries,
             DictionaryError.entries,
             CustomNoteError.entries,
+            WrongAnswerNoteError.entries,
             TermMemoError.entries,
             AdminError.entries,
             VersionError.entries
@@ -57,6 +60,7 @@ object ApiCodeRegistry {
             CalendarSuccess.entries,
             DictionarySuccess.entries,
             CustomNoteSuccess.entries,
+            WrongAnswerNoteSuccess.entries,
             TermMemoSuccess.entries,
             MigrationSuccess.entries,
             AdminSuccess.entries,

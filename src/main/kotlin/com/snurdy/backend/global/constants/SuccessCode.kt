@@ -105,6 +105,18 @@ enum class TermMemoSuccess(
     DELETE_MEMO(HttpStatus.OK, "TERM_MEMO_S002", "메모를 삭제했습니다")
 }
 
+enum class WrongAnswerNoteSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_BY_PERIOD(HttpStatus.OK, "WRONG_ANSWER_NOTE_S001", "기간별 오답노트 카드 조회에 성공했습니다"),
+    LIST_BY_GLOSSARY(HttpStatus.OK, "WRONG_ANSWER_NOTE_S002", "과별 오답노트 카드 조회에 성공했습니다"),
+    LIST_PERIOD_TERMS(HttpStatus.OK, "WRONG_ANSWER_NOTE_S003", "기간별 오답 단어 목록 조회에 성공했습니다"),
+    LIST_GLOSSARY_TERMS(HttpStatus.OK, "WRONG_ANSWER_NOTE_S004", "과별 오답 단어 목록 조회에 성공했습니다"),
+    DELETE_TERMS(HttpStatus.OK, "WRONG_ANSWER_NOTE_S005", "오답 단어를 삭제했습니다")
+}
+
 enum class CustomNoteSuccess(
     override val status: HttpStatus,
     override val code: String,

@@ -50,7 +50,7 @@ abstract class ApiSmokeTestBase {
         val response = mockMvc.post("/v1/migration/start") {
             with(userAuth())
         }.andExpect {
-            status { isOk() }
+            status { isCreated() }
             jsonPath("$.success") { value(true) }
             jsonPath("$.status") { value(201) }
         }.andReturn().response.contentAsString

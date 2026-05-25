@@ -280,8 +280,8 @@ class CustomNoteService(
     }
 
     companion object {
-        private const val MAX_NOTES_PER_USER = 50L
-        private const val MAX_TERMS_PER_NOTE = 1000L
+        private const val MAX_NOTES_PER_USER = 20L
+        private const val MAX_TERMS_PER_NOTE = 250L
         private const val CUSTOM_CATEGORY = "CUSTOM"
         private const val AUTO_TITLE_PREFIX = "단어장"
         private val AUTO_TITLE_PATTERN = Regex("""^단어장 (\d+)$""")

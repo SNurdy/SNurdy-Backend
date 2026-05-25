@@ -88,9 +88,9 @@ data class DeleteTermsFromCustomNoteRequest(
 @Schema(description = "단어장 다중 삭제 요청. 모두 본인 소유 CUSTOM 이어야 처리")
 data class DeleteCustomNotesRequest(
     @field:NotEmpty(message = "삭제할 단어장 ID 목록이 비어 있을 수 없습니다")
-    @field:Size(max = 50, message = "한 번에 최대 50개까지 삭제할 수 있습니다")
+    @field:Size(max = 20, message = "한 번에 최대 20개까지 삭제할 수 있습니다")
     @field:Schema(
-        description = "삭제할 단어장 ID 목록 (최대 50개)",
+        description = "삭제할 단어장 ID 목록 (최대 20개)",
         example = "[7, 12]"
     )
     val noteIds: List<@Positive Long>

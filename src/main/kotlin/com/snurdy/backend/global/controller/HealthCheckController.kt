@@ -1,6 +1,7 @@
 package com.snurdy.backend.global.controller
 
 import com.snurdy.backend.global.constants.CommonSuccess
+import com.snurdy.backend.global.dto.HealthCheckResponse
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 import java.time.Clock

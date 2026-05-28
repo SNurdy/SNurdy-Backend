@@ -1,6 +1,7 @@
 package com.snurdy.backend.global.controller
 
 import com.snurdy.backend.global.docs.ApiSuccessCode
+import com.snurdy.backend.global.dto.HealthCheckResponse
 import com.snurdy.backend.global.dto.response.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirements

@@ -1,4 +1,4 @@
-package com.snurdy.backend.global.controller
+package com.snurdy.backend.global.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant

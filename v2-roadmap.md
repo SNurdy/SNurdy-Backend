@@ -8,241 +8,168 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 | 단계 | 작업 | 상태 |
 |---|---|---|
-| 1.1 | UserEntity 확장 (profileImageUrl, level, exp, marketingConsent, marketingConsentAt) + V26 | done |
+| 1.1 | UserEntity 확장 (profileImageUrl, marketingConsent, marketingConsentAt, currentStreak/longestStreak/totalLearningTerms) + V26 | done |
 | 1.2 | GlossaryEntity 확장 (type, ownerId, shareCode) + V27 | done |
 | 1.3 | GlossaryEntity CHECK 제약 (type-ownerId 정합성) + V29 | done |
 | 1.4 | UserTermMemoEntity + UserTermMemoId 신규 (termMemo 패키지) + V28 | done |
+| 1.5 | UserEntity 단일 level/exp 컬럼 폐기 (V30/V31) — 단어장별 레벨로 전환 | done |
 
 ---
 
 ## Phase 2 — v2 API 구현
 
-### 진행 순서 원칙
-
-- 의존성 없는 단순 도메인부터 시작
-- 같은 도메인 변경은 한 단계 안에서 묶음
-- 큰 도메인 (커스텀 단어장) 은 단계 안에서 다시 세분화
-- 다른 도메인이 모두 끝난 뒤에 통합형 (홈 대시보드, 테스트 분리) 진행
-
 ### 단계 요약
 
 | 단계 | 도메인 | 핵심 API | 의존 단계 | 상태 |
 |---|---|---|---|---|
-| 2.1 | 마이페이지 (User) | 프로필 조회/수정, 마케팅 동의 | Phase 1.1 | todo |
-| 2.2 | 학습 리포트 대시보드 | 통합 조회 (streak + 과별 + 일자별) | Phase 1.1 | todo |
-| 2.3 | 레벨 (다마고치) | 레벨 조회, 경험치 적립 | Phase 1.1 | todo |
-| 2.4 | 커스텀 단어장 + 단어 관리 | CRUD + 단어 추가/삭제/조회 | Phase 1.2 | todo |
-| 2.5 | 오답노트 | 목록/상세/해제/복구 | Phase 1.2, 2.4 | todo |
-| 2.6 | 단어 카드 메모 | 작성/수정/조회 | Phase 1.4 | todo |
-| 2.7 | 공유 단어장 | 공유 코드 생성, 코드 조회 | Phase 1.2, 2.4 | todo |
-| 2.8 | 테스트 분리 | 커스텀/오답노트별 submit | 2.4, 2.5 | todo |
+| 2.1 | 마이페이지 (User) | 프로필 조회/수정, 마케팅 동의 | Phase 1.1 | done |
+| 2.2 | 학습 리포트 대시보드 | 통합 조회 (streak + 과별 + 일자별) | Phase 1.1 | done |
+| 2.3 | ~~레벨 (다마고치)~~ | ~~사용자 레벨/경험치~~ | - | **폐기** (단어장별 레벨로 전환) |
+| 2.4 | 커스텀 단어장 + 단어 관리 | CRUD + 단어 추가/삭제/조회 | Phase 1.2 | done |
+| 2.5 | 오답노트 | 기간별/과별 조회, 다중 해제 | Phase 1.2 | done |
+| 2.6 | 단어 카드 메모 | upsert/조회/삭제 | Phase 1.4 | done |
+| 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | todo (명세 완성) |
+| 2.8 | 테스트 분리 | 단어장 종류별 submit | 2.4, 2.5 | 보류 (재검토) |
 | 2.9 | 홈화면 대시보드 | 학습 노트별 현황, 자주 틀린 단어 | 2.4, 2.5 | todo |
 
 ---
 
 ## 단계별 상세
 
-### 2.1 마이페이지 (User)
+### 2.1 마이페이지 (User) — done
 
-**목표** — 사용자가 자기 프로필을 조회/수정하고 마케팅 동의 상태를 토글한다.
-
-**신규 endpoint**
-- `GET /v2/users/me` — 본인 프로필 조회 (닉네임, 이메일, 이미지, 레벨/경험치, 마케팅 동의 등)
-- `PUT /v2/users/me` — 프로필 수정 (닉네임, 이미지 등)
+구현된 endpoint:
+- `GET /v2/users/me` — 본인 프로필 조회
+- `PATCH /v2/users/me` — 프로필 부분 수정 (닉네임, 이미지 URL)
 - `PUT /v2/users/me/marketing-consent` — 마케팅 동의 변경
 
-**작업 항목**
-- UserMeV2Api / UserMeV2Controller / UserMeV2Service (또는 기존 UserMeController 확장)
-- UserProfileResponse, UserProfileUpdateRequest, MarketingConsentRequest DTO
+위치: `domain/user/profile/`
 
-**결정 필요**
-- 프로필 이미지 업로드 방식 — multipart vs presigned URL vs URL 직접 입력
-- 기존 v1 의 UserMeController (streak 조회) 와 같은 패키지 안에 둘지
+프로필 이미지 업로드 방식 결정 보류 (현재 URL 직접 입력만 지원).
 
 ---
 
-### 2.2 학습 리포트 대시보드
+### 2.2 학습 리포트 대시보드 — done
 
-**목표** — 마이페이지 안의 "학습 리포트" 화면용 통합 응답. streak + 과별 통계 + 일자별 통계를 한 요청에 묶어 반환한다.
-
-**신규 endpoint**
+구현된 endpoint:
 - `GET /v2/users/me/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD`
 
-**응답 구조 (제안)**
-- streak: currentStreak, longestStreak, totalLearningTerms
-- glossaryStats: glossary 별 (id, title, termCount, learnedCount, progressRate)
-- dailyStats: 날짜별 (date, learnedCount, reviewedCount)
+응답: streak (별도 service 위임) + glossaryStatistics + dailyStatistics
 
-**작업 항목**
-- 신규 DashboardController/Service (BFF 패턴, 기존 query service 재활용)
-- 신규 DashboardResponse DTO
-
-**결정 필요**
-- 기간 범위 default (예: 최근 30일)
-- 기간 범위 최대 (예: 1년)
-- 빈 결과의 응답 모양
+기본 기간 30일, KST 기준. 위치: `domain/user/dashboard/`
 
 ---
 
-### 2.3 레벨 (다마고치)
+### 2.3 ~~레벨 (다마고치)~~ — 폐기
 
-**목표** — 사용자의 현재 레벨 상태를 보여주고, 학습 완료 시 경험치 적립.
+당초 계획: 사용자별 단일 level/exp 컬럼 + 경험치 적립 시스템.
 
-**신규 endpoint**
-- `GET /v2/users/me/level` — 현재 level, exp, 다음 레벨까지 남은 exp
-- `POST /v2/users/me/level/exp` — 경험치 명시적 적립 (선택)
+폐기 사유:
+- 다마고치 컨셉이 학습 동기와 직결성 약하다고 판단
+- 단어장별 학습률 기반 레벨이 사용자에게 더 직관적
+- `GlossaryProgressCalculator` 로 단어장 별 progressRate + level 자동 계산 (저장 컬럼 없음)
+- V30/V31 마이그레이션으로 user.level/exp 컬럼 제거됨
 
-**경험치 적립 트리거 결정 필요**
-- 옵션 A — 학습 제출 (submitLearning) 안에서 자동 적립
-- 옵션 B — 클라이언트가 별도 API 호출
-- 옵션 A 가 안전 (서버 신뢰)
-
-**작업 항목**
-- LevelService — 경험치 합산, 레벨 승급 로직
-- LevelController, LevelResponse DTO
-- 레벨 공식 결정 (예: 다음 레벨까지 100 * level exp 필요)
-- 기존 LearningCommandService 에 경험치 적립 훅 추가 (옵션 A 면)
-
-**결정 필요**
-- 레벨 공식 (선형 vs 지수)
-- 최대 레벨 (캡)
-- 경험치 적립 단위 (정답 1건당 N exp 등)
+대체 구현: 단어장 응답에 `progressRate`, `level` 필드 노출. 학습 submit 응답에 `levelUp` 이벤트 (해당 단어장의 level 이 오른 경우만).
 
 ---
 
-### 2.4 커스텀 단어장 + 단어 관리
+### 2.4 커스텀 단어장 + 단어 관리 — done
 
-**목표** — 사용자가 자기 단어장을 만들고 단어를 추가/삭제한다. v2 의 가장 큰 도메인 변화.
+구현된 endpoint (`/v2/custom-notes/`):
+- `POST` — 생성 (자동 생성 title 지원)
+- `GET` — 본인 목록
+- `GET /{noteId}` — 단건
+- `PATCH /{noteId}` — title 수정
+- `DELETE /{noteId}` — 단일 삭제 (cascade)
+- `DELETE` — 다중 삭제 (전체 또는 거부)
+- `POST /{noteId}/terms` — 단어 추가
+- `DELETE /{noteId}/terms/{termId}` — 단일 단어 삭제
+- `DELETE /{noteId}/terms` — 다중 단어 삭제
+- `GET /{noteId}/terms` — 단어 목록 (페이지)
 
-**신규 endpoint**
-- `POST /v2/glossaries` — 생성 (title, category)
-- `GET /v2/glossaries?type=CUSTOM` — 본인 단어장 목록
-- `GET /v2/glossaries/{id}` — 상세
-- `PUT /v2/glossaries/{id}` — 수정 (title)
-- `DELETE /v2/glossaries/{id}` — 삭제
-- `POST /v2/glossaries/{id}/terms` — 단어 추가 (termId 목록)
-- `DELETE /v2/glossaries/{id}/terms/{termId}` — 단어 삭제
-- `GET /v2/glossaries/{id}/terms?filter=&sort=` — 단어 목록 (mask/sort 파라미터는 클라이언트 처리, 백엔드는 기본 데이터 반환)
+제약: 사용자당 20개, 단어장당 250개, title 최대 14자.
 
-**작업 항목**
-- GlossaryRepository 에 type/owner 필터 메서드 추가
-- 권한 검증 (CUSTOM 은 본인만 변경 가능)
-- 단어 추가 시 glossary_terms 매핑 추가
-- 단어 삭제 시 매핑 + 관련 진행도 처리 정책
-
-**결정 필요**
-- 커스텀 단어장 갯수 제한 (사용자당 N개)
-- 한 단어장 안 최대 단어 수
-- title 길이 제약
-- category 입력 받을지 (DEFAULT 의 카테고리와 다른 시스템)
-- 단어 삭제 시 진행도/북마크/메모 처리 (CASCADE? 유지?)
+위치: `domain/user/customNote/`
 
 ---
 
-### 2.5 오답노트
+### 2.5 오답노트 — done
 
-**목표** — 학습 도중 틀린 단어를 자동으로 모아 별도 단어장처럼 관리.
+상세 명세: `v2-phase-2.5-spec.md`
 
-**신규 endpoint**
-- `GET /v2/wrong-answers?period=ALL|WEEK|TODAY` — 목록 (필터)
-- `GET /v2/wrong-answers/{termId}` — 상세
-- `DELETE /v2/wrong-answers/{termId}` — 해제
-- `POST /v2/wrong-answers/{termId}` — 복구
+구현된 endpoint (`/v2/wrong-answer-note/`):
+- `GET /by-period` — 기간별 카드 (TODAY/WEEK/ALL)
+- `GET /by-glossary` — 과별 카드 (source_glossary_id 그루핑)
+- `GET /by-period/{period}/terms` — 기간별 단어 목록
+- `GET /by-glossary/{glossaryId}/terms` — 과별 단어 목록
+- `DELETE /terms` — 다중 soft delete
 
-**자동 생성 로직**
-- 학습 submit 시 correct=false 면 사용자의 WRONG_ANSWER glossary 에 추가
-- WRONG_ANSWER glossary 가 없으면 자동 생성 (사용자당 1개)
+데이터 모델: 별도 `wrong_answer_terms` 테이블 (V35). PK `(user_id, term_id)`. `GlossaryType.WRONG_ANSWER` enum value 는 보존하되 인스턴스 만들지 않음.
 
-**작업 항목**
-- LearningCommandService 에 오답 단어 자동 추가 훅
-- WrongAnswerService 신규
-- WrongAnswerRepository 또는 GlossaryRepository 재사용 (type=WRONG_ANSWER 필터)
+자동 졸업 없음. 수동 삭제만 가능 (재오답 시 누적값 보존을 위한 soft delete).
 
-**결정 필요**
-- WRONG_ANSWER glossary 의 title/category (자동 생성 시 어떻게 채울지)
-- 오답 해제 후 다시 틀리면 자동 복구? 아니면 그대로 해제 상태 유지?
-- 정답 N회 연속 시 자동 졸업 정책 (지금 안 함? 추후 결정?)
+위치: `domain/user/wrongAnswerNote/`
 
 ---
 
-### 2.6 단어 카드 메모
+### 2.6 단어 카드 메모 — done
 
-**목표** — 단어 카드에 사용자별 개인 메모 작성/수정/조회.
+구현된 endpoint (`/v2/terms/{termId}/memo`):
+- `GET` — 본인 메모 조회 (단어 상세에 통합되어 있음 — `GET /v1/dictionary/terms/{termId}` 안 `memo` 필드)
+- `PUT` — upsert (작성/수정 통합)
+- `DELETE` — 삭제
 
-**신규 endpoint**
-- `GET /v2/terms/{termId}/memo` — 본인 메모 조회
-- `POST /v2/terms/{termId}/memo` — 작성 (없을 때)
-- `PUT /v2/terms/{termId}/memo` — 수정 (있을 때)
-- `DELETE /v2/terms/{termId}/memo` — 삭제 (기획서 명시 없지만 일반적)
-
-**작업 항목**
-- UserTermMemoRepository 신규
-- UserTermMemoService 신규 (CRUD)
-- termMemo 패키지 안 controller/api/dto/service 추가
-
-**결정 필요**
-- 메모 길이 (Phase 1 에서 500자 결정 완료)
-- POST/PUT 분리 vs upsert (PUT 하나만으로 통합)
+위치: `domain/user/termMemo/`. 본문 최대 500자.
 
 ---
 
-### 2.7 공유 단어장
+### 2.7 공유 단어장 — todo (명세 완성)
 
-**목표** — 커스텀 단어장에 공유 코드를 부여하고, 공유받은 사용자가 코드로 단어장 조회.
+상세 명세: `v2-phase-2.7-spec.md` (사용자 로컬, push 안 됨)
 
-**신규 endpoint**
-- `POST /v2/glossaries/{id}/share` — 공유 코드 생성 (없으면 발급, 있으면 그대로 반환)
-- `GET /v2/glossaries/by-code/{code}` — 코드로 단어장 조회 (조회만, 본인 단어장으로 import 는 별도)
+기획안:
+- 코드 + URL 듀얼 공유 (Universal Link 로 카톡 1탭 import + 앱 내 코드 입력)
+- 8자 영숫자 코드 (모호 문자 제외)
+- 단어장 soft-delete 시 링크 자연 만료
+- 공유받은 단어장 = 본인 CustomNote 로 복제 (이후 독립)
+- 공유 비활성화 가능
 
-**작업 항목**
-- ShareCode 생성기 (12자 nanoid 스타일)
-- GlossaryRepository.findByShareCode
-- 권한 — POST 는 본인만, GET 은 누구나 (단 로그인 필요)
+신규 endpoint (예정):
+- `POST /v2/custom-notes/{noteId}/share`
+- `GET /v2/shared-glossaries/{code}`
+- `POST /v2/custom-notes/from-share/{code}`
+- `DELETE /v2/custom-notes/{noteId}/share`
 
-**결정 필요**
-- 공유 코드 만료 정책 (없음? 30일? 사용자 결정?)
-- 공유받은 단어장을 본인 단어장으로 복제 기능 필요? (기획서엔 없음)
-- 공유 비활성화 API 필요? (코드 재생성)
-
----
-
-### 2.8 테스트 (학습 완료 처리) 분리
-
-**목표** — 단어장 종류별로 별도 테스트 submit API. 기존 v1 /learning/submit 은 기본 단어장 전용으로 유지.
-
-**신규 endpoint**
-- `POST /v2/tests/glossaries/{id}/submit` — 커스텀 단어장 테스트 (오답 → WRONG_ANSWER 자동 등록)
-- `POST /v2/tests/wrong-answers/submit` — 오답노트 테스트 (정답 시 오답에서 자동 졸업?)
-
-**작업 항목**
-- 기존 LearningCommandService 의 submitLearning 흐름을 공유 (SrsCalculator, GlossaryProgress 등)
-- 다만 단어장 종류별 후처리 분기
-- 신규 TestController, TestService
-
-**결정 필요**
-- 오답노트 테스트 시 정답 처리 정책 (졸업? 그대로? 카운트만?)
-- 기본 단어장 테스트도 v2 로 옮길지 (예: POST /v2/tests/default/submit) vs v1 유지
+위치: `domain/user/customNote/` 안 sharing 서브 책임 (Option A — 별도 도메인 분리 안 함, customNote 의 생명주기와 강결합)
 
 ---
 
-### 2.9 홈화면 대시보드
+### 2.8 테스트 분리 — 보류 (재검토)
 
-**목표** — 홈 진입 시 한 요청으로 학습/테스트 현황 + 자주 틀린 단어를 묶어 받는다.
+당초 계획: 단어장 종류별로 별도 submit endpoint.
 
-**신규 endpoint**
-- `GET /v2/home/dashboard`
+현재 상태: 기존 `POST /v1/learning/submit` 이 모든 단어장 종류 처리. 오답 발생 시 `WrongAnswerNoteService.recordIncorrect` 자동 호출. 단어장 종류별 분기가 service 안에 이미 흡수됨.
 
-**응답 구조 (제안)**
+본 단계의 실제 가치 재검토 필요:
+- 별도 endpoint 분리가 클라이언트에 명확성을 주는가 vs 통합이 단순한가
+- 현재 통합 흐름이 정상 작동 중이라 추가 가치 불확실
+
+결정: 추가 요구사항 발생 전까지 보류.
+
+---
+
+### 2.9 홈화면 대시보드 — todo
+
+응답 구조 (제안):
 - noteSummary: 학습 노트별 현황 (기본 단어장 N개, 커스텀 N개, 오답노트 N개)
 - frequentlyWrongTerms: 자주 틀린 단어 N개
 
-**작업 항목**
-- BFF 패턴 — 여러 service 호출 후 통합 응답
-- HomeDashboardController, HomeDashboardService 신규
-
-**결정 필요**
+미결정:
 - "자주 틀린 단어" 정의 (오답 횟수? 비율? 기간?)
-- 자주 틀린 단어 반환 갯수 (5개? 10개?)
+- 반환 갯수 (5개? 10개?)
+
+위치: 신규 `domain/user/homeDashboard/` 또는 기존 dashboard 확장 검토
 
 ---
 
@@ -250,38 +177,27 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 각 단계 시작 시 `todo` -> `in-progress`, 끝나면 `done` 으로 위 표 상태 갱신.
 
-### Phase 2 진행 추천 순서
+### 남은 작업 추천 순서
 
-1. **2.1 마이페이지** — 단순. v2 패턴 정착 좋음
-2. **2.3 레벨** — 단순. user 만 의존
-3. **2.6 메모** — 단순. UserTermMemo 활용
-4. **2.4 커스텀 단어장** — 큰 도메인. 가장 큰 작업
-5. **2.7 공유** — 2.4 의존
-6. **2.5 오답노트** — 2.4 의존
-7. **2.8 테스트 분리** — 2.4, 2.5 의존
-8. **2.2 학습 리포트 대시보드** — 기존 데이터 활용 가능, 언제든 가능
-9. **2.9 홈 대시보드** — 모든 도메인 완성 후
+1. **2.7 공유 단어장** — 명세 완성. 바로 구현 가능
+2. **2.9 홈 대시보드** — 2.7 완료 후
+3. **2.8 테스트 분리** — 사용자 피드백/디자인 요구 후
 
 ---
 
 ## 공통 작업 (Phase 2 전반)
 
-### v2 컨트롤러 패키지 구조 결정
+### v2 컨트롤러 패키지 구조
 
-옵션
-- 기존 controller 안에 V1/V2 sub-package 분리
-- v1 그대로 두고 v2 컨트롤러는 같은 패키지에 다른 클래스명
-- 도메인 패키지 자체 분리 (예: domain/v2/glossary)
-
-기존 일관성을 위해 같은 도메인 패키지 안에 V2 클래스로 추가 권장.
+도메인 패키지 안에 같이 두기로 결정 (`domain/user/profile/` 등). v1 과 v2 가 같은 도메인이면 같은 패키지에 다른 클래스명 (UserMeController 등).
 
 ### v1 deprecation 계획
 
-forced update 가능한 환경이라 했으니 v2 안정화 후 v1 endpoint 들은 한 차례 정리. 다만 일정은 v2 출시 후 결정.
+forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차례 정리. 다만 일정은 v2 출시 후 결정.
 
 ---
 
-## 결정 누적 (참고)
+## 결정 누적
 
 | 항목 | 결정 |
 |---|---|
@@ -290,8 +206,17 @@ forced update 가능한 환경이라 했으니 v2 안정화 후 v1 endpoint 들�
 | 기존 Glossary 데이터 | type=DEFAULT 일괄 채움 |
 | iOS 강제 업데이트 | 가능 |
 | 메모 모델 | 별도 UserTermMemoEntity (옵션 B-1 복합키) |
-| 메모 패키지 | domain/termmemo/ (모두 소문자, 패키지 컨벤션 준수) |
-| 공유 코드 길이 | 12자 |
+| 메모 패키지 | `domain/user/termMemo/` |
+| 공유 코드 길이 | 8자 영숫자 (모호 문자 제외) — 기획 변경됨 (당초 12자) |
+| 공유 매개체 | 코드 + URL 듀얼 (Universal Link 로 카톡 1탭 import 지원) |
 | 메모 본문 길이 | 500자 |
 | 마케팅 동의 기본값 | false |
-| 레벨/경험치 초기값 | level=1, exp=0 |
+| 사용자 레벨/경험치 | 폐기 (단어장별 레벨로 대체) |
+| 오답노트 데이터 모델 | 별도 `wrong_answer_terms` 테이블 (WRONG_ANSWER glossary 인스턴스 안 만듦) |
+| 오답노트 졸업 정책 | 자동 졸업 없음, 수동 삭제만 |
+| 오답노트 단어장 그루핑 | `source_glossary_id` (마지막 오답 발생 시 학습 단어장) |
+| CustomNote 한도 | 사용자당 20개, 단어장당 단어 250개, title 14자 |
+| CustomNote 삭제 | soft delete (`deletedAt`) |
+| 단어장별 레벨 산출 | `GlossaryProgressCalculator` (학습률 기반, 저장 컬럼 없음) |
+| DTO 매핑 컨벤션 | Kotlin extension function (`toResponse`/`toEntity`/의미 키워드) |
+| 도메인 아키텍처 | 현재 Spring 표준 layered. DDD-Lite 도입 검토 중 (별도 명세 `ddd-lite-migration-spec.md`) |

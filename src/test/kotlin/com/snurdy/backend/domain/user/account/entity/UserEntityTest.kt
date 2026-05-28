@@ -1,13 +1,14 @@
 package com.snurdy.backend.domain.user.account.entity
 
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
+import com.snurdy.backend.domain.auth.external.dto.common.toEntity
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class UserEntityTest {
 
     @Test
-    fun `from 생성 시 소셜 정보가 있으면 UserEntity 필드를 매핑한다`() {
+    fun `toEntity 변환 시 소셜 정보가 있으면 UserEntity 필드를 매핑한다`() {
         // Given
         val socialUserInfo = SocialUserInfo(
             socialId = "social-1",
@@ -17,7 +18,7 @@ class UserEntityTest {
         )
 
         // When
-        val user = UserEntity.from(socialUserInfo, SocialType.GOOGLE)
+        val user = socialUserInfo.toEntity(SocialType.GOOGLE)
 
         // Then
         assertEquals("social-1", user.socialId)
@@ -28,7 +29,7 @@ class UserEntityTest {
     }
 
     @Test
-    fun `from 생성 시 닉네임 길이가 20자를 초과하면 20자로 절단한다`() {
+    fun `toEntity 변환 시 닉네임 길이가 20자를 초과하면 20자로 절단한다`() {
         // Given
         val longNickname = "nickname-over-twenty-characters"
         val socialUserInfo = SocialUserInfo(
@@ -37,7 +38,7 @@ class UserEntityTest {
         )
 
         // When
-        val user = UserEntity.from(socialUserInfo, SocialType.APPLE)
+        val user = socialUserInfo.toEntity(SocialType.APPLE)
 
         // Then
         assertEquals(MAX_NICKNAME_LENGTH, requireNotNull(user.nickname).length)
@@ -45,7 +46,7 @@ class UserEntityTest {
     }
 
     @Test
-    fun `from 생성 시 닉네임이 없으면 빈 문자열을 기본값으로 사용한다`() {
+    fun `toEntity 변환 시 닉네임이 없으면 null 을 유지한다`() {
         // Given
         val socialUserInfo = SocialUserInfo(
             socialId = "social-3",
@@ -53,7 +54,7 @@ class UserEntityTest {
         )
 
         // When
-        val user = UserEntity.from(socialUserInfo, SocialType.KAKAO)
+        val user = socialUserInfo.toEntity(SocialType.KAKAO)
 
         // Then
         assertEquals(null, user.nickname)

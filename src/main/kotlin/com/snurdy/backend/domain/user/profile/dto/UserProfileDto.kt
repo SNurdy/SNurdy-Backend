@@ -15,19 +15,7 @@ data class UserProfileResponse(
     val marketingConsent: Boolean,
     val marketingConsentAt: Instant?,
     val createdAt: Instant?
-) {
-    companion object {
-        fun from(user: UserEntity) = UserProfileResponse(
-            id = user.id,
-            email = user.email,
-            nickname = user.nickname,
-            profileImageUrl = user.profileImageUrl,
-            marketingConsent = user.marketingConsent,
-            marketingConsentAt = user.marketingConsentAt,
-            createdAt = user.createdAt
-        )
-    }
-}
+)
 
 @Schema(description = "v2 사용자 프로필 부분 수정 요청 (PATCH)")
 data class UserProfileUpdateRequest(
@@ -50,4 +38,20 @@ data class MarketingConsentRequest(
 data class MarketingConsentResponse(
     val marketingConsent: Boolean,
     val marketingConsentAt: Instant?
+)
+
+// UserEntity 는 auth 의 toUserInfo() 와 동시 사용되어 1:N 케이스 - 의미 키워드로 구분
+fun UserEntity.toProfileResponse() = UserProfileResponse(
+    id = id,
+    email = email,
+    nickname = nickname,
+    profileImageUrl = profileImageUrl,
+    marketingConsent = marketingConsent,
+    marketingConsentAt = marketingConsentAt,
+    createdAt = createdAt
+)
+
+fun UserEntity.toMarketingConsentResponse() = MarketingConsentResponse(
+    marketingConsent = marketingConsent,
+    marketingConsentAt = marketingConsentAt
 )

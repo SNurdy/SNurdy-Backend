@@ -3,6 +3,8 @@ package com.snurdy.backend.domain.user.profile.service
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
+import com.snurdy.backend.domain.user.profile.dto.toMarketingConsentResponse
+import com.snurdy.backend.domain.user.profile.dto.toProfileResponse
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.global.constants.UserError
@@ -22,7 +24,7 @@ class UserProfileService(
     @Transactional(readOnly = true)
     fun getProfile(userId: UUID): UserProfileResponse {
         val user = findActiveUser(userId)
-        return UserProfileResponse.from(user)
+        return user.toProfileResponse()
     }
 
     @Transactional
@@ -32,7 +34,7 @@ class UserProfileService(
         request.nickname?.let { user.updateNickname(it) }
         request.profileImageUrl?.let { user.updateProfileImageUrl(it) }
 
-        return UserProfileResponse.from(user)
+        return user.toProfileResponse()
     }
 
     @Transactional
@@ -40,10 +42,7 @@ class UserProfileService(
         val user = findActiveUser(userId)
         user.setMarketingConsent(agreed, clock.instant())
 
-        return MarketingConsentResponse(
-            marketingConsent = user.marketingConsent,
-            marketingConsentAt = user.marketingConsentAt
-        )
+        return user.toMarketingConsentResponse()
     }
 
     private fun findActiveUser(userId: UUID): UserEntity {

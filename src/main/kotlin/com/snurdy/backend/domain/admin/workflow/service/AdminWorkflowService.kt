@@ -16,7 +16,6 @@ import com.snurdy.backend.domain.admin.workflow.service.handler.MorphemeChangeHa
 import com.snurdy.backend.domain.admin.workflow.service.handler.TermChangeHandler
 import com.snurdy.backend.domain.admin.workflow.service.model.ValidationResult
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestBuilder
-import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestMapper
 import com.snurdy.backend.domain.admin.workflow.service.support.ChangeRequestPayloadMapper
 import com.snurdy.backend.global.constants.AdminError
 import com.snurdy.backend.global.exception.ApiException
@@ -29,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional
 class AdminWorkflowService(
     private val changeRequestRepository: ChangeRequestRepository,
     private val builder: ChangeRequestBuilder,
-    private val mapper: ChangeRequestMapper,
     private val auditLogRepository: AdminAuditLogRepository,
     private val payloadMapper: ChangeRequestPayloadMapper,
     termHandler: TermChangeHandler,
@@ -51,7 +49,7 @@ class AdminWorkflowService(
 
         val saved = changeRequestRepository.save(builder.build(request, entityType, operation))
         audit(AdminAuditAction.REQUEST, saved.requireId(), null, saved)
-        return mapper.toDetail(saved)
+        return saved.toDetail()
     }
 
     @Transactional(readOnly = true)
@@ -60,18 +58,11 @@ class AdminWorkflowService(
         val result = ChangeRequestStatus.fromRequestOrNull(status)
             ?.let { changeRequestRepository.findByStatus(it, pageable) }
             ?: changeRequestRepository.findAll(pageable)
-
-        return ChangeRequestPageResponse(
-            page = result.number,
-            size = result.size,
-            totalElements = result.totalElements,
-            totalPages = result.totalPages,
-            items = result.content.map { mapper.toSummary(it) }
-        )
+        return result.toChangeRequestPageResponse()
     }
 
     @Transactional(readOnly = true)
-    fun get(id: Long): ChangeRequestDetailResponse = mapper.toDetail(findRequest(id))
+    fun get(id: Long): ChangeRequestDetailResponse = findRequest(id).toDetail()
 
     @Transactional
     fun update(id: Long, request: UpdateChangeRequest): ChangeRequestDetailResponse {
@@ -84,7 +75,7 @@ class AdminWorkflowService(
         changeRequestRepository.save(changeRequest)
 
         audit(AdminAuditAction.UPDATE, id, null, changeRequest)
-        return mapper.toDetail(changeRequest)
+        return changeRequest.toDetail()
     }
 
     @Transactional
@@ -96,7 +87,7 @@ class AdminWorkflowService(
         applyValidationResult(changeRequest, result)
         changeRequestRepository.save(changeRequest)
         audit(AdminAuditAction.VALIDATE, id, null, changeRequest)
-        return mapper.toAction(changeRequest)
+        return changeRequest.toAction()
     }
 
     @Transactional
@@ -108,7 +99,7 @@ class AdminWorkflowService(
         changeRequest.markApplied(resolvedPk)
         changeRequestRepository.save(changeRequest)
         audit(AdminAuditAction.APPLY, id, null, changeRequest)
-        return mapper.toAction(changeRequest)
+        return changeRequest.toAction()
     }
 
     @Transactional
@@ -119,7 +110,7 @@ class AdminWorkflowService(
         changeRequest.markCanceled()
         changeRequestRepository.save(changeRequest)
         audit(AdminAuditAction.CANCEL, id, null, changeRequest)
-        return mapper.toAction(changeRequest)
+        return changeRequest.toAction()
     }
 
     @Transactional
@@ -131,7 +122,7 @@ class AdminWorkflowService(
         changeRequest.markRolledBack()
         changeRequestRepository.save(changeRequest)
         audit(AdminAuditAction.ROLLBACK, id, null, changeRequest)
-        return mapper.toAction(changeRequest)
+        return changeRequest.toAction()
     }
 
     private fun handler(type: ChangeRequestEntityType): ChangeRequestHandler =

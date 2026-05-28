@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.bookmark.service
 
-import com.snurdy.backend.domain.bookmark.dto.BookmarkItem
 import com.snurdy.backend.domain.bookmark.dto.BookmarkMutationResponse
 import com.snurdy.backend.domain.bookmark.dto.BookmarkPageResponse
+import com.snurdy.backend.domain.bookmark.dto.toResponse
 import com.snurdy.backend.domain.bookmark.entity.BookmarkEntity
 import com.snurdy.backend.domain.bookmark.entity.BookmarkId
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
@@ -33,26 +33,7 @@ class BookmarkService(
     @Transactional(readOnly = true)
     fun getBookmarks(userId: UUID, page: Int, size: Int): BookmarkPageResponse {
         val pageable = PageRequest.of(page, size)
-        val result = bookmarkRepository.findAllWithTermByUserId(userId, pageable)
-
-        val items = result.content.map {
-            BookmarkItem(
-                glossaryId = it.id.glossaryId,
-                termId = it.id.termId,
-                spelling = it.term.spelling,
-                meaning = it.term.meaning,
-                abbreviation = it.term.abbreviation,
-                createdAt = it.createdAt
-            )
-        }
-
-        return BookmarkPageResponse(
-            page = result.number,
-            size = result.size,
-            totalElements = result.totalElements,
-            totalPages = result.totalPages,
-            items = items
-        )
+        return bookmarkRepository.findAllWithTermByUserId(userId, pageable).toResponse()
     }
 
     @Transactional

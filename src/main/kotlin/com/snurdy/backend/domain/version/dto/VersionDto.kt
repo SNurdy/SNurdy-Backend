@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.version.dto
 
+import com.snurdy.backend.domain.version.entity.AppVersionEntity
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "버전 체크 응답")
@@ -28,3 +29,12 @@ enum class UpdateType {
     RECOMMEND_UPDATE,
     LATEST
 }
+
+fun AppVersionEntity.toResponse(updateType: UpdateType) = VersionCheckResponse(
+    updateType = updateType,
+    latestVersion = latestVersion,
+    minimumVersion = minimumVersion,
+    updateMessage = if (updateType != UpdateType.LATEST) updateMessage else null,
+    forceUpdateMessage = if (updateType == UpdateType.FORCE_UPDATE) forceUpdateMessage else null,
+    storeUrl = if (updateType != UpdateType.LATEST) storeUrl else null
+)

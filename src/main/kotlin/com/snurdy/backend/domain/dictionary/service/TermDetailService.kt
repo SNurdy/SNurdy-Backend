@@ -6,6 +6,8 @@ import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.dto.TermDetail
 import com.snurdy.backend.domain.dictionary.dto.TermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
+import com.snurdy.backend.domain.dictionary.dto.toDetail
+import com.snurdy.backend.domain.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.domain.dictionary.morpheme.service.HighlightCalculator
@@ -55,13 +57,7 @@ class TermDetailService(
             .orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
 
         val glossaries = glossaryTermRepository.findGlossariesByTermId(termId)
-            .map {
-                TermGlossaryTag(
-                    id = it.glossaryId,
-                    category = it.category,
-                    title = it.title
-                )
-            }
+            .map { it.toResponse() }
 
         val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId)
         val morphemeIds = morphemes.map { it.morphemeId }
@@ -85,13 +81,7 @@ class TermDetailService(
         }
 
         return AssembledTermDetail(
-            term = TermDetail(
-                id = term.id,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation
-            ),
+            term = term.toDetail(),
             glossaries = glossaries,
             morphemes = orderedMorphemes
         )

@@ -1,5 +1,9 @@
 package com.snurdy.backend.domain.dictionary.dto
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.BulkTermGlossaryProjection
+import com.snurdy.backend.domain.dictionary.glossary.repository.ClientGlossaryTermProjection
+import com.snurdy.backend.domain.dictionary.glossary.repository.TermGlossaryProjection
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import io.swagger.v3.oas.annotations.media.Schema
 
 // 단어 자체/단어장 태그/형태소 등 사전 데이터 공용 표현.
@@ -121,4 +125,42 @@ data class GlossaryTermItem(
     val abbreviation: String?,
     val status: String,
     val bookmarked: Boolean
+)
+
+// TermEntity 가 두 응답 (TermSummary / TermDetail) 로 변환되어 1:N 케이스 - 의미 키워드로 구분
+fun TermEntity.toSummary(bookmarked: Boolean) = TermSummary(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    bookmarked = bookmarked
+)
+
+fun TermEntity.toDetail() = TermDetail(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    explanation = explanation
+)
+
+fun TermGlossaryProjection.toResponse() = TermGlossaryTag(
+    id = glossaryId,
+    category = category,
+    title = title
+)
+
+fun BulkTermGlossaryProjection.toResponse() = TermGlossaryTag(
+    id = glossaryId,
+    category = category,
+    title = title
+)
+
+fun ClientGlossaryTermProjection.toResponse() = GlossaryTermItem(
+    id = termId,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    status = status,
+    bookmarked = bookmarked == 1
 )

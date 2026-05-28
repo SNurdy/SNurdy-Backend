@@ -5,9 +5,9 @@ import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.dto.LearningTermCard
 import com.snurdy.backend.domain.learning.dto.ReviewDueTermsResponse
 import com.snurdy.backend.domain.learning.dto.StudyNextTermsResponse
+import com.snurdy.backend.domain.learning.dto.toResponse
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.global.constants.DictionaryError
@@ -35,7 +35,7 @@ class LearningQueryService(
 
         val cards = glossaryTermRepository
             .findNewLearningCards(userId, glossary.id, size)
-            .map { LearningTermCard.fromNewProjection(it) }
+            .map { it.toResponse() }
 
         return StudyNextTermsResponse(glossaryId = glossary.id, terms = cards)
     }
@@ -65,7 +65,7 @@ class LearningQueryService(
 
         val cards = dueProgresses.mapNotNull { progress ->
             val term = termMap[progress.term.id] ?: return@mapNotNull null
-            LearningTermCard.from(progress, term, term.id in bookmarkedTermIds)
+            progress.toResponse(term, term.id in bookmarkedTermIds)
         }
 
         return ReviewDueTermsResponse(glossaryId = glossary.id, terms = cards)

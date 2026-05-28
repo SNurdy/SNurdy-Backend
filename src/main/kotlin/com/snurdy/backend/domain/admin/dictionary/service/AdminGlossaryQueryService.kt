@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.admin.dictionary.service
 
-import com.snurdy.backend.domain.admin.dictionary.dto.GlossaryItem
 import com.snurdy.backend.domain.admin.dictionary.dto.GlossaryPageResponse
+import com.snurdy.backend.domain.admin.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
@@ -22,19 +22,6 @@ class AdminGlossaryQueryService(
             val q = keyword.trim()
             glossaryRepository.findByCategoryContainingIgnoreCaseOrTitleContainingIgnoreCase(q, q, pageable)
         }
-
-        return GlossaryPageResponse(
-            page = data.number,
-            size = data.size,
-            totalElements = data.totalElements,
-            totalPages = data.totalPages,
-            items = data.content.map {
-                GlossaryItem(
-                    id = it.id,
-                    category = it.category,
-                    title = it.title
-                )
-            }
-        )
+        return data.toResponse()
     }
 }

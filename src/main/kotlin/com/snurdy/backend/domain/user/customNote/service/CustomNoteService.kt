@@ -14,9 +14,9 @@ import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
-import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermItem
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
+import com.snurdy.backend.domain.user.customNote.dto.toResponse
 import org.springframework.data.domain.PageRequest
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.CustomNoteError
@@ -64,7 +64,7 @@ class CustomNoteService(
             throw ApiException(CustomNoteError.DUPLICATED_TITLE)
         }
 
-        return CustomNoteResponse.from(saved, learnedCount = 0, termCount = 0L)
+        return saved.toResponse(learnedCount = 0, termCount = 0L)
     }
 
     @Transactional(readOnly = true)
@@ -78,7 +78,7 @@ class CustomNoteService(
         val responses = notes.map { glossary ->
             val termCount = glossaryTermRepository.countByIdGlossaryId(glossary.id)
             val learnedCount = progressByGlossaryId[glossary.id]?.learnedCount ?: 0
-            CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+            glossary.toResponse(learnedCount = learnedCount, termCount = termCount)
         }
 
         return CustomNoteListResponse(notes = responses)
@@ -91,7 +91,7 @@ class CustomNoteService(
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+        return glossary.toResponse(learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
@@ -114,7 +114,7 @@ class CustomNoteService(
         val learnedCount = glossaryProgressRepository
             .findByIdUserIdAndIdGlossaryId(userId, noteId)
             ?.learnedCount ?: 0
-        return CustomNoteResponse.from(glossary, learnedCount = learnedCount, termCount = termCount)
+        return glossary.toResponse(learnedCount = learnedCount, termCount = termCount)
     }
 
     @Transactional
@@ -180,14 +180,7 @@ class CustomNoteService(
             totalElements = result.totalElements,
             totalPages = result.totalPages,
             hasNext = result.hasNext(),
-            terms = result.content.map {
-                CustomNoteTermItem(
-                    id = it.termId,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    abbreviation = it.abbreviation
-                )
-            }
+            terms = result.content.map { it.toResponse() }
         )
     }
 

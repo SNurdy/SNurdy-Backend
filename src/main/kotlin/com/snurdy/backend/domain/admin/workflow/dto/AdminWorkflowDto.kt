@@ -1,5 +1,8 @@
 package com.snurdy.backend.domain.admin.workflow.dto
 
+import com.snurdy.backend.domain.admin.workflow.entity.ChangeRequestEntity
+import org.springframework.data.domain.Page
+
 data class CreateChangeRequest(
     val title: String,
     val description: String? = null,
@@ -71,4 +74,50 @@ data class ChangeRequestActionResponse(
     val errorCode: String? = null,
     val errorMessage: String? = null,
     val warningMessage: String? = null
+)
+
+fun ChangeRequestEntity.toSummary() = ChangeRequestSummary(
+    id = requireId(),
+    title = title,
+    status = status.name,
+    entityType = entityType.name,
+    operation = operation.name,
+    entityPk = entityPk,
+    createdAt = createdAt?.toString() ?: "",
+    errorMessage = errorMessage,
+    warningMessage = warningMessage
+)
+
+fun ChangeRequestEntity.toDetail() = ChangeRequestDetailResponse(
+    id = requireId(),
+    title = title,
+    description = description,
+    status = status.name,
+    entityType = entityType.name,
+    operation = operation.name,
+    entityPk = entityPk,
+    beforeJson = beforeJson,
+    afterJson = afterJson,
+    errorCode = errorCode,
+    errorMessage = errorMessage,
+    warningMessage = warningMessage,
+    appliedAt = appliedAt?.toString(),
+    rolledBackAt = rolledBackAt?.toString(),
+    createdAt = createdAt?.toString() ?: ""
+)
+
+fun ChangeRequestEntity.toAction() = ChangeRequestActionResponse(
+    id = requireId(),
+    status = status.name,
+    errorCode = errorCode,
+    errorMessage = errorMessage,
+    warningMessage = warningMessage
+)
+
+fun Page<ChangeRequestEntity>.toChangeRequestPageResponse() = ChangeRequestPageResponse(
+    page = number,
+    size = size,
+    totalElements = totalElements,
+    totalPages = totalPages,
+    items = content.map { it.toSummary() }
 )

@@ -1,9 +1,9 @@
 package com.snurdy.backend.domain.admin.dictionary.service
 
 import com.snurdy.backend.domain.admin.dictionary.dto.TermDetailResponse
-import com.snurdy.backend.domain.admin.dictionary.dto.TermItem
-import com.snurdy.backend.domain.admin.dictionary.dto.TermMorphemeMappingResponse
 import com.snurdy.backend.domain.admin.dictionary.dto.TermPageResponse
+import com.snurdy.backend.domain.admin.dictionary.dto.toDetail
+import com.snurdy.backend.domain.admin.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
@@ -29,22 +29,7 @@ class AdminTermQueryService(
         } else {
             termRepository.findActiveByKeyword(keyword.trim(), pageable)
         }
-
-        return TermPageResponse(
-            page = data.number,
-            size = data.size,
-            totalElements = data.totalElements,
-            totalPages = data.totalPages,
-            items = data.content.map {
-                TermItem(
-                    id = it.id,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    abbreviation = it.abbreviation,
-                    explanation = it.explanation
-                )
-            }
-        )
+        return data.toResponse()
     }
 
     @Transactional(readOnly = true)
@@ -52,23 +37,8 @@ class AdminTermQueryService(
         val term = termRepository.findByIdAndDeletedAtIsNull(termId)
             .orElseThrow { ApiException(DictionaryError.TERM_NOT_FOUND) }
         val glossaryIds = glossaryTermRepository.findGlossariesByTermId(termId).map { it.glossaryId }
-        val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId).map {
-            TermMorphemeMappingResponse(
-                morphemeId = it.morphemeId,
-                spelling = it.spelling,
-                meaning = it.meaning,
-                position = it.position
-            )
-        }
-
-        return TermDetailResponse(
-            id = term.id,
-            spelling = term.spelling,
-            meaning = term.meaning,
-            abbreviation = term.abbreviation,
-            explanation = term.explanation,
-            glossaryIds = glossaryIds,
-            morphemes = morphemes
-        )
+        val morphemes = termMorphemeRepository.findOrderedMorphemesByTermId(termId)
+            .map { it.toResponse() }
+        return term.toDetail(glossaryIds = glossaryIds, morphemes = morphemes)
     }
 }

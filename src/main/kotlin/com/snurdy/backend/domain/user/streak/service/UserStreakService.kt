@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.user.streak.service
 
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.user.streak.dto.UserStreakResponse
+import com.snurdy.backend.domain.user.streak.dto.toStreakResponse
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.global.constants.UserError
@@ -31,11 +32,7 @@ class UserStreakService(
         } else {
             0
         }
-        return UserStreakResponse(
-            currentStreak = effectiveCurrent,
-            longestStreak = user.longestStreak,
-            totalLearningTerms = user.totalLearningTerms
-        )
+        return user.toStreakResponse(effectiveCurrent)
     }
 
     // 저장된 currentStreak 가 현 시점에서도 유효한지 판정

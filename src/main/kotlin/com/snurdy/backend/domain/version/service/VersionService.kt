@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.version.service
 
 import com.snurdy.backend.domain.version.dto.UpdateType
 import com.snurdy.backend.domain.version.dto.VersionCheckResponse
+import com.snurdy.backend.domain.version.dto.toResponse
 import com.snurdy.backend.domain.version.entity.Platform
 import com.snurdy.backend.domain.version.repository.AppVersionRepository
 import com.snurdy.backend.global.constants.VersionError
@@ -29,14 +30,7 @@ class VersionService(
             else -> UpdateType.LATEST
         }
 
-        return VersionCheckResponse(
-            updateType = updateType,
-            latestVersion = appVersion.latestVersion,
-            minimumVersion = appVersion.minimumVersion,
-            updateMessage = if (updateType != UpdateType.LATEST) appVersion.updateMessage else null,
-            forceUpdateMessage = if (updateType == UpdateType.FORCE_UPDATE) appVersion.forceUpdateMessage else null,
-            storeUrl = if (updateType != UpdateType.LATEST) appVersion.storeUrl else null
-        )
+        return appVersion.toResponse(updateType)
     }
 
     private fun parsePlatform(platform: String): Platform =

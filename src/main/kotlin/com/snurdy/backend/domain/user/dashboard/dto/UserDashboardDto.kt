@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.dashboard.dto
 
+import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.Instant
 import java.time.LocalDate
@@ -44,3 +45,11 @@ data class DashboardDailyStatistic(
     val learnedCount: Int,
     val completedCount: Int
 )
+
+// DailyProgressEntity 가 calendar 의 CalendarDailyItem 으로도 변환되어 1:N 케이스 - 의미 키워드로 구분
+fun DailyProgressEntity.toDashboardStatistic() = DashboardDailyStatistic(
+    date = id.date,
+    learnedCount = learnedCount,
+    completedCount = completedCount
+)
+

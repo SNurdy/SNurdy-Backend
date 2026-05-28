@@ -6,6 +6,7 @@ import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.migration.dto.MigrationStartResponse
 import com.snurdy.backend.domain.migration.dto.MigrationStatusResponse
+import com.snurdy.backend.domain.migration.dto.toResponse
 import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
 import com.snurdy.backend.domain.migration.entity.MigrationStatus
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
@@ -77,10 +78,7 @@ class MigrationSessionService(
         val session = migrationSessionRepository.findByUserId(userId)
 
         if (session?.isCompleted() == true) {
-            return MigrationStatusResponse(
-                status = MigrationStatus.COMPLETED.name,
-                completedAt = session.completedAt
-            )
+            return session.toResponse()
         }
 
         if (user.migrationDeclinedAt == null) {
@@ -101,10 +99,7 @@ class MigrationSessionService(
         if (session.user.id != userId) throw ApiException(MigrationError.MIGRATION_SESSION_FORBIDDEN)
 
         if (session.isCompleted()) {
-            return MigrationStatusResponse(
-                status = MigrationStatus.COMPLETED.name,
-                completedAt = session.completedAt
-            )
+            return session.toResponse()
         }
 
         if (!session.isUploaded()) throw ApiException(MigrationError.MIGRATION_UPLOAD_REQUIRED)
@@ -120,10 +115,7 @@ class MigrationSessionService(
             throw e
         }
 
-        return MigrationStatusResponse(
-            status = MigrationStatus.COMPLETED.name,
-            completedAt = session.completedAt
-        )
+        return session.toResponse()
     }
 
     @Transactional(readOnly = true)
@@ -137,11 +129,7 @@ class MigrationSessionService(
         val session = migrationSessionRepository.findByUserId(userId)
             ?: return MigrationStatusResponse(status = MigrationStatus.NOT_STARTED.name)
 
-        return MigrationStatusResponse(
-            status = session.status.name,
-            completedAt = session.completedAt,
-            errorMessage = session.errorMessage
-        )
+        return session.toResponse()
     }
 
     /**

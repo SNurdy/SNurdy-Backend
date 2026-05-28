@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.calendar.dto
 
+import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
@@ -21,4 +22,11 @@ data class CalendarDailyItem(
     val completedCount: Int,
     @field:Schema(description = "그 날 학습 이벤트가 1건이라도 있었는지 여부")
     val studied: Boolean
+)
+
+fun DailyProgressEntity.toResponse() = CalendarDailyItem(
+    date = id.date,
+    learnedCount = learnedCount,
+    completedCount = completedCount,
+    studied = completedCount > 0
 )

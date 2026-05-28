@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.admin.audit.service
 
-import com.snurdy.backend.domain.admin.audit.dto.AuditLogItem
 import com.snurdy.backend.domain.admin.audit.dto.AuditLogPageResponse
+import com.snurdy.backend.domain.admin.audit.dto.toResponse
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditLogEntity
 import com.snurdy.backend.domain.admin.audit.repository.AdminAuditLogRepository
@@ -38,13 +38,7 @@ class AdminAuditLogService(
                 auditLogRepository.findAllByOrderByIdDesc(pageable)
         }
 
-        return AuditLogPageResponse(
-            page = result.number,
-            size = result.size,
-            totalElements = result.totalElements,
-            totalPages = result.totalPages,
-            items = result.content.map { it.toDto() }
-        )
+        return result.toResponse()
     }
 
     // 호출자의 트랜잭션과 분리된 별도 트랜잭션으로 audit log를 commit한다.
@@ -77,19 +71,6 @@ class AdminAuditLogService(
             )
         )
     }
-
-    private fun AdminAuditLogEntity.toDto() = AuditLogItem(
-        id = id,
-        actorRole = actorRole,
-        action = action,
-        targetTable = targetTable,
-        targetPk = targetPk,
-        beforeJson = beforeJson,
-        afterJson = afterJson,
-        ipAddress = ipAddress,
-        userAgent = userAgent,
-        createdAt = createdAt.toString()
-    )
 
     companion object {
         private const val MAX_PK_LENGTH = 100

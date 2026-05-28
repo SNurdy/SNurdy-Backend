@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.auth.dto.AppleUser
 import com.snurdy.backend.domain.auth.dto.TokenResponse
 import com.snurdy.backend.domain.auth.dto.toUserInfo
 import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
+import com.snurdy.backend.domain.auth.external.dto.common.toEntity
 import com.snurdy.backend.domain.auth.external.provider.AppleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
@@ -93,7 +94,7 @@ class AuthService(
 
     private fun createNewUser(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse =
         runCatching {
-            userRepository.save(UserEntity.from(userInfo, socialType))
+            userRepository.save(userInfo.toEntity(socialType))
         }.recoverCatching { e ->
             if (e is DataIntegrityViolationException) {
                 userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)

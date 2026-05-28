@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.migration.dto
 
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.DecimalMax
@@ -125,4 +126,10 @@ data class MigrationUploadResponse(
     val glossaryProgressCount: Int,
     val bookmarkCount: Int,
     val dailyProgressCount: Int
+)
+
+fun MigrationSessionEntity.toResponse() = MigrationStatusResponse(
+    status = status.name,
+    completedAt = completedAt,
+    errorMessage = errorMessage
 )

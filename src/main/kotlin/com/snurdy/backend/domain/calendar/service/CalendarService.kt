@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.calendar.service
 
-import com.snurdy.backend.domain.calendar.dto.CalendarDailyItem
 import com.snurdy.backend.domain.calendar.dto.CalendarResponse
+import com.snurdy.backend.domain.calendar.dto.toResponse
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,15 +19,8 @@ class CalendarService(
         val from = yearMonth.atDay(1)
         val to = yearMonth.atEndOfMonth()
 
-        val progresses = dailyProgressRepository.findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
-        val days = progresses.map {
-            CalendarDailyItem(
-                date = it.id.date,
-                learnedCount = it.learnedCount,
-                completedCount = it.completedCount,
-                studied = it.completedCount > 0
-            )
-        }
+        val days = dailyProgressRepository.findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
+            .map { it.toResponse() }
 
         return CalendarResponse(
             year = year,

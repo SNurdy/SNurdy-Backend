@@ -1,9 +1,8 @@
 package com.snurdy.backend.domain.admin.dictionary.service
 
-import com.snurdy.backend.domain.admin.dictionary.dto.MorphemeItem
 import com.snurdy.backend.domain.admin.dictionary.dto.MorphemePageResponse
-import com.snurdy.backend.domain.admin.dictionary.dto.MorphemeVariantItem
 import com.snurdy.backend.domain.admin.dictionary.dto.MorphemeVariantPageResponse
+import com.snurdy.backend.domain.admin.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeRepository
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import org.springframework.data.domain.PageRequest
@@ -26,20 +25,7 @@ class AdminMorphemeQueryService(
             val q = keyword.trim()
             morphemeRepository.findBySpellingContainingIgnoreCaseOrMeaningContainingIgnoreCase(q, q, pageable)
         }
-
-        return MorphemePageResponse(
-            page = data.number,
-            size = data.size,
-            totalElements = data.totalElements,
-            totalPages = data.totalPages,
-            items = data.content.map {
-                MorphemeItem(
-                    id = it.id,
-                    spelling = it.spelling,
-                    meaning = it.meaning
-                )
-            }
-        )
+        return data.toResponse()
     }
 
     @Transactional(readOnly = true)
@@ -53,20 +39,6 @@ class AdminMorphemeQueryService(
                 morphemeVariantRepository.findByVariantContainingIgnoreCaseOrBaseContainingIgnoreCase(q, q, pageable)
             }
         }
-
-        return MorphemeVariantPageResponse(
-            page = data.number,
-            size = data.size,
-            totalElements = data.totalElements,
-            totalPages = data.totalPages,
-            items = data.content.map {
-                MorphemeVariantItem(
-                    id = it.id,
-                    morphemeId = it.morpheme.id,
-                    variant = it.variant,
-                    base = it.base
-                )
-            }
-        )
+        return data.toResponse()
     }
 }

@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dictionary.morpheme.dto
 
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "어근어미 검색 응답")
@@ -25,4 +26,13 @@ data class MorphemeSearchTermItem(
     val abbreviation: String?,
     @field:Schema(description = "용어가 포함된 용어집 목록")
     val glossaries: List<TermGlossaryTag>
+)
+
+// TermEntity 의 또 다른 응답 변환 (Summary/Detail 외 추가) - 1:N 케이스
+fun TermEntity.toMorphemeSearchItem(glossaries: List<TermGlossaryTag>) = MorphemeSearchTermItem(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    glossaries = glossaries
 )

@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.user.account.entity
 
-import com.snurdy.backend.domain.auth.external.dto.common.SocialUserInfo
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -120,15 +119,7 @@ class UserEntity(
     }
 
     companion object {
-        private const val MAX_NICKNAME_LENGTH = 20
+        internal const val MAX_NICKNAME_LENGTH = 20
         private const val MAX_PROFILE_IMAGE_URL_LENGTH = 512
-
-        fun from(info: SocialUserInfo, type: SocialType) = UserEntity(
-            socialId = info.socialId,
-            socialType = type,
-            email = info.email,
-            name = info.name,
-            nickname = info.nickname?.take(MAX_NICKNAME_LENGTH)
-        )
     }
 }

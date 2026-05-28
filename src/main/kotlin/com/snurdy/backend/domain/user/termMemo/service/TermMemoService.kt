@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.user.termMemo.service
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.domain.user.termMemo.dto.TermMemoResponse
+import com.snurdy.backend.domain.user.termMemo.dto.toResponse
 import com.snurdy.backend.domain.user.termMemo.entity.UserTermMemoEntity
 import com.snurdy.backend.domain.user.termMemo.entity.UserTermMemoId
 import com.snurdy.backend.domain.user.termMemo.repository.UserTermMemoRepository
@@ -42,7 +43,7 @@ class TermMemoService(
                 )
             )
         }
-        return TermMemoResponse.from(saved)
+        return saved.toResponse()
     }
 
     @Transactional

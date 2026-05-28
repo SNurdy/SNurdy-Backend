@@ -1,12 +1,12 @@
 package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.dto.TermSummary
-import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
+import com.snurdy.backend.domain.dictionary.dto.toResponse
+import com.snurdy.backend.domain.dictionary.dto.toSummary
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
-import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchTermItem
+import com.snurdy.backend.domain.dictionary.morpheme.dto.toMorphemeSearchItem
 import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import org.springframework.data.domain.PageRequest
@@ -60,15 +60,7 @@ class TermSearchService(
             totalElements = termPage.totalElements,
             totalPages = termPage.totalPages,
             hasNext = termPage.hasNext(),
-            terms = termPage.content.map { term ->
-                TermSummary(
-                    id = term.id,
-                    spelling = term.spelling,
-                    meaning = term.meaning,
-                    abbreviation = term.abbreviation,
-                    bookmarked = term.id in bookmarkedTermIds
-                )
-            }
+            terms = termPage.content.map { it.toSummary(bookmarked = it.id in bookmarkedTermIds) }
         )
     }
 
@@ -97,16 +89,8 @@ class TermSearchService(
 
         val resultTerms = termIds.mapNotNull { termId ->
             val term = termEntities[termId] ?: return@mapNotNull null
-            val glossaries = (glossariesByTermId[termId] ?: emptyList()).map {
-                TermGlossaryTag(id = it.glossaryId, category = it.category, title = it.title)
-            }
-            MorphemeSearchTermItem(
-                id = term.id,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                glossaries = glossaries
-            )
+            val glossaries = (glossariesByTermId[termId] ?: emptyList()).map { it.toResponse() }
+            term.toMorphemeSearchItem(glossaries)
         }
 
         return MorphemeSearchResponse(

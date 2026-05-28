@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.wrongAnswerNote.dto
 
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
@@ -73,4 +75,20 @@ data class DeleteTermsFromWrongAnswerNoteRequest(
         example = "[123, 456]"
     )
     val termIds: List<@Positive Long>
+)
+
+fun WrongAnswerTermItemProjection.toResponse() = WrongAnswerTermItem(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    totalIncorrectCount = totalIncorrectCount
+)
+
+// GlossaryEntity 가 여러 도메인 응답으로 변환되어 1:N 케이스 - 의미 키워드로 구분
+fun GlossaryEntity.toWrongAnswerCard(incorrectTermCount: Long) = WrongAnswerGlossaryCard(
+    glossaryId = id,
+    title = title,
+    category = category,
+    incorrectTermCount = incorrectTermCount
 )

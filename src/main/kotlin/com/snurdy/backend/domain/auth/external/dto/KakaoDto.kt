@@ -17,11 +17,11 @@ data class KakaoUserInfoResponse(
     data class Profile(
         val nickname: String?
     )
-
-    fun toSocialUserInfo() = SocialUserInfo(
-        socialId = id.toString(),
-        email = kakaoAccount?.email,
-        name = kakaoAccount?.name,
-        nickname = kakaoAccount?.profile?.nickname
-    )
 }
+
+fun KakaoUserInfoResponse.toResponse() = SocialUserInfo(
+    socialId = id.toString(),
+    email = kakaoAccount?.email,
+    name = kakaoAccount?.name,
+    nickname = kakaoAccount?.profile?.nickname
+)

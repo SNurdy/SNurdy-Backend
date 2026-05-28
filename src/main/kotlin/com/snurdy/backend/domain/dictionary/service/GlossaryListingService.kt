@@ -2,8 +2,8 @@ package com.snurdy.backend.domain.dictionary.service
 
 import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
 import com.snurdy.backend.domain.dictionary.dto.GlossarySummary
-import com.snurdy.backend.domain.dictionary.dto.GlossaryTermItem
 import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
+import com.snurdy.backend.domain.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
@@ -88,16 +88,7 @@ class GlossaryListingService(
             totalElements = pageResult.totalElements,
             totalPages = pageResult.totalPages,
             hasNext = pageResult.hasNext(),
-            terms = pageResult.content.map { projection ->
-                GlossaryTermItem(
-                    id = projection.termId,
-                    spelling = projection.spelling,
-                    meaning = projection.meaning,
-                    abbreviation = projection.abbreviation,
-                    status = projection.status,
-                    bookmarked = projection.bookmarked == 1
-                )
-            }
+            terms = pageResult.content.map { it.toResponse() }
         )
     }
 

@@ -3,8 +3,8 @@ package com.snurdy.backend.domain.admin.auth.service
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditAction
 import com.snurdy.backend.domain.admin.audit.entity.AdminAuditTarget
 import com.snurdy.backend.domain.admin.audit.service.AdminAuditLogService
-import com.snurdy.backend.domain.admin.auth.dto.AdminInfo
 import com.snurdy.backend.domain.admin.auth.dto.AdminTokenResponse
+import com.snurdy.backend.domain.admin.auth.dto.toResponse
 import com.snurdy.backend.domain.admin.auth.repository.AdminUserRepository
 import com.snurdy.backend.domain.auth.service.AccessTokenBlacklistService
 import com.snurdy.backend.global.constants.AuthError
@@ -62,7 +62,7 @@ class AdminAuthService(
         return AdminTokenResponse(
             accessToken = accessToken,
             accessTokenExpiresIn = jwtTokenProvider.adminAccessTokenExpiration(),
-            admin = AdminInfo(id = admin.id, email = admin.email, name = admin.name)
+            admin = admin.toResponse()
         )
     }
 

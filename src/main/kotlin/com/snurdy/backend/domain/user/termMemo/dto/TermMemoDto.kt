@@ -22,12 +22,10 @@ data class TermMemoResponse(
     val content: String,
     @field:Schema(description = "마지막 갱신 시각")
     val updatedAt: Instant?
-) {
-    companion object {
-        fun from(memo: UserTermMemoEntity): TermMemoResponse = TermMemoResponse(
-            termId = memo.id.termId,
-            content = memo.content,
-            updatedAt = memo.updatedAt
-        )
-    }
-}
+)
+
+fun UserTermMemoEntity.toResponse() = TermMemoResponse(
+    termId = id.termId,
+    content = content,
+    updatedAt = updatedAt
+)

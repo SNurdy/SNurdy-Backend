@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.user.customNote.dto
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
@@ -42,22 +43,7 @@ data class CustomNoteResponse(
     val progressRate: Double,
     val level: Int,
     val createdAt: Instant?
-) {
-    companion object {
-        fun from(glossary: GlossaryEntity, learnedCount: Int, termCount: Long): CustomNoteResponse {
-            val rate = GlossaryProgressCalculator.progressRate(learnedCount, termCount)
-            return CustomNoteResponse(
-                id = glossary.id,
-                title = glossary.title,
-                termCount = termCount,
-                learnedCount = learnedCount,
-                progressRate = rate,
-                level = GlossaryProgressCalculator.levelFromRate(rate),
-                createdAt = glossary.createdAt
-            )
-        }
-    }
-}
+)
 
 @Schema(description = "커스텀 단어장 목록 응답")
 data class CustomNoteListResponse(
@@ -114,4 +100,24 @@ data class CustomNoteTermItem(
     val spelling: String,
     val meaning: String,
     val abbreviation: String?
+)
+
+fun GlossaryEntity.toResponse(learnedCount: Int, termCount: Long): CustomNoteResponse {
+    val rate = GlossaryProgressCalculator.progressRate(learnedCount, termCount)
+    return CustomNoteResponse(
+        id = id,
+        title = title,
+        termCount = termCount,
+        learnedCount = learnedCount,
+        progressRate = rate,
+        level = GlossaryProgressCalculator.levelFromRate(rate),
+        createdAt = createdAt
+    )
+}
+
+fun SimpleTermProjection.toResponse() = CustomNoteTermItem(
+    id = termId,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation
 )

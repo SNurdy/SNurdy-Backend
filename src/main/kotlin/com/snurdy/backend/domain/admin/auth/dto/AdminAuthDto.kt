@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.admin.auth.dto
 
+import com.snurdy.backend.domain.admin.auth.entity.AdminUserEntity
 import jakarta.validation.constraints.NotBlank
 import java.util.UUID
 
@@ -20,4 +21,10 @@ data class AdminInfo(
     val id: UUID,
     val email: String,
     val name: String
+)
+
+fun AdminUserEntity.toResponse() = AdminInfo(
+    id = id,
+    email = email,
+    name = name
 )

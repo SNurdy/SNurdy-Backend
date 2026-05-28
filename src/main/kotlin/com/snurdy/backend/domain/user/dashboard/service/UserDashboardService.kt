@@ -9,6 +9,7 @@ import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatistic
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardPeriod
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
+import com.snurdy.backend.domain.user.dashboard.dto.toDashboardStatistic
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -81,13 +82,7 @@ class UserDashboardService(
     private fun buildDailyStatistics(userId: UUID, from: LocalDate, to: LocalDate): List<DashboardDailyStatistic> {
         return dailyProgressRepository
             .findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
-            .map {
-                DashboardDailyStatistic(
-                    date = it.id.date,
-                    learnedCount = it.learnedCount,
-                    completedCount = it.completedCount
-                )
-            }
+            .map { it.toDashboardStatistic() }
     }
 
     companion object {

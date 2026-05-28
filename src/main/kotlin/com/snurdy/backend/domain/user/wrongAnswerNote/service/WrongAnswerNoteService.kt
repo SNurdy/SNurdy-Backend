@@ -3,13 +3,13 @@ package com.snurdy.backend.domain.user.wrongAnswerNote.service
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryType
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.DeleteTermsFromWrongAnswerNoteRequest
-import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerGlossaryCard
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerGlossaryCardListResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriod
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriodCard
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriodCardListResponse
-import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerTermItem
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerTermsResponse
+import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toResponse
+import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermEntity
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
@@ -80,12 +80,7 @@ class WrongAnswerNoteService(
         val cards = groups
             .mapNotNull { group ->
                 val glossary = glossaries[group.sourceGlossaryId] ?: return@mapNotNull null
-                WrongAnswerGlossaryCard(
-                    glossaryId = glossary.id,
-                    title = glossary.title,
-                    category = glossary.category,
-                    incorrectTermCount = group.incorrectTermCount
-                )
+                glossary.toWrongAnswerCard(group.incorrectTermCount)
             }
             .sortedBy { it.glossaryId }
         return WrongAnswerGlossaryCardListResponse(glossaries = cards)
@@ -157,15 +152,7 @@ class WrongAnswerNoteService(
             totalElements = result.totalElements,
             totalPages = result.totalPages,
             hasNext = result.hasNext(),
-            terms = result.content.map {
-                WrongAnswerTermItem(
-                    id = it.id,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    abbreviation = it.abbreviation,
-                    totalIncorrectCount = it.totalIncorrectCount
-                )
-            }
+            terms = result.content.map { it.toResponse() }
         )
     }
 

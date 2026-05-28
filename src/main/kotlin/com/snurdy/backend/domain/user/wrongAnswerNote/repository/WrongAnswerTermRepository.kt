@@ -5,7 +5,6 @@ import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.Instant
@@ -118,22 +117,6 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         pageable: Pageable
     ): Page<WrongAnswerTermItemProjection>
 
-    // soft delete (다중)
-    @Modifying
-    @Query(
-        """
-        UPDATE WrongAnswerTermEntity w
-           SET w.deletedAt = :now
-         WHERE w.id.userId = :userId
-           AND w.id.termId IN :termIds
-           AND w.deletedAt IS NULL
-        """
-    )
-    fun softDeleteByUserIdAndTermIds(
-        @Param("userId") userId: UUID,
-        @Param("termIds") termIds: Collection<Long>,
-        @Param("now") now: Instant
-    ): Int
 }
 
 interface WrongAnswerTermItemProjection {

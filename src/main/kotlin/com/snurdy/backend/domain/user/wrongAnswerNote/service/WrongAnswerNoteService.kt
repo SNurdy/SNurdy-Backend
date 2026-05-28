@@ -124,20 +124,16 @@ class WrongAnswerNoteService(
     fun deleteTerms(userId: UUID, request: DeleteTermsFromWrongAnswerNoteRequest) {
         val distinctTermIds = request.termIds.distinct()
 
-        val existing = wrongAnswerTermRepository
+        val activeEntities = wrongAnswerTermRepository
             .findAllByIdUserIdAndIdTermIdInAndDeletedAtIsNull(userId, distinctTermIds)
-            .mapTo(mutableSetOf()) { it.id.termId }
 
         // 단일 삭제와 일관: 하나라도 활성 row 가 없으면 전체 거부
-        if (existing.size != distinctTermIds.size) {
+        if (activeEntities.size != distinctTermIds.size) {
             throw ApiException(WrongAnswerNoteError.TERM_NOT_IN_NOTE)
         }
 
-        wrongAnswerTermRepository.softDeleteByUserIdAndTermIds(
-            userId = userId,
-            termIds = distinctTermIds,
-            now = clock.instant()
-        )
+        val now = clock.instant()
+        activeEntities.forEach { it.softDelete(now) }
     }
 
     private fun paginatedTerms(

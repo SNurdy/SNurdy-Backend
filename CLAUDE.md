@@ -75,22 +75,39 @@
 
 ## 3. 매핑/DTO 변환
 
-### 3.1 entity → DTO 매핑은 DTO companion `from()` 으로
-service 메서드 안에 private `toResponse()` 같은 매핑 함수를 두지 않는다. DTO 자체가 자기를 만드는 책임을 가진다.
+### 3.1 entity ↔ DTO 매핑은 Kotlin extension function 으로
+service 메서드 안에 매핑 로직을 두지 않는다. companion `from()` 같은 자바 컨벤션도 사용하지 않는다. DTO 파일에 extension function 으로 분리한다.
 
 ```kotlin
-// 금지
-class StudyNoteService {
-    private fun toResponse(glossary: GlossaryEntity, ...): StudyNoteResponse { ... }
+// 금지 - service 안 매핑
+class CustomNoteService {
+    private fun toResponse(glossary: GlossaryEntity, ...): CustomNoteResponse { ... }
 }
 
-// 권장
-data class StudyNoteResponse(...) {
+// 금지 - companion from
+data class CustomNoteResponse(...) {
     companion object {
-        fun from(glossary: GlossaryEntity, learnedCount: Int, termCount: Long): StudyNoteResponse { ... }
+        fun from(glossary: GlossaryEntity, ...): CustomNoteResponse { ... }
     }
 }
+
+// 권장 - dto 파일 안 extension function
+data class CustomNoteResponse(...)
+
+fun GlossaryEntity.toResponse(learnedCount: Int, termCount: Long): CustomNoteResponse = ...
+fun CreateCustomNoteRequest.toEntity(ownerId: UUID): GlossaryEntity = ...
 ```
+
+함수 네이밍 규칙:
+- **1:1 매핑** (한 receiver → 한 dto): `toResponse()` 통일
+- **1:N 매핑** (한 receiver → 여러 dto): 의미 키워드로 구분 (`toSummary()`, `toDetail()`, `toAction()`, `toUserInfo()`, `toProfileResponse()` 등)
+- **Page extension**: `Page<XxxEntity>.toResponse()` 통일 (receiver 가 다른 도메인과 충돌 없음)
+- **dto → entity**: `toEntity()` 통일 (필요하면 추가 인자 받음)
+- **합성형** (다중 source 조합, 외부 계산 결과 필요): service 가 직접 생성 (extension 강제 안 함)
+
+의존 방향:
+- DTO 가 entity 를 import 하는 단방향만 허용 (entity 가 dto 를 알면 안 됨)
+- 다른 도메인 entity 와 매핑이 필요하면 그 도메인의 entity 만 import (역참조 금지)
 
 ### 3.2 계산 helper 는 별도 object 로 추출
 같은 계산이 2곳 이상에 반복되면 즉시 helper 로 추출한다.

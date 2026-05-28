@@ -42,19 +42,15 @@ class WrongAnswerNoteService(
         val existing = wrongAnswerTermRepository.findByIdOrNull(id)
         if (existing == null) {
             wrongAnswerTermRepository.save(
-                WrongAnswerTermEntity(
-                    id = id,
+                WrongAnswerTermEntity.firstIncorrect(
+                    userId = userId,
+                    termId = termId,
                     sourceGlossaryId = sourceGlossaryId,
-                    incorrectAt = occurredAt,
-                    totalIncorrectCount = 1,
-                    deletedAt = null
+                    occurredAt = occurredAt
                 )
             )
         } else {
-            existing.sourceGlossaryId = sourceGlossaryId
-            existing.incorrectAt = occurredAt
-            existing.totalIncorrectCount += 1
-            existing.deletedAt = null
+            existing.recordIncorrect(sourceGlossaryId, occurredAt)
         }
     }
 

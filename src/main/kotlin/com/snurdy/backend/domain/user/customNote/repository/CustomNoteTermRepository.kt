@@ -13,6 +13,18 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
 
     fun countByIdNoteId(noteId: Long): Long
 
+    // 여러 노트의 단어 수를 한 번에 조회
+    // 목록 화면에서 N+1 회피 용도
+    @Query(
+        """
+        SELECT cnt.id.noteId AS noteId, COUNT(cnt) AS termCount
+          FROM CustomNoteTermEntity cnt
+         WHERE cnt.id.noteId IN :noteIds
+         GROUP BY cnt.id.noteId
+        """
+    )
+    fun countByNoteIds(@Param("noteIds") noteIds: Collection<Long>): List<NoteTermCountProjection>
+
     fun existsByIdNoteIdAndIdTermId(noteId: Long, termId: Long): Boolean
 
     fun findAllByIdNoteIdAndIdTermIdIn(noteId: Long, termIds: Collection<Long>): List<CustomNoteTermEntity>
@@ -67,4 +79,9 @@ interface CustomNoteTermProjection {
     val spelling: String
     val meaning: String
     val abbreviation: String?
+}
+
+interface NoteTermCountProjection {
+    val noteId: Long
+    val termCount: Long
 }

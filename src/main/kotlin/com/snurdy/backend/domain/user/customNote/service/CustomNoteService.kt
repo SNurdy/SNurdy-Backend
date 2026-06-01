@@ -56,8 +56,13 @@ class CustomNoteService(
         val notes = customNoteRepository.findAllByOwnerIdOrderByCreatedAtDesc(userId)
         if (notes.isEmpty()) return CustomNoteListResponse(notes = emptyList())
 
+        // batch count 로 N+1 회피
+        val countByNoteId = customNoteTermRepository
+            .countByNoteIds(notes.map { it.id })
+            .associate { it.noteId to it.termCount }
+
         val responses = notes.map { note ->
-            note.toResponse(termCount = customNoteTermRepository.countByIdNoteId(note.id))
+            note.toResponse(termCount = countByNoteId[note.id] ?: 0L)
         }
         return CustomNoteListResponse(notes = responses)
     }

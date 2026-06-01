@@ -5,6 +5,7 @@ import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
@@ -43,6 +44,22 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
         nativeQuery = true
     )
     fun findPagedTermsByNoteId(@Param("noteId") noteId: Long, pageable: Pageable): Page<CustomNoteTermProjection>
+
+    // 한 노트의 매핑을 다른 노트로 일괄 복사 (import 용)
+    @Modifying
+    @Query(
+        value = """
+        INSERT INTO custom_note_terms (note_id, term_id, created_at)
+        SELECT :targetNoteId, term_id, CURRENT_TIMESTAMP
+          FROM custom_note_terms
+         WHERE note_id = :sourceNoteId
+        """,
+        nativeQuery = true
+    )
+    fun copyTermsFromNote(
+        @Param("sourceNoteId") sourceNoteId: Long,
+        @Param("targetNoteId") targetNoteId: Long
+    ): Int
 }
 
 interface CustomNoteTermProjection {

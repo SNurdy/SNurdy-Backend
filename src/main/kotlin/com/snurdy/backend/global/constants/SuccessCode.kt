@@ -131,7 +131,11 @@ enum class CustomNoteSuccess(
     DELETE_TERM(HttpStatus.OK, "CUSTOM_NOTE_S007", "단어를 삭제했습니다"),
     LIST_TERMS(HttpStatus.OK, "CUSTOM_NOTE_S008", "커스텀 단어장 단어 목록 조회에 성공했습니다"),
     DELETE_TERMS(HttpStatus.OK, "CUSTOM_NOTE_S009", "선택한 단어들을 삭제했습니다"),
-    DELETE_NOTES(HttpStatus.OK, "CUSTOM_NOTE_S010", "선택한 커스텀 단어장들을 삭제했습니다")
+    DELETE_NOTES(HttpStatus.OK, "CUSTOM_NOTE_S010", "선택한 커스텀 단어장들을 삭제했습니다"),
+    ISSUE_SHARE_CODE(HttpStatus.OK, "CUSTOM_NOTE_S011", "공유 코드를 발급했습니다"),
+    GET_SHARED_NOTE(HttpStatus.OK, "CUSTOM_NOTE_S012", "공유 단어장 조회에 성공했습니다"),
+    IMPORT_SHARED_NOTE(HttpStatus.CREATED, "CUSTOM_NOTE_S013", "공유 단어장을 불러왔습니다"),
+    REVOKE_SHARE_CODE(HttpStatus.OK, "CUSTOM_NOTE_S014", "공유 코드를 비활성화했습니다")
 }
 
 enum class AdminSuccess(

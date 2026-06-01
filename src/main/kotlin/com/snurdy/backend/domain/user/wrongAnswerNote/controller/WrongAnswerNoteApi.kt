@@ -42,13 +42,31 @@ interface WrongAnswerNoteApi {
         @CurrentUserId userId: UUID
     ): ApiResponse<WrongAnswerGlossaryCardListResponse>
 
-    @Operation(summary = "기간별 오답 단어 목록 (검색 + 페이징)")
+    @Operation(summary = "오늘 틀린 단어 목록 (검색 + 페이징)")
     @ApiSuccessCode("WRONG_ANSWER_NOTE_S003")
-    @ApiErrorCodes("WRONG_ANSWER_NOTE_E002")
-    @GetMapping("/by-period/{period}/terms")
-    fun listPeriodTerms(
+    @GetMapping("/today/terms")
+    fun listTodayTerms(
         @CurrentUserId userId: UUID,
-        @PathVariable period: WrongAnswerPeriod,
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) query: String?
+    ): ApiResponse<WrongAnswerTermsResponse>
+
+    @Operation(summary = "이번 주 틀린 단어 목록 (검색 + 페이징)")
+    @ApiSuccessCode("WRONG_ANSWER_NOTE_S003")
+    @GetMapping("/week/terms")
+    fun listWeekTerms(
+        @CurrentUserId userId: UUID,
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) query: String?
+    ): ApiResponse<WrongAnswerTermsResponse>
+
+    @Operation(summary = "전체 틀린 단어 목록 (검색 + 페이징)")
+    @ApiSuccessCode("WRONG_ANSWER_NOTE_S003")
+    @GetMapping("/all/terms")
+    fun listAllTerms(
+        @CurrentUserId userId: UUID,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
         @RequestParam(required = false) query: String?

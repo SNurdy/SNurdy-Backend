@@ -22,16 +22,37 @@ class WrongAnswerNoteController(
     override fun listByGlossary(userId: UUID): ApiResponse<WrongAnswerGlossaryCardListResponse> =
         ApiResponse.success(WrongAnswerNoteSuccess.LIST_BY_GLOSSARY, wrongAnswerNoteService.listByGlossary(userId))
 
-    override fun listPeriodTerms(
+    override fun listTodayTerms(
         userId: UUID,
-        period: WrongAnswerPeriod,
         page: Int,
         size: Int,
         query: String?
     ): ApiResponse<WrongAnswerTermsResponse> =
         ApiResponse.success(
             WrongAnswerNoteSuccess.LIST_PERIOD_TERMS,
-            wrongAnswerNoteService.listPeriodTerms(userId, period, page, size, query)
+            wrongAnswerNoteService.listPeriodTerms(userId, WrongAnswerPeriod.TODAY, page, size, query)
+        )
+
+    override fun listWeekTerms(
+        userId: UUID,
+        page: Int,
+        size: Int,
+        query: String?
+    ): ApiResponse<WrongAnswerTermsResponse> =
+        ApiResponse.success(
+            WrongAnswerNoteSuccess.LIST_PERIOD_TERMS,
+            wrongAnswerNoteService.listPeriodTerms(userId, WrongAnswerPeriod.WEEK, page, size, query)
+        )
+
+    override fun listAllTerms(
+        userId: UUID,
+        page: Int,
+        size: Int,
+        query: String?
+    ): ApiResponse<WrongAnswerTermsResponse> =
+        ApiResponse.success(
+            WrongAnswerNoteSuccess.LIST_PERIOD_TERMS,
+            wrongAnswerNoteService.listPeriodTerms(userId, WrongAnswerPeriod.ALL, page, size, query)
         )
 
     override fun listGlossaryTerms(

@@ -169,10 +169,13 @@ WRONG_ANSWER glossary lazy create 로직 **없음**. race condition 처리 불�
 - 그루핑 기준: `wrong_answer_terms WHERE user_id=? AND deleted_at IS NULL GROUP BY source_glossary_id JOIN glossaries`
 - `incorrectTermCount` = 해당 과의 오답 단어 row 수
 
-### 5.3 기간별 상세 (단어 목록)
-**`GET /v2/wrong-answer-note/by-period/{period}/terms?page=0&size=20&query=`**
+### 5.3 기간별 상세 (단어 목록) — 3개 endpoint 로 분리
+기간 옵션이 고정 3개라 path enum 대신 개별 endpoint 로 표현 (REST 컨벤션 일치).
 
-- `period`: `TODAY` | `WEEK` | `ALL`
+- **`GET /v2/wrong-answer-note/today/terms?page=0&size=20&query=`** — 오늘 틀린 단어
+- **`GET /v2/wrong-answer-note/week/terms?page=0&size=20&query=`** — 이번 주 틀린 단어
+- **`GET /v2/wrong-answer-note/all/terms?page=0&size=20&query=`** — 전체 틀린 단어
+
 - `query`: 노트 내 검색어 (사전 검색과 동일 정책, 5.7 참조). 빈 값/null 이면 조건 무시
 - 응답 항목에 `totalIncorrectCount` 포함
 

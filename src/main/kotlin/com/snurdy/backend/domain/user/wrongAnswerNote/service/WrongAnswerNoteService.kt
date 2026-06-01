@@ -23,9 +23,11 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 @Service
@@ -156,16 +158,25 @@ class WrongAnswerNoteService(
         )
     }
 
-    private fun thresholdOf(period: WrongAnswerPeriod, now: Instant): Instant? = when (period) {
-        WrongAnswerPeriod.TODAY -> LocalDate.now(now.atZone(APP_ZONE_ID).zone)
-            .atStartOfDay(APP_ZONE_ID).toInstant()
-        WrongAnswerPeriod.WEEK -> now.minus(java.time.Duration.ofDays(7))
-        WrongAnswerPeriod.ALL -> null
+    // 자연주 (이번 주 월요일 00:00 KST), 자연월 (이번 달 1일 00:00 KST) 기준
+    private fun thresholdOf(period: WrongAnswerPeriod, now: Instant): Instant? {
+        val today = LocalDate.ofInstant(now, APP_ZONE_ID)
+        return when (period) {
+            WrongAnswerPeriod.TODAY -> today.atStartOfDay(APP_ZONE_ID).toInstant()
+            WrongAnswerPeriod.WEEK -> today
+                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+                .atStartOfDay(APP_ZONE_ID).toInstant()
+            WrongAnswerPeriod.MONTH -> today
+                .withDayOfMonth(1)
+                .atStartOfDay(APP_ZONE_ID).toInstant()
+            WrongAnswerPeriod.ALL -> null
+        }
     }
 
     private fun labelOf(period: WrongAnswerPeriod): String = when (period) {
         WrongAnswerPeriod.TODAY -> "오늘 틀린 단어"
         WrongAnswerPeriod.WEEK -> "이번 주 틀린 단어"
+        WrongAnswerPeriod.MONTH -> "이번 달 틀린 단어"
         WrongAnswerPeriod.ALL -> "전체 틀린 단어"
     }
 

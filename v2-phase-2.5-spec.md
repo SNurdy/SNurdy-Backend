@@ -144,12 +144,18 @@ WRONG_ANSWER glossary lazy create 로직 **없음**. race condition 처리 불�
   "periods": [
     { "period": "TODAY", "label": "오늘 틀린 단어",   "incorrectTermCount": 12 },
     { "period": "WEEK",  "label": "이번 주 틀린 단어", "incorrectTermCount": 12 },
+    { "period": "MONTH", "label": "이번 달 틀린 단어", "incorrectTermCount": 12 },
     { "period": "ALL",   "label": "전체 틀린 단어",   "incorrectTermCount": 12 }
   ]
 }
 ```
 
-- 카드 3개 고정. label 은 백엔드가 채워서 iOS 가 별도 i18n 불필요.
+- 카드 4개 고정. label 은 백엔드가 채워서 iOS 가 별도 i18n 불필요.
+- 기간 정의:
+  - `TODAY`: 오늘 00:00 KST 이후
+  - `WEEK`: **자연주** (이번 주 월요일 00:00 KST 이후)
+  - `MONTH`: **자연월** (이번 달 1일 00:00 KST 이후)
+  - `ALL`: 전체 (조건 없음)
 - `incorrectTermCount` = 해당 기간 안의 오답 단어 row 수 (`COUNT(*) WHERE user_id=? AND deleted_at IS NULL AND incorrect_at >= threshold`)
 
 ### 5.2 과별 카드 목록
@@ -169,11 +175,12 @@ WRONG_ANSWER glossary lazy create 로직 **없음**. race condition 처리 불�
 - 그루핑 기준: `wrong_answer_terms WHERE user_id=? AND deleted_at IS NULL GROUP BY source_glossary_id JOIN glossaries`
 - `incorrectTermCount` = 해당 과의 오답 단어 row 수
 
-### 5.3 기간별 상세 (단어 목록) — 3개 endpoint 로 분리
-기간 옵션이 고정 3개라 path enum 대신 개별 endpoint 로 표현 (REST 컨벤션 일치).
+### 5.3 기간별 상세 (단어 목록) — 4개 endpoint 로 분리
+기간 옵션이 고정이라 path enum 대신 개별 endpoint 로 표현 (REST 컨벤션 일치).
 
 - **`GET /v2/wrong-answer-note/today/terms?page=0&size=20&query=`** — 오늘 틀린 단어
-- **`GET /v2/wrong-answer-note/week/terms?page=0&size=20&query=`** — 이번 주 틀린 단어
+- **`GET /v2/wrong-answer-note/week/terms?page=0&size=20&query=`** — 이번 주 틀린 단어 (자연주)
+- **`GET /v2/wrong-answer-note/month/terms?page=0&size=20&query=`** — 이번 달 틀린 단어 (자연월)
 - **`GET /v2/wrong-answer-note/all/terms?page=0&size=20&query=`** — 전체 틀린 단어
 
 - `query`: 노트 내 검색어 (사전 검색과 동일 정책, 5.7 참조). 빈 값/null 이면 조건 무시

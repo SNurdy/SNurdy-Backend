@@ -44,6 +44,17 @@ class WrongAnswerNoteController(
             wrongAnswerNoteService.listPeriodTerms(userId, WrongAnswerPeriod.WEEK, page, size, query)
         )
 
+    override fun listMonthTerms(
+        userId: UUID,
+        page: Int,
+        size: Int,
+        query: String?
+    ): ApiResponse<WrongAnswerTermsResponse> =
+        ApiResponse.success(
+            WrongAnswerNoteSuccess.LIST_PERIOD_TERMS,
+            wrongAnswerNoteService.listPeriodTerms(userId, WrongAnswerPeriod.MONTH, page, size, query)
+        )
+
     override fun listAllTerms(
         userId: UUID,
         page: Int,

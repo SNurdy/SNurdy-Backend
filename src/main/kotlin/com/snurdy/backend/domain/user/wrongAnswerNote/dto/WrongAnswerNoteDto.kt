@@ -8,9 +8,11 @@ import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 
 // 오답노트 기간 필터. 카드와 상세 endpoint 양쪽에서 사용
+// WEEK 는 자연주 (이번 주 월요일 00:00 KST 이후), MONTH 는 자연월 (이번 달 1일 00:00 KST 이후)
 enum class WrongAnswerPeriod {
     TODAY,
     WEEK,
+    MONTH,
     ALL
 }
 

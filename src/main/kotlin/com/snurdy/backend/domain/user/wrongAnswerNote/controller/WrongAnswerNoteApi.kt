@@ -52,10 +52,20 @@ interface WrongAnswerNoteApi {
         @RequestParam(required = false) query: String?
     ): ApiResponse<WrongAnswerTermsResponse>
 
-    @Operation(summary = "이번 주 틀린 단어 목록 (검색 + 페이징)")
+    @Operation(summary = "이번 주 틀린 단어 목록 (자연주 - 월요일 기준, 검색 + 페이징)")
     @ApiSuccessCode("WRONG_ANSWER_NOTE_S003")
     @GetMapping("/week/terms")
     fun listWeekTerms(
+        @CurrentUserId userId: UUID,
+        @RequestParam(defaultValue = "0") @Min(0) page: Int,
+        @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,
+        @RequestParam(required = false) query: String?
+    ): ApiResponse<WrongAnswerTermsResponse>
+
+    @Operation(summary = "이번 달 틀린 단어 목록 (자연월 - 1일 기준, 검색 + 페이징)")
+    @ApiSuccessCode("WRONG_ANSWER_NOTE_S003")
+    @GetMapping("/month/terms")
+    fun listMonthTerms(
         @CurrentUserId userId: UUID,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int,

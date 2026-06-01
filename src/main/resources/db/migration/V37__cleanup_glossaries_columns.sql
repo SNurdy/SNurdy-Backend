@@ -2,15 +2,15 @@
 -- CUSTOM/WRONG_ANSWER 이 별도 테이블로 분리된 후 type/owner_id/share_code 컬럼은 무의미
 -- glossaries 는 사전 카탈로그 (DEFAULT) 전용으로 정리
 
--- 1. CHECK 제약 제거 (V29 의 chk_glossary_owner)
+-- 1. CHECK 제약 제거 (V29 의 chk_glossary_owner_by_type)
 SET @drop_check = (
     SELECT IF(
         EXISTS(
             SELECT 1 FROM information_schema.check_constraints
             WHERE constraint_schema = DATABASE()
-              AND constraint_name = 'chk_glossary_owner'
+              AND constraint_name = 'chk_glossary_owner_by_type'
         ),
-        'ALTER TABLE glossaries DROP CHECK chk_glossary_owner',
+        'ALTER TABLE glossaries DROP CHECK chk_glossary_owner_by_type',
         'SELECT 1'
     )
 );

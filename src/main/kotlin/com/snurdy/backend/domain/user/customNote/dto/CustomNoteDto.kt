@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.user.customNote.dto
 
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermProjection
+import com.snurdy.backend.global.validation.CodePointSize
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -12,14 +13,14 @@ import java.time.Instant
 @Schema(description = "커스텀 단어장 생성 요청")
 data class CreateCustomNoteRequest(
     @field:NotBlank(message = "단어장 제목은 필수입니다")
-    @field:Size(max = 14, message = "단어장 제목은 최대 14자까지 입력할 수 있습니다")
+    @field:CodePointSize(max = 14, message = "단어장 제목은 최대 14자까지 입력할 수 있습니다")
     @field:Schema(description = "단어장 제목", example = "외과 단어장")
     val title: String
 )
 
 @Schema(description = "커스텀 단어장 수정 요청")
 data class UpdateCustomNoteRequest(
-    @field:Size(min = 1, max = 14, message = "단어장 제목은 1~14자여야 합니다")
+    @field:CodePointSize(min = 1, max = 14, message = "단어장 제목은 1~14자여야 합니다")
     @field:Schema(description = "변경할 단어장 제목", example = "신경계 단어장")
     val title: String
 )

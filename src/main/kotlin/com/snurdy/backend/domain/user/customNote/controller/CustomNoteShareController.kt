@@ -15,6 +15,15 @@ class CustomNoteShareController(
     private val customNoteImportService: CustomNoteImportService
 ) : CustomNoteShareApi {
 
+    override fun getShareCode(
+        userId: UUID,
+        noteId: Long
+    ): ApiResponse<CustomNoteShareIssueResponse> =
+        ApiResponse.success(
+            CustomNoteSuccess.GET_SHARE_CODE,
+            customNoteShareService.get(userId, noteId)
+        )
+
     override fun issueShareCode(
         userId: UUID,
         noteId: Long

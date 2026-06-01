@@ -4,12 +4,10 @@ import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.toResponse
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteRepository
-import com.snurdy.backend.domain.user.customNote.repository.CustomNoteShareCodeRepository
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
 import com.snurdy.backend.global.constants.CustomNoteError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
@@ -17,18 +15,14 @@ import java.util.UUID
 @Service
 class CustomNoteImportService(
     private val customNoteRepository: CustomNoteRepository,
-    private val customNoteTermRepository: CustomNoteTermRepository,
-    private val customNoteShareCodeRepository: CustomNoteShareCodeRepository
+    private val customNoteTermRepository: CustomNoteTermRepository
 ) {
 
     // 공유 코드로 본인 단어장으로 복제
     // title 충돌 시 (2), (3) suffix 자동 증가. 단어 매핑은 batch INSERT SELECT 로 한 번에
     @Transactional
     fun importByCode(userId: UUID, code: String): CustomNoteResponse {
-        val shareCode = customNoteShareCodeRepository.findByShareCodeAndRevokedAtIsNull(code)
-            ?: throw ApiException(CustomNoteError.SHARE_CODE_NOT_FOUND)
-
-        val source = customNoteRepository.findByIdOrNull(shareCode.noteId)
+        val source = customNoteRepository.findByShareCode(code)
             ?: throw ApiException(CustomNoteError.SHARE_CODE_NOT_FOUND)
 
         if (customNoteRepository.countByOwnerId(userId) >= MAX_NOTES_PER_USER) {

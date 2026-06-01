@@ -134,7 +134,8 @@ enum class CustomNoteError(
     DUPLICATED_TITLE(HttpStatus.CONFLICT, "CUSTOM_NOTE_E006", "이미 존재하는 커스텀 단어장입니다"),
     TERM_NOT_IN_NOTE(HttpStatus.BAD_REQUEST, "CUSTOM_NOTE_E007", "해당 단어가 커스텀 단어장에 포함되어 있지 않습니다"),
     SHARE_CODE_NOT_FOUND(HttpStatus.NOT_FOUND, "CUSTOM_NOTE_E008", "유효하지 않거나 만료된 공유 코드입니다"),
-    SHARE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CUSTOM_NOTE_E009", "공유 코드 발급에 실패했습니다")
+    SHARE_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "CUSTOM_NOTE_E009", "공유 코드 발급에 실패했습니다"),
+    SHARE_CODE_ALREADY_EXISTS(HttpStatus.CONFLICT, "CUSTOM_NOTE_E010", "이미 발급된 공유 코드가 있습니다")
 }
 
 enum class AdminError(

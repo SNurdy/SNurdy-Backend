@@ -11,4 +11,9 @@ interface CustomNoteRepository : JpaRepository<CustomNoteEntity, Long> {
     fun existsByOwnerIdAndTitle(ownerId: UUID, title: String): Boolean
 
     fun findAllByOwnerIdOrderByCreatedAtDesc(ownerId: UUID): List<CustomNoteEntity>
+
+    // 공유 코드로 노트 조회. null 인 row 는 자동 매칭 안 됨
+    fun findByShareCode(shareCode: String): CustomNoteEntity?
+
+    fun existsByShareCode(shareCode: String): Boolean
 }

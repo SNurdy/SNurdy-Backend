@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -20,9 +21,19 @@ import java.util.UUID
 @RequestMapping("/v2/custom-notes")
 interface CustomNoteShareApi {
 
-    @Operation(summary = "공유 코드 발급 또는 활성 코드 조회. 본인 단어장만")
+    @Operation(summary = "활성 공유 코드 조회. 본인 단어장만")
+    @ApiSuccessCode("CUSTOM_NOTE_S015")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E008")
+    @GetMapping("/{noteId}/share")
+    fun getShareCode(
+        @CurrentUserId userId: UUID,
+        @PathVariable noteId: Long
+    ): ApiResponse<CustomNoteShareIssueResponse>
+
+    @Operation(summary = "공유 코드 발급. 이미 활성 코드 있으면 SHARE_CODE_ALREADY_EXISTS")
     @ApiSuccessCode("CUSTOM_NOTE_S011")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E009")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E009", "CUSTOM_NOTE_E010")
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/{noteId}/share")
     fun issueShareCode(
         @CurrentUserId userId: UUID,
@@ -39,7 +50,7 @@ interface CustomNoteShareApi {
         @PathVariable code: String
     ): ApiResponse<CustomNoteResponse>
 
-    @Operation(summary = "공유 코드 비활성화. 같은 단어장 재발급 시 새 코드로 회전")
+    @Operation(summary = "공유 코드 비활성화. 코드 폐기 (감사 추적 없음)")
     @ApiSuccessCode("CUSTOM_NOTE_S014")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @DeleteMapping("/{noteId}/share")

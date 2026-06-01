@@ -332,6 +332,10 @@ domain/
 - `CustomNoteShareApi`, `CustomNoteShareController`
 - `CustomNoteShareDto`
 - `SharingProperties` (application.yml 바인딩)
+- **`CodePointSize` custom validation annotation + `CodePointSizeValidator`** (`global/validation/`)
+  - Bean Validation 표준 `@Size` 가 `String.length` (UTF-16 code unit) 기준이라 이모지를 2자로 카운트하는 문제 해결
+  - code point 기준 검증 (이모지 1자 = 1 카운트)
+  - title/nickname/memo 등 한글+이모지 혼합 입력 필드 모두 적용 권장
 
 ### 9.2 전면 재작성
 - `CustomNoteService` — GlossaryRepository 의존 제거, CustomNoteRepository 사용
@@ -340,7 +344,9 @@ domain/
   - `CreateCustomNoteRequest.title` 이 nullable → required (Validation 변경)
 - `CustomNoteApi`, `CustomNoteController` — 시그니처는 거의 같으나 entity 변경 반영
 - `CustomNoteDto` — 매핑 extension 의 receiver 가 `GlossaryEntity` → `CustomNoteEntity`
-- `CreateCustomNoteRequest` — `title: String?` → `title: String` (`@field:NotBlank`)
+- `CreateCustomNoteRequest` — `title: String?` → `title: String`
+  - `@field:NotBlank` + `@field:CodePointSize(max = 14)` 적용 (기존 `@field:Size` 대신)
+- `UpdateCustomNoteRequest` — `@field:Size(min=1, max=14)` → `@field:CodePointSize(min=1, max=14)`
 
 ### 9.3 부분 수정
 - `BookmarkService.verifyGlossaryContainsTerm` — DEFAULT 만 받음 (이미 사실상 그러함)
@@ -367,7 +373,8 @@ domain/
 | 1 | V36 마이그레이션 (custom_notes 계열 3개 테이블 신설) | - |
 | 2 | CustomNoteEntity / 관련 entity + repository 신설 | 1 |
 | 3 | CustomNoteService 재작성 (CustomNoteRepository 기반, 자동 title 제거) | 2 |
-| 4 | CustomNoteController/Api/Dto 갱신 (title required) | 3 |
+| 4a | `CodePointSize` annotation + Validator 신설 (`global/validation/`) | - |
+| 4b | CustomNoteController/Api/Dto 갱신 (title required, `@CodePointSize` 적용) | 3, 4a |
 | 5 | application.yml sharing 설정 + SharingProperties + ShareCodeGenerator | - |
 | 6 | CustomNoteShareService 신설 (발급/조회/비활성화) | 2, 5 |
 | 7 | CustomNoteImportService 신설 (suffix 자동 증가) | 2 |

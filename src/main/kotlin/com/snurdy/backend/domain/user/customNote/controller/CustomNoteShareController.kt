@@ -2,7 +2,6 @@ package com.snurdy.backend.domain.user.customNote.controller
 
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteShareIssueResponse
-import com.snurdy.backend.domain.user.customNote.dto.SharedCustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteImportService
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteShareService
 import com.snurdy.backend.global.constants.CustomNoteSuccess
@@ -23,17 +22,6 @@ class CustomNoteShareController(
         ApiResponse.success(
             CustomNoteSuccess.ISSUE_SHARE_CODE,
             customNoteShareService.issue(userId, noteId)
-        )
-
-    override fun getByShareCode(
-        userId: UUID,
-        code: String,
-        page: Int,
-        size: Int
-    ): ApiResponse<SharedCustomNoteResponse> =
-        ApiResponse.success(
-            CustomNoteSuccess.GET_SHARED_NOTE,
-            customNoteShareService.getByCode(code, page, size)
         )
 
     override fun importByShareCode(

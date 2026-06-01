@@ -1,7 +1,6 @@
 package com.snurdy.backend.domain.user.customNote.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import java.time.Instant
 
 @Schema(description = "공유 코드 발급 응답")
 data class CustomNoteShareIssueResponse(
@@ -17,19 +16,4 @@ data class CustomNoteShareIssueResponse(
     val shareCode: String,
     @field:Schema(description = "Universal Link URL", example = "https://snurdy.org/shared/k7Mx9pQ2")
     val shareUrl: String
-)
-
-@Schema(description = "공유 코드로 조회한 단어장 응답")
-data class SharedCustomNoteResponse(
-    val shareCode: String,
-    val title: String,
-    val ownerNickname: String?,
-    val termCount: Long,
-    val createdAt: Instant?,
-    val page: Int,
-    val size: Int,
-    val totalElements: Long,
-    val totalPages: Int,
-    val hasNext: Boolean,
-    val terms: List<CustomNoteTermItem>
 )

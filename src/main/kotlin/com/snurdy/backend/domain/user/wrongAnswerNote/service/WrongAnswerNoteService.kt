@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.user.wrongAnswerNote.service
 
-import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryType
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.DeleteTermsFromWrongAnswerNoteRequest
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerGlossaryCardListResponse
@@ -75,9 +74,7 @@ class WrongAnswerNoteService(
         if (groups.isEmpty()) return WrongAnswerGlossaryCardListResponse(glossaries = emptyList())
 
         val glossaryIds = groups.map { it.sourceGlossaryId }
-        val glossaries = glossaryRepository.findAllById(glossaryIds)
-            .filter { it.type == GlossaryType.DEFAULT }
-            .associateBy { it.id }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
 
         val cards = groups
             .mapNotNull { group ->
@@ -109,11 +106,8 @@ class WrongAnswerNoteService(
         size: Int,
         query: String?
     ): WrongAnswerTermsResponse {
-        val glossary = glossaryRepository.findByIdOrNull(glossaryId)
+        glossaryRepository.findByIdOrNull(glossaryId)
             ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        if (glossary.type != GlossaryType.DEFAULT) {
-            throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        }
         return paginatedTerms(userId, after = null, sourceGlossaryId = glossaryId, page = page, size = size, query = query)
     }
 

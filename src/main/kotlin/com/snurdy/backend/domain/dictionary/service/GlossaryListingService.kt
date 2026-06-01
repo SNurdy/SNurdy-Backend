@@ -31,8 +31,8 @@ class GlossaryListingService(
         val glossaryProgressMap = glossaryProgressRepository.findAllByIdUserId(userId)
             .associateBy { it.id.glossaryId }
 
-        // 사전 카탈로그 endpoint 라 type=DEFAULT 만 노출한다. CUSTOM/WRONG_ANSWER 는 customNote 도메인 책임
-        val glossaries = glossaryRepository.findDefaultGlossaryTermCounts()
+        // glossaries 는 cleanup 후 사전 카탈로그 (DEFAULT) 전용. CUSTOM/WRONG_ANSWER 는 별도 도메인
+        val glossaries = glossaryRepository.findGlossaryTermCounts()
             .asSequence()
             .filter {
                 normalizedCategory.isBlank() ||

@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.learning.repository
 import com.snurdy.backend.domain.learning.entity.TermProgressEntity
 import com.snurdy.backend.domain.learning.entity.TermProgressStatus
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
@@ -26,12 +27,18 @@ interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
         termIds: List<Long>
     ): List<TermProgressEntity>
 
+    // N+1 회피 위해 term, glossary 를 fetch join
+    // 호출 측에서 it.term.id 와 it.glossary.id 를 모두 접근하기 때문
+    @EntityGraph(attributePaths = ["term", "glossary"])
     fun findAllByUserIdAndGlossaryIdInAndTermIdIn(
         userId: UUID,
         glossaryIds: Collection<Long>,
         termIds: Collection<Long>
     ): List<TermProgressEntity>
 
+    // N+1 회피 위해 term 을 fetch join
+    // 호출 측에서 progress.term.id 를 반복 접근하기 때문
+    @EntityGraph(attributePaths = ["term"])
     @Query(
         """
         SELECT tp

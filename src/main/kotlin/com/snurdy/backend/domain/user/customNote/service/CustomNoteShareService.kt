@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.user.customNote.service
 import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.domain.user.customNote.config.SharingProperties
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteShareIssueResponse
+import com.snurdy.backend.domain.user.customNote.dto.toShareIssueResponse
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteRepository
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
@@ -22,31 +23,31 @@ class CustomNoteShareService(
     private val sharingProperties: SharingProperties
 ) {
 
-    // 본인 단어장의 공유 코드 발급. 이미 활성 코드 있으면 SHARE_CODE_ALREADY_EXISTS
+    // 본인 단어장의 공유 코드 발급
+    // 이미 활성 코드 있으면 SHARE_CODE_ALREADY_EXISTS throw
     @Transactional
     fun issue(userId: UUID, noteId: Long): CustomNoteShareIssueResponse {
         val note = findOwned(userId, noteId)
         if (note.isShareActive()) {
             throw ApiException(CustomNoteError.SHARE_CODE_ALREADY_EXISTS)
         }
-
-        val newCode = shareCodeGenerator.generateUnique()
-        note.issueShareCode(newCode)
-
-        return buildResponse(note)
+        note.issueShareCode(shareCodeGenerator.generateUnique())
+        return assembleResponse(note)
     }
 
-    // 본인 단어장의 활성 공유 코드 조회. 없으면 SHARE_CODE_NOT_FOUND
+    // 본인 단어장의 활성 공유 코드 조회
+    // 없으면 SHARE_CODE_NOT_FOUND throw
     @Transactional(readOnly = true)
     fun get(userId: UUID, noteId: Long): CustomNoteShareIssueResponse {
         val note = findOwned(userId, noteId)
         if (!note.isShareActive()) {
             throw ApiException(CustomNoteError.SHARE_CODE_NOT_FOUND)
         }
-        return buildResponse(note)
+        return assembleResponse(note)
     }
 
-    // 공유 비활성화. shareCode = null 처리. 멱등 (이미 null 이면 그대로)
+    // 공유 비활성화
+    // shareCode 가 이미 null 이면 멱등 처리
     @Transactional
     fun revoke(userId: UUID, noteId: Long) {
         val note = findOwned(userId, noteId)
@@ -64,14 +65,13 @@ class CustomNoteShareService(
         return note
     }
 
-    private fun buildResponse(note: CustomNoteEntity): CustomNoteShareIssueResponse {
+    // 외부 source 인 User nickname, 단어 수, URL prefix 를 조립한 뒤 dto extension 호출
+    private fun assembleResponse(note: CustomNoteEntity): CustomNoteShareIssueResponse {
         val code = note.shareCode ?: throw ApiException(CustomNoteError.SHARE_CODE_NOT_FOUND)
-        return CustomNoteShareIssueResponse(
-            noteId = note.id,
-            title = note.title,
+        return note.toShareIssueResponse(
+            shareCode = code,
             ownerNickname = userRepository.findByIdOrNull(note.ownerId)?.nickname,
             termCount = customNoteTermRepository.countByIdNoteId(note.id),
-            shareCode = code,
             shareUrl = sharingProperties.buildShareUrl(code)
         )
     }

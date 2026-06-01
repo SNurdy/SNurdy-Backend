@@ -53,6 +53,9 @@ jwt:
   # 관리자는 민감한 작업을 수행하므로 더 짧은 TTL 권장(env 미설정 시 access-token-expiration으로 fallback)
   admin-access-token-expiration: ${JWT_ADMIN_ACCESS_TOKEN_EXPIRATION:${JWT_ACCESS_TOKEN_EXPIRATION}}
 
+sharing:
+  custom-note-url-prefix: ${SHARING_CUSTOM_NOTE_URL_PREFIX:https://snurdy.org/shared/}
+
 oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}

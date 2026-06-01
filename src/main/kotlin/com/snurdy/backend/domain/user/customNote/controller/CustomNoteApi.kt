@@ -53,7 +53,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장 상세 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S003")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @GetMapping("/{noteId}")
     fun getNote(
         @CurrentUserId userId: UUID,
@@ -62,7 +62,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장 제목 수정")
     @ApiSuccessCode("CUSTOM_NOTE_S004")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005", "CUSTOM_NOTE_E006")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E006")
     @PatchMapping("/{noteId}")
     fun updateNote(
         @CurrentUserId userId: UUID,
@@ -72,7 +72,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S005")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @DeleteMapping("/{noteId}")
     fun deleteNote(
         @CurrentUserId userId: UUID,
@@ -85,7 +85,6 @@ interface CustomNoteApi {
         "CUSTOM_NOTE_E001",
         "CUSTOM_NOTE_E002",
         "CUSTOM_NOTE_E004",
-        "CUSTOM_NOTE_E005",
         "DICTIONARY_E002"
     )
     @PostMapping("/{noteId}/terms")
@@ -97,12 +96,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S007")
-    @ApiErrorCodes(
-        "CUSTOM_NOTE_E001",
-        "CUSTOM_NOTE_E002",
-        "CUSTOM_NOTE_E005",
-        "CUSTOM_NOTE_E007"
-    )
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
     @DeleteMapping("/{noteId}/terms/{termId}")
     fun deleteTerm(
         @CurrentUserId userId: UUID,
@@ -112,7 +106,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장 내 단어 목록 조회 (페이징)")
     @ApiSuccessCode("CUSTOM_NOTE_S008")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @GetMapping("/{noteId}/terms")
     fun listTerms(
         @CurrentUserId userId: UUID,
@@ -123,7 +117,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "커스텀 단어장에서 단어 다중 삭제. 입력한 단어가 단어장에 모두 있어야 처리")
     @ApiSuccessCode("CUSTOM_NOTE_S009")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005", "CUSTOM_NOTE_E007")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
     @DeleteMapping("/{noteId}/terms")
     fun deleteTerms(
         @CurrentUserId userId: UUID,
@@ -131,9 +125,9 @@ interface CustomNoteApi {
         @RequestBody @Valid request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit>
 
-    @Operation(summary = "커스텀 단어장 다중 삭제. 모두 본인 소유 CUSTOM 이어야 처리")
+    @Operation(summary = "커스텀 단어장 다중 삭제. 모두 본인 소유여야 처리")
     @ApiSuccessCode("CUSTOM_NOTE_S010")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E005")
+    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @DeleteMapping
     fun deleteNotes(
         @CurrentUserId userId: UUID,

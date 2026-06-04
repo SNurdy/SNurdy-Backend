@@ -72,9 +72,6 @@ enum class LearningSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    GET_NEXT_TERMS(HttpStatus.OK, "LEARNING_S010", "학습할 다음 단어 목록 조회에 성공했습니다"),
-    GET_REVIEW_TERMS(HttpStatus.OK, "LEARNING_S011", "복습 대상 단어 목록 조회에 성공했습니다"),
-    SUBMIT(HttpStatus.OK, "LEARNING_S012", "학습 결과를 반영했습니다"),
     START_TEST(HttpStatus.OK, "LEARNING_S020", "테스트 문제를 출제했습니다"),
     SUBMIT_TEST(HttpStatus.OK, "LEARNING_S021", "테스트 결과를 반영했습니다")
 }

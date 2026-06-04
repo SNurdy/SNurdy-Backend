@@ -90,7 +90,6 @@ enum class LearningError(
     override val code: String,
     override val message: String
 ) : ErrorCode {
-    MULTIPLE_GLOSSARIES_IN_SUBMIT(HttpStatus.BAD_REQUEST, "LEARNING_E001", "한 번의 학습 제출에는 단일 단어장만 포함될 수 있습니다"),
     TEST_TYPE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "LEARNING_E020", "단어장이 해당 테스트 유형의 출제 조건을 충족하지 않습니다"),
     TEST_RESULT_INVALID(HttpStatus.BAD_REQUEST, "LEARNING_E021", "테스트 결과가 유효하지 않습니다")
 }

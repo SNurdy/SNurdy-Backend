@@ -6,7 +6,6 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepo
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.learning.dto.LearningAnswerEvent
-import com.snurdy.backend.domain.learning.dto.LearningSubmitRequest
 import com.snurdy.backend.domain.learning.entity.DailyProgressId
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
@@ -186,16 +185,14 @@ class TestService(
         val todayBefore = dailyProgressRepository.findByIdOrNull(DailyProgressId(userId, today))
         val todayWasActiveBefore = todayBefore?.let { (it.learnedCount + it.completedCount) > 0 } ?: false
 
-        val learningRequest = LearningSubmitRequest(
-            events = request.results.map { result ->
-                LearningAnswerEvent(
-                    glossaryId = request.glossaryId,
-                    termId = result.termId,
-                    correct = result.correct
-                )
-            }
-        )
-        learningCommandService.submitLearning(userId, learningRequest)
+        val events = request.results.map { result ->
+            LearningAnswerEvent(
+                glossaryId = request.glossaryId,
+                termId = result.termId,
+                correct = result.correct
+            )
+        }
+        learningCommandService.submitLearning(userId, events)
 
         val learnedAfter = glossaryProgressRepository
             .findByIdOrNull(GlossaryProgressId(userId, request.glossaryId))

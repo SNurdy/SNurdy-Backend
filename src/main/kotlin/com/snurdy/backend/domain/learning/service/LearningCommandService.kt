@@ -7,10 +7,7 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.dto.GlossaryLevelUp
 import com.snurdy.backend.domain.learning.dto.LearningAnswerEvent
-import com.snurdy.backend.domain.learning.dto.LearningSubmitRequest
-import com.snurdy.backend.domain.learning.dto.LearningSubmitResponse
 import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
 import com.snurdy.backend.domain.learning.entity.DailyProgressId
 import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
@@ -25,7 +22,6 @@ import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.domain.user.wrongAnswerNote.service.WrongAnswerNoteService
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.constants.DictionaryError
-import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -51,38 +47,19 @@ class LearningCommandService(
 ) {
 
     @Transactional
-    fun submitLearning(userId: UUID, request: LearningSubmitRequest): LearningSubmitResponse {
+    fun submitLearning(userId: UUID, events: List<LearningAnswerEvent>) {
+        if (events.isEmpty()) return
+
         val user = findUser(userId)
-        if (request.events.isEmpty()) {
-            return LearningSubmitResponse(
-                processedCount = 0,
-                correctCount = 0,
-                incorrectCount = 0,
-                learnedCount = 0,
-                reviewedCount = 0,
-                levelUp = null
-            )
-        }
 
-        // 한 번의 제출은 단일 단어장 안에서만 이루어진다는 비즈니스 규칙 검증
-        val glossaryIds = request.events.mapTo(mutableSetOf()) { it.glossaryId }
-        if (glossaryIds.size > 1) {
-            throw ApiException(LearningError.MULTIPLE_GLOSSARIES_IN_SUBMIT)
-        }
-        val targetGlossaryId = glossaryIds.single()
-
-        // 학습 처리 전의 단어장 level 을 캡처해 두었다가 처리 후와 비교한다
-        val beforeLevel = calculateGlossaryLevel(userId, targetGlossaryId)
-
-        // 전체 batch 가 같은 시각/날짜를 공유하도록 한 번만 캡처.
         val now = clock.instant()
         val dailyDate = now.atZone(APP_ZONE_ID).toLocalDate()
 
-        val context = prefetchSubmitContext(userId, request.events)
+        val context = prefetchSubmitContext(userId, events)
         val aggregation = LearningAggregation()
         val newProgresses = mutableListOf<TermProgressEntity>()
 
-        request.events.forEach { event ->
+        events.forEach { event ->
             val progress = context.getOrCreateProgress(user, event, newProgresses)
             val wasFirstLearned = SrsCalculator.applyAnswer(progress, event, now)
             aggregation.accumulate(event.glossaryId, dailyDate, wasFirstLearned)
@@ -95,37 +72,6 @@ class LearningCommandService(
             termProgressRepository.saveAll(newProgresses)
         }
         applyLearningAggregation(user, aggregation, now, dailyDate)
-
-        val afterLevel = calculateGlossaryLevel(userId, targetGlossaryId)
-        val levelUp = if (afterLevel > beforeLevel) {
-            GlossaryLevelUp(
-                glossaryId = targetGlossaryId,
-                title = context.requireGlossary(targetGlossaryId).title,
-                previousLevel = beforeLevel,
-                newLevel = afterLevel
-            )
-        } else null
-
-        val correctCount = request.events.count { it.correct }
-        // reviewedCount = 이미 학습된 단어를 복습한 이벤트 수
-        // learnedCount + reviewedCount = processedCount 가 되도록 분해한다
-        return LearningSubmitResponse(
-            processedCount = request.events.size,
-            correctCount = correctCount,
-            incorrectCount = request.events.size - correctCount,
-            learnedCount = aggregation.learnedTotal,
-            reviewedCount = request.events.size - aggregation.learnedTotal,
-            levelUp = levelUp
-        )
-    }
-
-    // 단어장의 현재 사용자 진척도에서 level 을 도출한다. progress 가 없으면 level 0.
-    private fun calculateGlossaryLevel(userId: UUID, glossaryId: Long): Int {
-        val learnedCount = glossaryProgressRepository
-            .findByIdOrNull(GlossaryProgressId(userId, glossaryId))
-            ?.learnedCount ?: 0
-        val termCount = glossaryTermRepository.countByIdGlossaryId(glossaryId)
-        return GlossaryProgressCalculator.levelFromCounts(learnedCount, termCount)
     }
 
     /**
@@ -270,9 +216,6 @@ class LearningCommandService(
         private val terms: Map<Long, TermEntity>,
         private val progresses: MutableMap<GlossaryTermId, TermProgressEntity>
     ) {
-        fun requireGlossary(glossaryId: Long): GlossaryEntity =
-            glossaries[glossaryId] ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-
         fun getOrCreateProgress(
             user: UserEntity,
             event: LearningAnswerEvent,

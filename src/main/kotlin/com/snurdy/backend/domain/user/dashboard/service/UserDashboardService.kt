@@ -2,22 +2,22 @@ package com.snurdy.backend.domain.user.dashboard.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStatistic
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryDetailResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListItem
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticItem
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticsResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardSelectedGlossary
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardWeekStatistics
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
-import com.snurdy.backend.global.constants.UserError
-import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -93,44 +93,58 @@ class UserDashboardService(
         return DashboardGlossaryListResponse(glossaries = items)
     }
 
+    // 과 지표 리스트 학습 시작한 과만 lastLearnedAt 최근순
     @Transactional(readOnly = true)
-    fun getGlossaryDetail(
+    fun listGlossaryStatistics(
         userId: UUID,
-        glossaryId: Long,
         period: DashboardGlossaryPeriod
-    ): DashboardGlossaryDetailResponse {
-        val glossary = glossaryRepository.findById(glossaryId)
-            .orElseThrow { ApiException(UserError.DASHBOARD_GLOSSARY_NOT_FOUND) }
+    ): DashboardGlossaryStatisticsResponse {
+        val progresses = glossaryProgressRepository.findAllByIdUserId(userId)
+        if (progresses.isEmpty()) {
+            return DashboardGlossaryStatisticsResponse(period = period, glossaries = emptyList())
+        }
 
-        val totalTermCount = glossaryRepository.findGlossaryTermCounts()
-            .firstOrNull { it.glossaryId == glossaryId }
-            ?.termCount
-            ?: 0L
-
-        val progress = glossaryProgressRepository.findByIdUserIdAndIdGlossaryId(userId, glossaryId)
-        val learnedCount = progress?.learnedCount ?: 0
-        val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, totalTermCount)
+        val glossaryIds = progresses.map { it.id.glossaryId }
+        val metaByGlossaryId = glossaryRepository.findGlossaryTermCounts()
+            .filter { it.glossaryId in glossaryIds }
+            .associateBy { it.glossaryId }
 
         val after: Instant? = when (period) {
             DashboardGlossaryPeriod.WEEK -> weekStartInstant()
             DashboardGlossaryPeriod.ALL -> null
         }
 
-        val periodLearnedTermCount = termProgressRepository.countLearnedSince(userId, glossaryId, after)
-        val periodWrongAnswerCount = wrongAnswerTermRepository.countActiveByGlossary(userId, glossaryId, after)
+        val learnedCountByGlossaryId = termProgressRepository
+            .countLearnedSinceByGlossaries(userId, glossaryIds, after)
+            .associate { it.glossaryId to it.termCount }
+        val wrongCountByGlossaryId = wrongAnswerTermRepository
+            .countActiveByGlossaries(userId, glossaryIds, after)
+            .associate { it.glossaryId to it.wrongCount }
 
-        return DashboardGlossaryDetailResponse(
-            glossaryId = glossaryId,
-            category = glossary.category,
-            title = glossary.title,
-            learnedCount = learnedCount,
-            totalTermCount = totalTermCount,
-            progressRate = progressRate,
-            level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            period = period,
-            periodLearnedTermCount = periodLearnedTermCount,
-            periodWrongAnswerCount = periodWrongAnswerCount
-        )
+        val items = progresses
+            .sortedWith(
+                compareByDescending<GlossaryProgressEntity> { it.lastLearnedAt != null }
+                    .thenByDescending { it.lastLearnedAt }
+                    .thenBy { it.id.glossaryId }
+            )
+            .mapNotNull { progress ->
+                val glossaryId = progress.id.glossaryId
+                val meta = metaByGlossaryId[glossaryId] ?: return@mapNotNull null
+                val progressRate = GlossaryProgressCalculator.progressRate(progress.learnedCount, meta.termCount)
+                DashboardGlossaryStatisticItem(
+                    glossaryId = glossaryId,
+                    category = meta.category,
+                    title = meta.title,
+                    learnedCount = progress.learnedCount,
+                    totalTermCount = meta.termCount,
+                    progressRate = progressRate,
+                    level = GlossaryProgressCalculator.levelFromRate(progressRate),
+                    periodLearnedTermCount = learnedCountByGlossaryId[glossaryId] ?: 0L,
+                    periodWrongAnswerCount = wrongCountByGlossaryId[glossaryId] ?: 0L
+                )
+            }
+
+        return DashboardGlossaryStatisticsResponse(period = period, glossaries = items)
     }
 
     // 메인 다마고치 영역 default 선택 과

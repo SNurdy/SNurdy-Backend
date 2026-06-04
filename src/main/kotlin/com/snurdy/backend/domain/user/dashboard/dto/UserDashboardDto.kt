@@ -79,8 +79,15 @@ data class DashboardGlossaryListItem(
     val lastLearnedAt: Instant?
 )
 
-@Schema(description = "과 지표 상세 응답")
-data class DashboardGlossaryDetailResponse(
+@Schema(description = "과 지표 리스트 응답 (학습 시작한 과만, lastLearnedAt 최근순)")
+data class DashboardGlossaryStatisticsResponse(
+    @field:Schema(description = "조회 기간", example = "WEEK")
+    val period: DashboardGlossaryPeriod,
+    val glossaries: List<DashboardGlossaryStatisticItem>
+)
+
+@Schema(description = "과 지표 리스트 항목")
+data class DashboardGlossaryStatisticItem(
     val glossaryId: Long,
     val category: String,
     val title: String,
@@ -91,8 +98,6 @@ data class DashboardGlossaryDetailResponse(
     val progressRate: Double,
     @field:Schema(description = "누적 다마고치 레벨 (period 영향 없음)")
     val level: Int,
-    @field:Schema(description = "조회 기간", example = "WEEK")
-    val period: DashboardGlossaryPeriod,
     @field:Schema(description = "period 기간 동안 학습한 단어 수", example = "49")
     val periodLearnedTermCount: Long,
     @field:Schema(description = "period 기간 동안 오답이 발생한 단어 종 수", example = "232")

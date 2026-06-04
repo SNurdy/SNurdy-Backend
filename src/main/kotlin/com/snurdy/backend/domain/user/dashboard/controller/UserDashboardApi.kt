@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.user.dashboard.controller
 
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryDetailResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticsResponse
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
@@ -13,7 +13,6 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import java.time.LocalDate
@@ -43,14 +42,13 @@ interface UserDashboardApi {
         @CurrentUserId userId: UUID
     ): ApiResponse<DashboardGlossaryListResponse>
 
-    @Operation(summary = "과 지표 상세 (이번 주/전체 period 별 학습 단어 수 + 오답 노트 수)")
+    @Operation(summary = "과 지표 리스트 (학습 시작한 과만, period 별 학습 단어 수 + 오답 노트 수)")
     @ApiSuccessCode("USER_S022")
-    @ApiErrorCodes("USER_E010", "USER_E020")
-    @GetMapping("/dashboard/glossaries/{glossaryId}")
-    fun getDashboardGlossaryDetail(
+    @ApiErrorCodes("USER_E010")
+    @GetMapping("/dashboard/glossary-statistics")
+    fun listDashboardGlossaryStatistics(
         @CurrentUserId userId: UUID,
-        @PathVariable glossaryId: Long,
         @Parameter(description = "조회 기간 (WEEK 이번 주 자연주, ALL 전체)")
         @RequestParam(defaultValue = "WEEK") period: DashboardGlossaryPeriod
-    ): ApiResponse<DashboardGlossaryDetailResponse>
+    ): ApiResponse<DashboardGlossaryStatisticsResponse>
 }

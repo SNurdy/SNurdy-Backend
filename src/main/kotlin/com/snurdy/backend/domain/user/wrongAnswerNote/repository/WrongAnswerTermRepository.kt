@@ -31,21 +31,23 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("after") after: Instant?
     ): Long
 
-    // 대시보드 과 지표 상세의 오답 노트 개수. distinct 단어 종 수 (한 단어 entity 가 단어 1종)
+    // 대시보드 과 지표 리스트의 과별 오답 단어 종 수 batch. N+1 회피
     @Query(
         """
-        SELECT COUNT(w) FROM WrongAnswerTermEntity w
+        SELECT w.sourceGlossaryId AS glossaryId, COUNT(w) AS wrongCount
+          FROM WrongAnswerTermEntity w
          WHERE w.id.userId = :userId
-           AND w.sourceGlossaryId = :glossaryId
+           AND w.sourceGlossaryId IN :glossaryIds
            AND w.deletedAt IS NULL
            AND (:after IS NULL OR w.incorrectAt >= :after)
+         GROUP BY w.sourceGlossaryId
         """
     )
-    fun countActiveByGlossary(
+    fun countActiveByGlossaries(
         @Param("userId") userId: UUID,
-        @Param("glossaryId") glossaryId: Long,
+        @Param("glossaryIds") glossaryIds: Collection<Long>,
         @Param("after") after: Instant?
-    ): Long
+    ): List<GlossaryWrongCountProjection>
 
     // 과별 그루핑 카운트 (source_glossary_id 별 단어 수)
     @Query(
@@ -146,4 +148,9 @@ interface WrongAnswerTermItemProjection {
 interface GlossaryWrongAnswerGroup {
     val sourceGlossaryId: Long
     val incorrectTermCount: Long
+}
+
+interface GlossaryWrongCountProjection {
+    val glossaryId: Long
+    val wrongCount: Long
 }

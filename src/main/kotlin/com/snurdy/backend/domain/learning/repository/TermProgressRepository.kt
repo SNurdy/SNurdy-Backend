@@ -59,21 +59,28 @@ interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
         pageable: Pageable
     ): List<TermProgressEntity>
 
-    // 대시보드 과 지표 상세의 학습 단어 수 계산
+    // 대시보드 과 지표 리스트의 과별 학습 단어 수 batch
     // after 가 null 이면 전체 누적, 아니면 lastReviewedAt 가 after 이후인 distinct 단어 수
+    // glossary 별 그루핑 카운트로 N+1 회피
     @Query(
         """
-        SELECT COUNT(tp)
+        SELECT tp.glossary.id AS glossaryId, COUNT(tp) AS termCount
         FROM TermProgressEntity tp
         WHERE tp.user.id = :userId
-          AND tp.glossary.id = :glossaryId
+          AND tp.glossary.id IN :glossaryIds
           AND tp.lastReviewedAt IS NOT NULL
           AND (:after IS NULL OR tp.lastReviewedAt >= :after)
+        GROUP BY tp.glossary.id
         """
     )
-    fun countLearnedSince(
+    fun countLearnedSinceByGlossaries(
         @Param("userId") userId: UUID,
-        @Param("glossaryId") glossaryId: Long,
+        @Param("glossaryIds") glossaryIds: Collection<Long>,
         @Param("after") after: Instant?
-    ): Long
+    ): List<GlossaryLearnedCountProjection>
+}
+
+interface GlossaryLearnedCountProjection {
+    val glossaryId: Long
+    val termCount: Long
 }

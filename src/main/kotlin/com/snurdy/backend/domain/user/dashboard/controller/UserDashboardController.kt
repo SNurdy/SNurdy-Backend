@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.user.dashboard.controller
 
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryDetailResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticsResponse
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
 import com.snurdy.backend.domain.user.dashboard.service.UserDashboardService
 import com.snurdy.backend.global.constants.UserSuccess
@@ -33,13 +33,12 @@ class UserDashboardController(
             userDashboardService.listGlossaries(userId)
         )
 
-    override fun getDashboardGlossaryDetail(
+    override fun listDashboardGlossaryStatistics(
         userId: UUID,
-        glossaryId: Long,
         period: DashboardGlossaryPeriod
-    ): ApiResponse<DashboardGlossaryDetailResponse> =
+    ): ApiResponse<DashboardGlossaryStatisticsResponse> =
         ApiResponse.success(
-            UserSuccess.GET_DASHBOARD_GLOSSARY_DETAIL,
-            userDashboardService.getGlossaryDetail(userId, glossaryId, period)
+            UserSuccess.LIST_DASHBOARD_GLOSSARY_STATISTICS,
+            userDashboardService.listGlossaryStatistics(userId, period)
         )
 }

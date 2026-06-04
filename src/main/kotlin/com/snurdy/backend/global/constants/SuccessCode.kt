@@ -51,7 +51,7 @@ enum class UserSuccess(
     UPDATE_MARKETING_CONSENT(HttpStatus.OK, "USER_S013", "마케팅 수신 동의를 변경했습니다"),
     GET_DASHBOARD(HttpStatus.OK, "USER_S020", "학습 리포트 대시보드 조회에 성공했습니다"),
     LIST_DASHBOARD_GLOSSARIES(HttpStatus.OK, "USER_S021", "과 목록 조회에 성공했습니다"),
-    GET_DASHBOARD_GLOSSARY_DETAIL(HttpStatus.OK, "USER_S022", "과 지표 상세 조회에 성공했습니다")
+    LIST_DASHBOARD_GLOSSARY_STATISTICS(HttpStatus.OK, "USER_S022", "과 지표 리스트 조회에 성공했습니다")
 }
 
 enum class MigrationSuccess(

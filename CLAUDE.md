@@ -188,7 +188,10 @@ fun deleteTerms(...) {
 사용자가 별도 지시하지 않아도 구현 단위가 끝나면 컴파일 확인 후 즉시 commit. 의미 단위로 분리.
 
 ### 7.3 commit 제외 파일
-`.claude/`, `v2-roadmap.md` 등 로컬/문서 파일은 commit 대상 아님.
+`.claude/`, 디자인 `.png`, 로컬 명세 작업 파일은 commit 대상 아님.
+phase spec md (`v2-phase-*-spec.md`, `customNote-redesign-spec.md`, `v2-roadmap.md` 등) 는 tracked 이므로 갱신 시 함께 commit.
+
+`git add -A` 또는 `git add .` 절대 금지. 명시 파일만 add.
 
 ---
 
@@ -221,7 +224,14 @@ DEALLOCATE PREPARE stmt;
 ## 9. 코드 주석
 
 ### 9.1 ASCII + 한국어만
-이모지, 화살표, 체크 표시 등 특수문자(온점 포함) 사용 금지. 일반 ASCII + 한국어 만.
+이모지, 화살표, 체크 표시, 콜론, 슬래시, 괄호, 마침표/온점 등 특수문자 모두 사용 금지. 일반 ASCII + 한국어 만.
+
+금지 예시:
+- `// 외부 source (...)` (괄호)
+- `// 학습 완료: 단어 수` (콜론)
+- `// 학습/복습 처리` (슬래시)
+- `// 진행한다.` (마침표)
+- `// 정상 동작 확인 ✓` (특수문자)
 
 ### 9.2 WHY 만, WHAT 은 금지
 코드가 무엇을 하는지는 코드 자체가 표현. 주석은 그렇게 한 이유 (제약, 의도, 비즈니스 규칙) 만 작성.
@@ -262,13 +272,15 @@ domain/user/
 ├── account/         UserEntity, 탈퇴
 ├── profile/         프로필, 마케팅 동의
 ├── streak/          학습 streak
-├── dashboard/       학습 리포트 BFF
-├── customNote/      사용자 소유 커스텀 단어장 (GlossaryType.CUSTOM)
-└── (wrongAnswerNote/) 향후 — 오답노트 (GlossaryType.WRONG_ANSWER)
+├── dashboard/       마이페이지 대시보드 BFF (메인 + 바텀시트 + 과 지표)
+├── customNote/      사용자 소유 커스텀 단어장 (별도 custom_notes 테이블, 공유 기능 포함)
+├── wrongAnswerNote/ 오답노트 (별도 wrong_answer_terms 테이블)
+└── termMemo/        단어 카드 메모
 ```
 
 각 단어장 type 별로 별도 도메인 패키지를 둔다 (`studyNote` 같은 추상 super 도메인 금지).
 이름 접미사는 `Note` 로 통일 (`CustomNote`, `WrongAnswerNote`).
+`GlossaryType` enum 은 폐기됨 (cleanup 후 glossaries 는 사전 카탈로그 전용).
 
 ### 11.2 사전 도메인 (공용, 단 사용자 시점 BFF 포함)
 ```
@@ -286,8 +298,9 @@ domain/dictionary/
 - `COMMON_*` — 공통 (400/401/403/404/500/503 등)
 - `AUTH_*` — 인증
 - `USER_*` — 사용자 (account/profile/streak/dashboard 통합)
-- `CUSTOM_NOTE_*` — 사용자 커스텀 단어장
-- (`WRONG_ANSWER_NOTE_*` — 향후 오답노트)
+- `CUSTOM_NOTE_*` — 사용자 커스텀 단어장 (공유 기능 포함)
+- `WRONG_ANSWER_NOTE_*` — 오답노트
+- `TERM_MEMO_*` — 단어 카드 메모
 - `DICTIONARY_*` — 사전
 - `CALENDAR_*` — 캘린더
 - `LEARNING_*` — 학습 활동
@@ -295,6 +308,22 @@ domain/dictionary/
 - `MIGRATION_*` — 마이그레이션
 - `ADMIN_*` — 관리자
 - `VERSION_*` — 버전 체크
+
+---
+
+### 11.4 자연주 / 자연월 정책
+
+날짜 관련 모든 API 는 자연주/자연월 기준.
+- 자연주 월요일 시작 (DayOfWeek.MONDAY)
+- WEEK period = 이번 주 월요일 00:00 ~ 오늘 23:59:59 Asia/Seoul (오답노트/대시보드 일관)
+- 자연월 = 매달 1일 ~ 오늘
+- 예외 마이페이지 메인 막대 그래프는 자연주 아님 (사용자 임의 7일 슬라이딩, startDate 파라미터)
+
+### 11.5 단어장 레벨 (다마고치)
+
+`GlossaryProgressCalculator` 로 학습률 기반 1~5 단계 산출 (저장 컬럼 없음).
+- 0~20 Lv1, 21~40 Lv2, 41~60 Lv3, 61~80 Lv4, 81~100 Lv5
+- 기획 조이 표 기준 (0 레벨 폐기, 항상 1 이상)
 
 ---
 

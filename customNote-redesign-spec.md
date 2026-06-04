@@ -1,10 +1,14 @@
 # CustomNote 재설계 + 공유노트 통합 명세 (Step 2)
 
-기획팀 요구 (공유노트 기능) + 도메인 일관성 (CustomNote 별도 entity 분리) 동시 진행을 위한 통합 명세.
+기획팀 요구 (공유노트 기능) + 도메인 일관성 (CustomNote 별도 entity 분리) 통합 명세.
 
 DB 에 사용자 학습 데이터 없는 시점이라 자유로운 재설계 가능 (데이터 손실 위험 0).
 
-작성 시점: 회사 PC, untracked 로컬 문서. 구현은 별도 일정.
+**상태: 구현 완료** (commit 79d3a66, ecc8724, 5e4348a, 96e46ec 외 다수)
+
+구현 중 추가 정책 변경:
+- 공유 코드 별도 테이블 폐기 → `custom_notes.share_code` 컬럼 통합 (V38/V39)
+- revoked_at 컬럼 폐기 → 비활성화 시 `shareCode = null` 처리 (감사 추적 불필요)
 
 ---
 
@@ -14,7 +18,7 @@ DB 에 사용자 학습 데이터 없는 시점이라 자유로운 재설계 가
 |---|---|---|
 | CustomNote 모델 | 별도 entity `custom_notes` 테이블 | WrongAnswerTerm 별도 테이블 패턴 일관 |
 | CustomNote 단어 매핑 | 별도 `custom_note_terms` 테이블 | glossary_terms 와 분리 |
-| ShareCode 모델 | 별도 `custom_note_share_codes` 테이블 | Glossary 가 공유 메타 모르도록 격리 |
+| ShareCode 모델 | `custom_notes.share_code` 컬럼 통합 (구현 중 변경) | 1:1 관계 + revoked 추적 불필요로 별도 테이블 과설계로 판정 |
 | glossaries 테이블 cleanup | type/owner_id/share_code 컬럼 모두 제거 | DEFAULT 만 남으니 자기 자신만 가리키는 컬럼 무의미 |
 | GlossaryType enum | 폐기 | DEFAULT 만 남으면 enum 무의미 |
 | CUSTOM/WRONG_ANSWER 학습 SRS | 갱신 안 함 (term_progresses 는 DICTIONARY 전용) | 진척률 노출 안 하고, SM-2 의 단어 난이도는 사전 학습 기준 유지 |
@@ -28,7 +32,7 @@ DB 에 사용자 학습 데이터 없는 시점이라 자유로운 재설계 가
 | CustomNote 삭제 | hard delete (cascade) | 현재 코드와 일치, 데이터 없으니 변경 불필요 |
 | **CustomNote 자동 title 생성** | **폐기, 사용자 필수 입력** | 자동 생성된 "단어장 N" 가치 낮음 |
 | **import 시 title 충돌 처리** | **숫자 suffix 자동 증가 — `외과 단어장 (2)`, `(3)`, `(4)` ...** | UX 단순 |
-| **공유 코드 재발급 정책** | **revoked row 덮어쓰기 (1:1 유지)** | 감사 추적 불필요 시점 |
+| **공유 코드 재발급 정책** | 활성 코드 있으면 `SHARE_CODE_ALREADY_EXISTS` throw, 비활성화 후 재발급 시 새 코드 | 감사 추적 불필요 시점 |
 | **shareUrl 도메인** | **`snurdy.org` (보유 도메인)** | 환경별 설정 가능 |
 
 ---
@@ -65,22 +69,19 @@ CREATE TABLE custom_note_terms (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-**`custom_note_share_codes`** — 공유 코드 (1:1 관계)
+**공유 코드는 `custom_notes.share_code` 컬럼 통합** (V38 에서 추가, V39 에서 별도 테이블 폐기)
 ```sql
-CREATE TABLE custom_note_share_codes (
-    note_id BIGINT NOT NULL,
-    share_code VARCHAR(12) NOT NULL,
-    issued_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    revoked_at TIMESTAMP NULL,
-    PRIMARY KEY (note_id),
-    UNIQUE KEY uk_share_code (share_code),
-    CONSTRAINT fk_share_code_note FOREIGN KEY (note_id) REFERENCES custom_notes(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- V38
+ALTER TABLE custom_notes ADD COLUMN share_code VARCHAR(12) NULL;
+ALTER TABLE custom_notes ADD UNIQUE INDEX uk_custom_notes_share_code (share_code);
+
+-- V39
+DROP TABLE custom_note_share_codes;
 ```
 
-- 컬럼 사이즈는 8자보다 여유롭게 VARCHAR(12) — 추후 길이 확장 대비
-- `revoked_at` 채워지면 비활성화 상태. NULL 이면 활성
-- 재발급 시 같은 note_id row 덮어쓰기 (1:1 유지, revoked 감사 추적 없음)
+- 활성화 상태 `share_code IS NOT NULL`
+- 비활성화 시 `share_code = NULL` (감사 추적 없음)
+- VARCHAR(12) — 추후 길이 확장 대비 여유 (현재 8자)
 
 ### 2.2 `term_progresses` 변경 없음
 
@@ -318,6 +319,8 @@ domain/
 |---|---|
 | V36 | `custom_notes`, `custom_note_terms`, `custom_note_share_codes` 신설 |
 | V37 | `glossaries` cleanup (type/owner_id/share_code/CHECK 제거) |
+| V38 | `custom_notes.share_code` 컬럼 추가 (UNIQUE) |
+| V39 | `custom_note_share_codes` 테이블 폐기 |
 
 **term_progresses 변경 없음.**
 
@@ -326,8 +329,8 @@ domain/
 ## 9. 코드 변경 영향 범위
 
 ### 9.1 신규 작성
-- `CustomNoteEntity`, `CustomNoteTermEntity`, `CustomNoteShareCodeEntity` (+ Id 클래스)
-- `CustomNoteRepository`, `CustomNoteTermRepository`, `CustomNoteShareCodeRepository`
+- `CustomNoteEntity` (shareCode 컬럼 포함), `CustomNoteTermEntity` (+ Id 클래스)
+- `CustomNoteRepository` (findByShareCode, existsByShareCode 포함), `CustomNoteTermRepository`
 - `CustomNoteShareService`, `CustomNoteImportService`, `ShareCodeGenerator`
 - `CustomNoteShareApi`, `CustomNoteShareController`
 - `CustomNoteShareDto`

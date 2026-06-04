@@ -23,14 +23,14 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 단계 | 도메인 | 핵심 API | 의존 단계 | 상태 |
 |---|---|---|---|---|
 | 2.1 | 마이페이지 (User) | 프로필 조회/수정, 마케팅 동의 | Phase 1.1 | done |
-| 2.2 | 학습 리포트 대시보드 | 통합 조회 (streak + 과별 + 일자별) | Phase 1.1 | done |
+| 2.2 | 마이페이지 대시보드 | 화면별 3개 endpoint (메인 + 과 변경 바텀시트 + 과 지표 리스트) | Phase 1.1 | done (재설계 완료) |
 | 2.3 | ~~레벨 (다마고치)~~ | ~~사용자 레벨/경험치~~ | - | **폐기** (단어장별 레벨로 전환) |
 | 2.4 | 커스텀 단어장 + 단어 관리 | CRUD + 단어 추가/삭제/조회 | Phase 1.2 | done |
 | 2.5 | 오답노트 | 기간별/과별 조회, 다중 해제 | Phase 1.2 | done |
 | 2.6 | 단어 카드 메모 | upsert/조회/삭제 | Phase 1.4 | done |
-| 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | todo (명세 완성) |
+| 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | done |
 | 2.8 | 테스트 분리 | 단어장 종류별 submit | 2.4, 2.5 | 보류 (재검토) |
-| 2.9 | 홈화면 대시보드 | 학습 노트별 현황, 자주 틀린 단어 | 2.4, 2.5 | todo |
+| 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
 
 ---
 
@@ -49,14 +49,18 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 ---
 
-### 2.2 학습 리포트 대시보드 — done
+### 2.2 마이페이지 대시보드 — done (재설계 완료)
 
-구현된 endpoint:
-- `GET /v2/users/me/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD`
+상세 명세: `v2-phase-2.2-spec.md`
 
-응답: streak (별도 service 위임) + glossaryStatistics + dailyStatistics
+구현된 endpoint (`/v2/users/me/dashboard*`):
+- `GET /dashboard?startDate=YYYY-MM-DD` — 메인 화면 (streak + selectedGlossary + 7일치 막대 그래프)
+- `GET /dashboard/glossaries` — 과 변경 바텀시트 (전체 27개 + 사용자 진척률)
+- `GET /dashboard/glossary-statistics?period=WEEK|ALL` — 과 지표 리스트 (학습 시작한 과만, lastLearnedAt 최근순)
 
-기본 기간 30일, KST 기준. 위치: `domain/user/dashboard/`
+자연주 정책: 월요일 시작. WEEK = 이번 주 월요일 ~ 오늘. 메인 막대 그래프만 자연주 예외 (사용자 임의 7일 슬라이딩).
+
+위치: `domain/user/dashboard/`
 
 ---
 
@@ -124,24 +128,22 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 ---
 
-### 2.7 공유 단어장 — todo (명세 완성)
+### 2.7 공유 단어장 — done
 
-상세 명세: `v2-phase-2.7-spec.md` (사용자 로컬, push 안 됨)
+상세 명세: `customNote-redesign-spec.md` 5장 (2.7 spec 은 흡수 후 폐기)
 
-기획안:
-- 코드 + URL 듀얼 공유 (Universal Link 로 카톡 1탭 import + 앱 내 코드 입력)
-- 8자 영숫자 코드 (모호 문자 제외)
-- 단어장 soft-delete 시 링크 자연 만료
-- 공유받은 단어장 = 본인 CustomNote 로 복제 (이후 독립)
-- 공유 비활성화 가능
+구현된 endpoint:
+- `POST /v2/custom-notes/{noteId}/share` — 공유 코드 발급 (활성 있으면 SHARE_CODE_ALREADY_EXISTS)
+- `GET /v2/custom-notes/{noteId}/share` — 본인 공유 코드 조회
+- `DELETE /v2/custom-notes/{noteId}/share` — 비활성화 (shareCode = null)
+- `GET /v2/custom-notes/by-share-code/{code}` — 코드로 공유 단어장 조회
+- `POST /v2/custom-notes/from-share/{code}` — 본인 단어장으로 복제 (title 충돌 시 (2), (3) suffix)
 
-신규 endpoint (예정):
-- `POST /v2/custom-notes/{noteId}/share`
-- `GET /v2/shared-glossaries/{code}`
-- `POST /v2/custom-notes/from-share/{code}`
-- `DELETE /v2/custom-notes/{noteId}/share`
-
-위치: `domain/user/customNote/` 안 sharing 서브 책임 (Option A — 별도 도메인 분리 안 함, customNote 의 생명주기와 강결합)
+특징:
+- 8자 영숫자 코드 (모호 문자 제외), SecureRandom
+- 공유 코드는 `custom_notes.share_code` 컬럼 통합 (별도 테이블 안 씀)
+- 활성 코드 재발급 막음 (먼저 비활성화 필요)
+- Universal Link prefix 환경 변수 `SHARING_CUSTOM_NOTE_URL_PREFIX`
 
 ---
 
@@ -159,17 +161,11 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 ---
 
-### 2.9 홈화면 대시보드 — todo
+### 2.9 ~~홈화면 대시보드~~ — 폐기
 
-응답 구조 (제안):
-- noteSummary: 학습 노트별 현황 (기본 단어장 N개, 커스텀 N개, 오답노트 N개)
-- frequentlyWrongTerms: 자주 틀린 단어 N개
+디자인 png 분석 결과 마이페이지(2.2)와 통합된 단일 화면임이 확인됨. 별도 endpoint 불필요.
 
-미결정:
-- "자주 틀린 단어" 정의 (오답 횟수? 비율? 기간?)
-- 반환 갯수 (5개? 10개?)
-
-위치: 신규 `domain/user/homeDashboard/` 또는 기존 dashboard 확장 검토
+홈 = 마이페이지 메인 + 과 변경 바텀시트 + 과 지표 리스트 (2.2 의 3개 endpoint 로 모두 대응).
 
 ---
 
@@ -177,11 +173,9 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 각 단계 시작 시 `todo` -> `in-progress`, 끝나면 `done` 으로 위 표 상태 갱신.
 
-### 남은 작업 추천 순서
+### 남은 작업
 
-1. **2.7 공유 단어장** — 명세 완성. 바로 구현 가능
-2. **2.9 홈 대시보드** — 2.7 완료 후
-3. **2.8 테스트 분리** — 사용자 피드백/디자인 요구 후
+1. **2.8 테스트 분리** — 보류. 사용자 피드백/디자인 요구 후 재검토
 
 ---
 
@@ -215,8 +209,13 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 오답노트 데이터 모델 | 별도 `wrong_answer_terms` 테이블 (WRONG_ANSWER glossary 인스턴스 안 만듦) |
 | 오답노트 졸업 정책 | 자동 졸업 없음, 수동 삭제만 |
 | 오답노트 단어장 그루핑 | `source_glossary_id` (마지막 오답 발생 시 학습 단어장) |
-| CustomNote 한도 | 사용자당 20개, 단어장당 단어 250개, title 14자 |
-| CustomNote 삭제 | soft delete (`deletedAt`) |
+| CustomNote 한도 | 사용자당 20개, 단어장당 단어 250개, title 14자 (code point 기준, 이모지 1자) |
+| CustomNote 모델 | 별도 entity `custom_notes` 테이블 (Step 2 재설계) |
+| CustomNote 삭제 | hard delete (cascade) |
+| CustomNote 공유 코드 모델 | `custom_notes.share_code` 컬럼 통합 (별도 테이블 안 씀) |
+| 자연주 정의 | 월요일 시작. WEEK = 이번 주 월요일 ~ 오늘 (오답노트/대시보드 일관) |
+| 자연월 정의 | 매달 1일 ~ 오늘 |
+| 단어장 레벨 범위 | 1 ~ 5 (기획 조이 표 기준, 0 폐기) |
 | 단어장별 레벨 산출 | `GlossaryProgressCalculator` (학습률 기반, 저장 컬럼 없음) |
 | DTO 매핑 컨벤션 | Kotlin extension function (`toResponse`/`toEntity`/의미 키워드) |
 | 도메인 아키텍처 | 현재 Spring 표준 layered. DDD-Lite 도입 검토 중 (별도 명세 `ddd-lite-migration-spec.md`) |

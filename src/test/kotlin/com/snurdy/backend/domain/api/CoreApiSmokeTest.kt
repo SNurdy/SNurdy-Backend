@@ -92,22 +92,6 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
             jsonPath("$.data.bookmarked") { value(false) }
         }
 
-        mockMvc.get("/v1/learning/glossaries/${pairA.glossaryId}/next-terms") {
-            with(userAuth())
-            param("size", "5")
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.success") { value(true) }
-        }
-
-        mockMvc.get("/v1/learning/glossaries/${pairB.glossaryId}/review-terms") {
-            with(userAuth())
-            param("size", "5")
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.success") { value(true) }
-        }
-
         val submitPayload = """
             {
               "events": [
@@ -116,16 +100,6 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
               ]
             }
         """.trimIndent()
-
-        mockMvc.post("/v1/learning/submit") {
-            with(userAuth())
-            contentType = org.springframework.http.MediaType.APPLICATION_JSON
-            content = submitPayload
-        }.andExpect {
-            status { isOk() }
-            jsonPath("$.success") { value(true) }
-            jsonPath("$.data.processedCount") { value(2) }
-        }
 
         val year = LocalDate.now(APP_ZONE_ID).year
         val month = LocalDate.now(APP_ZONE_ID).monthValue

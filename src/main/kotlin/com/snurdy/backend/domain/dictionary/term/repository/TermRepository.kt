@@ -106,4 +106,32 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         @Param("morphemeId") morphemeId: Long?,
         pageable: Pageable
     ): Page<TermEntity>
+
+    // 테스트 다지선다 보기 후보 확보용
+    // 같은 단어장에서 보기를 다 못 채울 때 다른 단어장 풀에서 random sampling
+    // requireAbbreviation = true 이면 abbreviation 보유 단어로만 제한
+    @Query(
+        value = """
+        SELECT t.id AS termId, t.spelling AS spelling, t.meaning AS meaning, t.abbreviation AS abbreviation
+        FROM terms t
+        WHERE t.deleted_at IS NULL
+          AND t.id NOT IN (:excludeTermIds)
+          AND (:requireAbbreviation = FALSE OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
+        ORDER BY RAND()
+        LIMIT :limit
+        """,
+        nativeQuery = true
+    )
+    fun findRandomDistractorTerms(
+        @Param("excludeTermIds") excludeTermIds: Collection<Long>,
+        @Param("requireAbbreviation") requireAbbreviation: Boolean,
+        @Param("limit") limit: Int
+    ): List<DistractorTermProjection>
+}
+
+interface DistractorTermProjection {
+    val termId: Long
+    val spelling: String
+    val meaning: String
+    val abbreviation: String?
 }

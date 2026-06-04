@@ -44,11 +44,13 @@ UI 노출은 클라이언트가 5개로 묶거나 7개 그대로 노출할 수 �
 | MEANING_TO_TERM | 단어장 단어 1개 이상 |
 | LISTEN_AND_WRITE | 단어장 단어 1개 이상 |
 | WRITE_ABBREVIATION | 단어장에 `abbreviation` 가진 단어 1개 이상 |
-| MC_PICK_TERM | 단어장 단어 4개 이상 |
-| MC_PICK_MEANING | 단어장 단어 4개 이상 |
-| MC_PICK_ABBR | 단어장에 `abbreviation` 가진 단어 4개 이상 |
+| MC_PICK_TERM | 단어장 단어 1개 이상 |
+| MC_PICK_MEANING | 단어장 단어 1개 이상 |
+| MC_PICK_ABBR | 단어장에 `abbreviation` 가진 단어 1개 이상 |
 
 조건 미충족 시 출제 불가 에러 반환.
+
+다지선다 보기는 같은 단어장에서 우선 수집하고, distinct 처리 후 4개 (정답 1 + 오답 3) 가 채워지지 않으면 다른 단어장의 단어 풀에서 random 으로 보충한다 (MC_PICK_ABBR 은 abbreviation 가진 단어로 한정).
 
 ---
 

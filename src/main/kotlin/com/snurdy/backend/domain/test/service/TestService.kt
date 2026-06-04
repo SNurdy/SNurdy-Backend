@@ -3,6 +3,7 @@ package com.snurdy.backend.domain.test.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
+import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.test.dto.StartTestRequest
 import com.snurdy.backend.domain.test.dto.StartTestResponse
 import com.snurdy.backend.domain.test.dto.TestPrompt
@@ -18,7 +19,8 @@ import java.util.UUID
 @Service
 class TestService(
     private val glossaryRepository: GlossaryRepository,
-    private val glossaryTermRepository: GlossaryTermRepository
+    private val glossaryTermRepository: GlossaryTermRepository,
+    private val termRepository: TermRepository
 ) {
 
     @Transactional(readOnly = true)
@@ -29,7 +31,7 @@ class TestService(
 
         val allTerms = glossaryTermRepository.findAllSimpleTermsByGlossaryId(request.glossaryId)
         val eligibleTerms = filterEligibleTerms(allTerms, request.testType)
-        validateAvailability(allTerms, eligibleTerms, request.testType)
+        if (eligibleTerms.isEmpty()) throw ApiException(LearningError.TEST_TYPE_NOT_AVAILABLE)
 
         val sampled = eligibleTerms.shuffled().take(request.questionCount)
         val questions = sampled.map { target -> buildQuestion(target, request.testType, allTerms) }
@@ -47,21 +49,6 @@ class TestService(
             else -> all
         }
 
-    private fun validateAvailability(
-        all: List<SimpleTermProjection>,
-        eligible: List<SimpleTermProjection>,
-        type: TestType
-    ) {
-        if (eligible.isEmpty()) throw ApiException(LearningError.TEST_TYPE_NOT_AVAILABLE)
-        if (type.isMultipleChoice()) {
-            // 다지선다는 정답 1개 + 오답 3개 보기를 위해 후보가 4개 이상 필요
-            val distractorPool = if (type == TestType.MC_PICK_ABBR) eligible else all
-            if (distractorPool.size < MULTIPLE_CHOICE_MIN) {
-                throw ApiException(LearningError.TEST_TYPE_NOT_AVAILABLE)
-            }
-        }
-    }
-
     private fun buildQuestion(
         target: SimpleTermProjection,
         type: TestType,
@@ -74,36 +61,39 @@ class TestService(
             TestType.WRITE_ABBREVIATION -> Triple(target.spelling, target.abbreviation!!, null)
             TestType.MC_PICK_TERM -> {
                 val correct = target.spelling
-                val distractors = pool.asSequence()
-                    .filter { it.termId != target.termId }
-                    .map { it.spelling }
-                    .distinct()
-                    .shuffled()
-                    .take(MULTIPLE_CHOICE_DISTRACTOR_COUNT)
-                    .toList()
-                Triple(target.meaning, correct, (distractors + correct).shuffled())
+                val choices = buildMultipleChoiceOptions(
+                    target = target,
+                    pool = pool,
+                    correctAnswer = correct,
+                    requireAbbreviation = false,
+                    sameGlossaryExtractor = { it.spelling },
+                    distractorExtractor = { it.spelling }
+                )
+                Triple(target.meaning, correct, choices)
             }
             TestType.MC_PICK_MEANING -> {
                 val correct = target.meaning
-                val distractors = pool.asSequence()
-                    .filter { it.termId != target.termId }
-                    .map { it.meaning }
-                    .distinct()
-                    .shuffled()
-                    .take(MULTIPLE_CHOICE_DISTRACTOR_COUNT)
-                    .toList()
-                Triple(target.spelling, correct, (distractors + correct).shuffled())
+                val choices = buildMultipleChoiceOptions(
+                    target = target,
+                    pool = pool,
+                    correctAnswer = correct,
+                    requireAbbreviation = false,
+                    sameGlossaryExtractor = { it.meaning },
+                    distractorExtractor = { it.meaning }
+                )
+                Triple(target.spelling, correct, choices)
             }
             TestType.MC_PICK_ABBR -> {
                 val correct = target.abbreviation!!
-                val distractors = pool.asSequence()
-                    .filter { it.termId != target.termId && !it.abbreviation.isNullOrBlank() }
-                    .map { it.abbreviation!! }
-                    .distinct()
-                    .shuffled()
-                    .take(MULTIPLE_CHOICE_DISTRACTOR_COUNT)
-                    .toList()
-                Triple(target.spelling, correct, (distractors + correct).shuffled())
+                val choices = buildMultipleChoiceOptions(
+                    target = target,
+                    pool = pool,
+                    correctAnswer = correct,
+                    requireAbbreviation = true,
+                    sameGlossaryExtractor = { it.abbreviation?.takeIf { value -> value.isNotBlank() } },
+                    distractorExtractor = { it.abbreviation?.takeIf { value -> value.isNotBlank() } }
+                )
+                Triple(target.spelling, correct, choices)
             }
         }
         return TestQuestion(
@@ -114,13 +104,51 @@ class TestService(
         )
     }
 
-    companion object {
-        private const val MULTIPLE_CHOICE_MIN = 4
-        private const val MULTIPLE_CHOICE_DISTRACTOR_COUNT = 3
-    }
-}
+    // 같은 단어장에서 최대한 보기를 채우고, 부족하면 다른 단어장 random pool 에서 보충
+    private fun buildMultipleChoiceOptions(
+        target: SimpleTermProjection,
+        pool: List<SimpleTermProjection>,
+        correctAnswer: String,
+        requireAbbreviation: Boolean,
+        sameGlossaryExtractor: (SimpleTermProjection) -> String?,
+        distractorExtractor: (com.snurdy.backend.domain.dictionary.term.repository.DistractorTermProjection) -> String?
+    ): List<String> {
+        val sameGlossary = pool.asSequence()
+            .filter { it.termId != target.termId }
+            .mapNotNull(sameGlossaryExtractor)
+            .filter { it != correctAnswer }
+            .distinct()
+            .shuffled()
+            .take(MULTIPLE_CHOICE_DISTRACTOR_COUNT)
+            .toList()
 
-private fun TestType.isMultipleChoice(): Boolean = when (this) {
-    TestType.MC_PICK_TERM, TestType.MC_PICK_MEANING, TestType.MC_PICK_ABBR -> true
-    else -> false
+        val needed = MULTIPLE_CHOICE_DISTRACTOR_COUNT - sameGlossary.size
+        val distractors = if (needed <= 0) {
+            sameGlossary
+        } else {
+            val taken = (sameGlossary + correctAnswer).toMutableSet()
+            val excludeIds = (pool.map { it.termId } + target.termId).toSet()
+            val supplementary = mutableListOf<String>()
+            val fetched = termRepository.findRandomDistractorTerms(
+                excludeTermIds = excludeIds,
+                requireAbbreviation = requireAbbreviation,
+                limit = needed * SUPPLEMENT_FETCH_MULTIPLIER
+            )
+            for (candidate in fetched) {
+                val text = distractorExtractor(candidate) ?: continue
+                if (text in taken) continue
+                taken += text
+                supplementary += text
+                if (supplementary.size == needed) break
+            }
+            sameGlossary + supplementary
+        }
+
+        return (distractors + correctAnswer).shuffled()
+    }
+
+    companion object {
+        private const val MULTIPLE_CHOICE_DISTRACTOR_COUNT = 3
+        private const val SUPPLEMENT_FETCH_MULTIPLIER = 5
+    }
 }

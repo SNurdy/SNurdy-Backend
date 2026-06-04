@@ -58,4 +58,22 @@ interface TermProgressRepository : JpaRepository<TermProgressEntity, UUID> {
         @Param("statuses") statuses: Collection<TermProgressStatus>,
         pageable: Pageable
     ): List<TermProgressEntity>
+
+    // 대시보드 과 지표 상세의 학습 단어 수 계산
+    // after 가 null 이면 전체 누적, 아니면 lastReviewedAt 가 after 이후인 distinct 단어 수
+    @Query(
+        """
+        SELECT COUNT(tp)
+        FROM TermProgressEntity tp
+        WHERE tp.user.id = :userId
+          AND tp.glossary.id = :glossaryId
+          AND tp.lastReviewedAt IS NOT NULL
+          AND (:after IS NULL OR tp.lastReviewedAt >= :after)
+        """
+    )
+    fun countLearnedSince(
+        @Param("userId") userId: UUID,
+        @Param("glossaryId") glossaryId: Long,
+        @Param("after") after: Instant?
+    ): Long
 }

@@ -4,89 +4,197 @@ import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
 import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.learning.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStatistic
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatistic
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardPeriod
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryDetailResponse
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListItem
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardSelectedGlossary
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
+import com.snurdy.backend.domain.user.dashboard.dto.DashboardWeekStatistics
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
-import com.snurdy.backend.domain.user.dashboard.dto.toDashboardStatistic
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
+import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
+import com.snurdy.backend.global.constants.UserError
+import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
+import java.time.DayOfWeek
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZoneId
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
-// 마이페이지의 학습 리포트 화면 BFF
-// streak + glossary 별 진척도 + 날짜별 학습 지표를 한 응답으로 합친다
+// 마이페이지 대시보드 BFF
+// 메인 화면 + 과 변경 바텀시트 + 과 지표 상세 3개 endpoint 의 응답을 책임진다
 @Service
 class UserDashboardService(
     private val userStreakService: UserStreakService,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val glossaryRepository: GlossaryRepository,
     private val dailyProgressRepository: DailyProgressRepository,
+    private val termProgressRepository: TermProgressRepository,
+    private val wrongAnswerTermRepository: WrongAnswerTermRepository,
     private val clock: Clock
 ) {
 
     @Transactional(readOnly = true)
-    fun getDashboard(userId: UUID, from: LocalDate?, to: LocalDate?): UserDashboardResponse {
+    fun getDashboard(userId: UUID, startDate: LocalDate?): UserDashboardResponse {
         val today = LocalDate.now(clock.withZone(APP_ZONE_ID))
-        val resolvedTo = to ?: today
-        val resolvedFrom = from ?: resolvedTo.minusDays(DEFAULT_PERIOD_DAYS - 1)
+        // 미지정 시 오늘 포함 직전 7일 (today 가 끝), 지정 시 startDate ~ startDate+6
+        val resolvedStart = startDate ?: today.minusDays(DEFAULT_PERIOD_DAYS - 1)
+        val resolvedEnd = resolvedStart.plusDays(DEFAULT_PERIOD_DAYS - 1)
 
         val streakResponse = userStreakService.getStreak(userId)
-        val glossaryStatistics = buildGlossaryStatistics(userId)
-        val dailyStatistics = buildDailyStatistics(userId, resolvedFrom, resolvedTo)
+        val selectedGlossary = buildSelectedGlossary(userId)
+        val weekStatistics = buildWeekStatistics(userId, resolvedStart, resolvedEnd)
 
         return UserDashboardResponse(
-            period = DashboardPeriod(from = resolvedFrom, to = resolvedTo),
             streak = DashboardStreak(
-                currentStreak = streakResponse.currentStreak,
                 longestStreak = streakResponse.longestStreak,
                 totalLearningTerms = streakResponse.totalLearningTerms
             ),
-            glossaryStatistics = glossaryStatistics,
-            dailyStatistics = dailyStatistics,
+            selectedGlossary = selectedGlossary,
+            weekStatistics = weekStatistics,
             generatedAt = clock.instant()
         )
     }
 
-    // 사용자가 학습 시작한 glossary 만 모음
-    // 학습 안 한 glossary 는 대시보드에서 제외 (dictionary 메뉴에서 따로 봄)
-    private fun buildGlossaryStatistics(userId: UUID): List<DashboardGlossaryStatistic> {
-        val progresses = glossaryProgressRepository.findAllByIdUserId(userId)
-        if (progresses.isEmpty()) return emptyList()
+    @Transactional(readOnly = true)
+    fun listGlossaries(userId: UUID): DashboardGlossaryListResponse {
+        val catalog = glossaryRepository.findGlossaryTermCounts()
+        val progressByGlossaryId = glossaryProgressRepository.findAllByIdUserId(userId)
+            .associateBy { it.id.glossaryId }
 
-        val termCountByGlossaryId = glossaryRepository.findGlossaryTermCounts()
-            .associateBy { it.glossaryId }
-
-        return progresses.mapNotNull { progress ->
-            val glossaryId = progress.id.glossaryId
-            val meta = termCountByGlossaryId[glossaryId] ?: return@mapNotNull null
-            val totalTermCount = meta.termCount
-            val progressRate = GlossaryProgressCalculator.progressRate(progress.learnedCount, totalTermCount)
-            DashboardGlossaryStatistic(
-                glossaryId = glossaryId,
+        val items = catalog.map { meta ->
+            val progress = progressByGlossaryId[meta.glossaryId]
+            val learnedCount = progress?.learnedCount ?: 0
+            val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, meta.termCount)
+            DashboardGlossaryListItem(
+                glossaryId = meta.glossaryId,
                 category = meta.category,
                 title = meta.title,
-                learnedCount = progress.learnedCount,
-                totalTermCount = totalTermCount,
+                learnedCount = learnedCount,
+                totalTermCount = meta.termCount,
                 progressRate = progressRate,
                 level = GlossaryProgressCalculator.levelFromRate(progressRate),
-                lastLearnedAt = progress.lastLearnedAt
+                lastLearnedAt = progress?.lastLearnedAt
             )
-        }.sortedByDescending { it.lastLearnedAt }
+        }.sortedWith(
+            compareByDescending<DashboardGlossaryListItem> { it.lastLearnedAt != null }
+                .thenByDescending { it.lastLearnedAt }
+                .thenBy { it.glossaryId }
+        )
+
+        return DashboardGlossaryListResponse(glossaries = items)
     }
 
-    private fun buildDailyStatistics(userId: UUID, from: LocalDate, to: LocalDate): List<DashboardDailyStatistic> {
-        return dailyProgressRepository
-            .findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, from, to)
-            .map { it.toDashboardStatistic() }
+    @Transactional(readOnly = true)
+    fun getGlossaryDetail(
+        userId: UUID,
+        glossaryId: Long,
+        period: DashboardGlossaryPeriod
+    ): DashboardGlossaryDetailResponse {
+        val glossary = glossaryRepository.findById(glossaryId)
+            .orElseThrow { ApiException(UserError.DASHBOARD_GLOSSARY_NOT_FOUND) }
+
+        val totalTermCount = glossaryRepository.findGlossaryTermCounts()
+            .firstOrNull { it.glossaryId == glossaryId }
+            ?.termCount
+            ?: 0L
+
+        val progress = glossaryProgressRepository.findByIdUserIdAndIdGlossaryId(userId, glossaryId)
+        val learnedCount = progress?.learnedCount ?: 0
+        val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, totalTermCount)
+
+        val after: Instant? = when (period) {
+            DashboardGlossaryPeriod.WEEK -> weekStartInstant()
+            DashboardGlossaryPeriod.ALL -> null
+        }
+
+        val periodLearnedTermCount = termProgressRepository.countLearnedSince(userId, glossaryId, after)
+        val periodWrongAnswerCount = wrongAnswerTermRepository.countActiveByGlossary(userId, glossaryId, after)
+
+        return DashboardGlossaryDetailResponse(
+            glossaryId = glossaryId,
+            category = glossary.category,
+            title = glossary.title,
+            learnedCount = learnedCount,
+            totalTermCount = totalTermCount,
+            progressRate = progressRate,
+            level = GlossaryProgressCalculator.levelFromRate(progressRate),
+            period = period,
+            periodLearnedTermCount = periodLearnedTermCount,
+            periodWrongAnswerCount = periodWrongAnswerCount
+        )
+    }
+
+    // 메인 다마고치 영역 default 선택 과
+    // lastLearnedAt 가장 최근 학습한 과 1개. 학습 시작한 과가 없으면 null
+    private fun buildSelectedGlossary(userId: UUID): DashboardSelectedGlossary? {
+        val progresses = glossaryProgressRepository.findAllByIdUserId(userId)
+        val latestProgress = progresses
+            .filter { it.lastLearnedAt != null }
+            .maxByOrNull { it.lastLearnedAt!! }
+            ?: return null
+
+        val meta = glossaryRepository.findGlossaryTermCounts()
+            .firstOrNull { it.glossaryId == latestProgress.id.glossaryId }
+            ?: return null
+
+        val progressRate = GlossaryProgressCalculator.progressRate(latestProgress.learnedCount, meta.termCount)
+        return DashboardSelectedGlossary(
+            glossaryId = meta.glossaryId,
+            category = meta.category,
+            title = meta.title,
+            learnedCount = latestProgress.learnedCount,
+            totalTermCount = meta.termCount,
+            progressRate = progressRate,
+            level = GlossaryProgressCalculator.levelFromRate(progressRate),
+            lastLearnedAt = latestProgress.lastLearnedAt
+        )
+    }
+
+    // 7일치 데이터 빌드. 학습 안 한 날은 0 으로 채워 항상 7개 반환
+    private fun buildWeekStatistics(
+        userId: UUID,
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): DashboardWeekStatistics {
+        val rows = dailyProgressRepository
+            .findByIdUserIdAndIdDateBetweenOrderByIdDateAsc(userId, startDate, endDate)
+            .associateBy { it.id.date }
+
+        val days = (0 until DEFAULT_PERIOD_DAYS).map { offset ->
+            val date = startDate.plusDays(offset)
+            val row = rows[date]
+            DashboardDailyStatistic(
+                date = date,
+                dayOfWeek = date.dayOfWeek,
+                learnedCount = row?.learnedCount ?: 0,
+                completedCount = row?.completedCount ?: 0
+            )
+        }
+
+        return DashboardWeekStatistics(
+            startDate = startDate,
+            endDate = endDate,
+            days = days
+        )
+    }
+
+    private fun weekStartInstant(): Instant {
+        val today = LocalDate.now(clock.withZone(APP_ZONE_ID))
+        val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+        return monday.atTime(LocalTime.MIN).atZone(APP_ZONE_ID).toInstant()
     }
 
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
-        private const val DEFAULT_PERIOD_DAYS: Long = 30
+        private const val DEFAULT_PERIOD_DAYS: Long = 7
     }
 }

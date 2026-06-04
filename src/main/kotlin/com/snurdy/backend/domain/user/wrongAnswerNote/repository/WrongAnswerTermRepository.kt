@@ -31,6 +31,22 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("after") after: Instant?
     ): Long
 
+    // 대시보드 과 지표 상세의 오답 노트 개수. distinct 단어 종 수 (한 단어 entity 가 단어 1종)
+    @Query(
+        """
+        SELECT COUNT(w) FROM WrongAnswerTermEntity w
+         WHERE w.id.userId = :userId
+           AND w.sourceGlossaryId = :glossaryId
+           AND w.deletedAt IS NULL
+           AND (:after IS NULL OR w.incorrectAt >= :after)
+        """
+    )
+    fun countActiveByGlossary(
+        @Param("userId") userId: UUID,
+        @Param("glossaryId") glossaryId: Long,
+        @Param("after") after: Instant?
+    ): Long
+
     // 과별 그루핑 카운트 (source_glossary_id 별 단어 수)
     @Query(
         """

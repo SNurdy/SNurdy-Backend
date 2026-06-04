@@ -30,6 +30,7 @@ class TermSearchService(
         query: String?,
         category: String?,
         glossaryId: Long?,
+        morphemeId: Long?,
         page: Int,
         size: Int
     ): TermSearchResponse {
@@ -42,6 +43,7 @@ class TermSearchService(
             query = sanitizedQuery,
             category = normalizedCategory,
             glossaryId = glossaryId,
+            morphemeId = morphemeId,
             pageable = pageable
         )
 

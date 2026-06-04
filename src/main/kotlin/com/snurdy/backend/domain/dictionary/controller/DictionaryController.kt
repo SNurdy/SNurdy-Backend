@@ -4,8 +4,10 @@ import com.snurdy.backend.domain.dictionary.dto.GlossaryListResponse
 import com.snurdy.backend.domain.dictionary.dto.GlossaryTermsResponse
 import com.snurdy.backend.domain.dictionary.dto.TermDetailResponse
 import com.snurdy.backend.domain.dictionary.dto.TermSearchResponse
+import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeListResponse
 import com.snurdy.backend.domain.dictionary.morpheme.dto.MorphemeSearchResponse
 import com.snurdy.backend.domain.dictionary.service.GlossaryListingService
+import com.snurdy.backend.domain.dictionary.service.MorphemeListingService
 import com.snurdy.backend.domain.dictionary.service.TermDetailService
 import com.snurdy.backend.domain.dictionary.service.TermSearchService
 import com.snurdy.backend.global.constants.DictionarySuccess
@@ -17,7 +19,8 @@ import java.util.UUID
 class DictionaryController(
     private val termSearchService: TermSearchService,
     private val termDetailService: TermDetailService,
-    private val glossaryListingService: GlossaryListingService
+    private val glossaryListingService: GlossaryListingService,
+    private val morphemeListingService: MorphemeListingService
 ) : DictionaryApi {
 
     override fun searchTerms(
@@ -30,7 +33,7 @@ class DictionaryController(
     ): ApiResponse<TermSearchResponse> =
         ApiResponse.success(
             DictionarySuccess.SEARCH_TERMS,
-            termSearchService.searchTerms(userId, query, category, glossaryId, page, size)
+            termSearchService.searchTerms(userId, query, category, glossaryId, morphemeId = null, page, size)
         )
 
     override fun getTermDetail(userId: UUID, termId: Long): ApiResponse<TermDetailResponse> =
@@ -43,6 +46,29 @@ class DictionaryController(
         ApiResponse.success(
             DictionarySuccess.SEARCH_BY_MORPHEME,
             termSearchService.searchTermsByMorpheme(keyword)
+        )
+
+    override fun listMorphemes(
+        query: String?,
+        page: Int,
+        size: Int
+    ): ApiResponse<MorphemeListResponse> =
+        ApiResponse.success(
+            DictionarySuccess.LIST_MORPHEMES,
+            morphemeListingService.listMorphemes(query, page, size)
+        )
+
+    override fun listTermsByMorpheme(
+        userId: UUID,
+        morphemeId: Long,
+        category: String?,
+        query: String?,
+        page: Int,
+        size: Int
+    ): ApiResponse<TermSearchResponse> =
+        ApiResponse.success(
+            DictionarySuccess.LIST_TERMS_BY_MORPHEME,
+            morphemeListingService.listTermsByMorpheme(userId, morphemeId, category, query, page, size)
         )
 
     override fun getGlossaries(userId: UUID, category: String?): ApiResponse<GlossaryListResponse> =

@@ -77,10 +77,12 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         FROM terms t
         LEFT JOIN glossary_terms gt ON gt.term_id = t.id
         LEFT JOIN glossaries g ON g.id = gt.glossary_id
+        LEFT JOIN term_morphemes tm ON tm.term_id = t.id
         WHERE t.deleted_at IS NULL
           AND (:query IS NULL OR MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE))
           AND (:category IS NULL OR g.category = :category)
           AND (:glossaryId IS NULL OR g.id = :glossaryId)
+          AND (:morphemeId IS NULL OR tm.morpheme_id = :morphemeId)
         ORDER BY t.spelling
         """,
         countQuery = """
@@ -88,10 +90,12 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         FROM terms t
         LEFT JOIN glossary_terms gt ON gt.term_id = t.id
         LEFT JOIN glossaries g ON g.id = gt.glossary_id
+        LEFT JOIN term_morphemes tm ON tm.term_id = t.id
         WHERE t.deleted_at IS NULL
           AND (:query IS NULL OR MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE))
           AND (:category IS NULL OR g.category = :category)
           AND (:glossaryId IS NULL OR g.id = :glossaryId)
+          AND (:morphemeId IS NULL OR tm.morpheme_id = :morphemeId)
         """,
         nativeQuery = true
     )
@@ -99,6 +103,7 @@ interface TermRepository : JpaRepository<TermEntity, Long> {
         @Param("query") query: String?,
         @Param("category") category: String?,
         @Param("glossaryId") glossaryId: Long?,
+        @Param("morphemeId") morphemeId: Long?,
         pageable: Pageable
     ): Page<TermEntity>
 }

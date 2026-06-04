@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dictionary.morpheme.dto
 
 import com.snurdy.backend.domain.dictionary.dto.TermGlossaryTag
+import com.snurdy.backend.domain.dictionary.morpheme.entity.MorphemeEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import io.swagger.v3.oas.annotations.media.Schema
 
@@ -35,4 +36,30 @@ fun TermEntity.toMorphemeSearchItem(glossaries: List<TermGlossaryTag>) = Morphem
     meaning = meaning,
     abbreviation = abbreviation,
     glossaries = glossaries
+)
+
+@Schema(description = "어근어미 카탈로그 응답")
+data class MorphemeListResponse(
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val hasNext: Boolean,
+    val morphemes: List<MorphemeListItem>
+)
+
+@Schema(description = "어근어미 목록 항목")
+data class MorphemeListItem(
+    @field:Schema(description = "어근어미 ID", example = "361")
+    val id: Long,
+    @field:Schema(description = "어근어미 철자", example = "hepat(o)-")
+    val spelling: String,
+    @field:Schema(description = "어근어미 의미", example = "간")
+    val meaning: String
+)
+
+fun MorphemeEntity.toListItem() = MorphemeListItem(
+    id = id,
+    spelling = spelling,
+    meaning = meaning
 )

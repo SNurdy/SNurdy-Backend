@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.profile.dto
 
-import com.snurdy.backend.domain.learning.entity.TestType
+import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size

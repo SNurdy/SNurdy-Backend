@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.learning.entity
+package com.snurdy.backend.domain.test.entity
 
 enum class TestType {
     TERM_TO_MEANING,

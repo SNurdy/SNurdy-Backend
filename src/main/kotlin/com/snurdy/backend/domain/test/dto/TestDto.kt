@@ -1,6 +1,6 @@
-package com.snurdy.backend.domain.learning.test.dto
+package com.snurdy.backend.domain.test.dto
 
-import com.snurdy.backend.domain.learning.entity.TestType
+import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min

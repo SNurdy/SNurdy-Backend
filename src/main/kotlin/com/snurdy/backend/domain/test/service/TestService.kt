@@ -1,13 +1,13 @@
-package com.snurdy.backend.domain.learning.test.service
+package com.snurdy.backend.domain.test.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.learning.entity.TestType
-import com.snurdy.backend.domain.learning.test.dto.StartTestRequest
-import com.snurdy.backend.domain.learning.test.dto.StartTestResponse
-import com.snurdy.backend.domain.learning.test.dto.TestPrompt
-import com.snurdy.backend.domain.learning.test.dto.TestQuestion
+import com.snurdy.backend.domain.test.dto.StartTestRequest
+import com.snurdy.backend.domain.test.dto.StartTestResponse
+import com.snurdy.backend.domain.test.dto.TestPrompt
+import com.snurdy.backend.domain.test.dto.TestQuestion
+import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.LearningError
 import com.snurdy.backend.global.exception.ApiException

@@ -1,8 +1,8 @@
-package com.snurdy.backend.domain.learning.test.controller
+package com.snurdy.backend.domain.test.controller
 
-import com.snurdy.backend.domain.learning.test.dto.StartTestRequest
-import com.snurdy.backend.domain.learning.test.dto.StartTestResponse
-import com.snurdy.backend.domain.learning.test.service.TestService
+import com.snurdy.backend.domain.test.dto.StartTestRequest
+import com.snurdy.backend.domain.test.dto.StartTestResponse
+import com.snurdy.backend.domain.test.service.TestService
 import com.snurdy.backend.global.constants.LearningSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController

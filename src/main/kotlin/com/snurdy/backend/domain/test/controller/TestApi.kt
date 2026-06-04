@@ -1,7 +1,7 @@
-package com.snurdy.backend.domain.learning.test.controller
+package com.snurdy.backend.domain.test.controller
 
-import com.snurdy.backend.domain.learning.test.dto.StartTestRequest
-import com.snurdy.backend.domain.learning.test.dto.StartTestResponse
+import com.snurdy.backend.domain.test.dto.StartTestRequest
+import com.snurdy.backend.domain.test.dto.StartTestResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "Learning-Test", description = "v2 학습 테스트 API")
-@RequestMapping("/v2/learning/test")
+@Tag(name = "Test", description = "v2 테스트 API")
+@RequestMapping("/v2/test")
 interface TestApi {
 
     @Operation(summary = "테스트 시작 (문제 출제)")

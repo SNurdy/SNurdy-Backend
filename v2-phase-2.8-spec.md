@@ -79,7 +79,7 @@ GET /v2/users/me 응답에 `defaultTestType` 필드 포함.
 
 ---
 
-### 3.2 POST /v2/learning/test/start — 테스트 시작 (문제 출제)
+### 3.2 POST /v2/test/start — 테스트 시작 (문제 출제)
 
 stateless. 클라이언트가 문제 리스트를 받아 자체 진행한 뒤 submit 한다.
 
@@ -135,7 +135,7 @@ stateless. 클라이언트가 문제 리스트를 받아 자체 진행한 뒤 su
 
 ---
 
-### 3.3 POST /v2/learning/test/submit — 테스트 결과 일괄 submit
+### 3.3 POST /v2/test/submit — 테스트 결과 일괄 submit
 
 **요청**
 ```
@@ -226,8 +226,8 @@ stateless. 클라이언트가 문제 리스트를 받아 자체 진행한 뒤 su
 1. UserEntity `default_test_type` 컬럼 추가 + Flyway V40
 2. TestType enum + DTO (StartTestRequest/Response, SubmitTestRequest/Response)
 3. PUT /v2/users/me/preferences/test-type endpoint
-4. POST /v2/learning/test/start endpoint (단어 sampling + 다지선다 보기 생성)
-5. POST /v2/learning/test/submit endpoint (SRS/오답노트/streak/level 부수 효과)
+4. POST /v2/test/start endpoint (단어 sampling + 다지선다 보기 생성)
+5. POST /v2/test/submit endpoint (SRS/오답노트/streak/level 부수 효과)
 6. SuccessCode/ErrorCode 신규 추가
 7. v2-roadmap.md 2.8 상태 done 으로 갱신
 

@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.profile.service
 
-import com.snurdy.backend.domain.learning.entity.TestType
+import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
 import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse

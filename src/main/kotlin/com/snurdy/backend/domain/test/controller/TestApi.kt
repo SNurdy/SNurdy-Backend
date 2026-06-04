@@ -2,6 +2,8 @@ package com.snurdy.backend.domain.test.controller
 
 import com.snurdy.backend.domain.test.dto.StartTestRequest
 import com.snurdy.backend.domain.test.dto.StartTestResponse
+import com.snurdy.backend.domain.test.dto.SubmitTestRequest
+import com.snurdy.backend.domain.test.dto.SubmitTestResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -26,4 +28,13 @@ interface TestApi {
         @CurrentUserId userId: UUID,
         @RequestBody @Valid request: StartTestRequest
     ): ApiResponse<StartTestResponse>
+
+    @Operation(summary = "테스트 결과 일괄 제출")
+    @ApiSuccessCode("LEARNING_S021")
+    @ApiErrorCodes("DICTIONARY_E001", "LEARNING_E021")
+    @PostMapping("/submit")
+    fun submitTest(
+        @CurrentUserId userId: UUID,
+        @RequestBody @Valid request: SubmitTestRequest
+    ): ApiResponse<SubmitTestResponse>
 }

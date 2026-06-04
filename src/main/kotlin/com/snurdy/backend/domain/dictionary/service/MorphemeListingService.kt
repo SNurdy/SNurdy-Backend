@@ -48,7 +48,6 @@ class MorphemeListingService(
     fun listTermsByMorpheme(
         userId: UUID,
         morphemeId: Long,
-        category: String?,
         query: String?,
         page: Int,
         size: Int
@@ -59,7 +58,7 @@ class MorphemeListingService(
         return termSearchService.searchTerms(
             userId = userId,
             query = query,
-            category = category,
+            category = null,
             glossaryId = null,
             morphemeId = morphemeId,
             page = page,

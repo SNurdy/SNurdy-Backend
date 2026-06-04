@@ -61,14 +61,13 @@ class DictionaryController(
     override fun listTermsByMorpheme(
         userId: UUID,
         morphemeId: Long,
-        category: String?,
         query: String?,
         page: Int,
         size: Int
     ): ApiResponse<TermSearchResponse> =
         ApiResponse.success(
             DictionarySuccess.LIST_TERMS_BY_MORPHEME,
-            morphemeListingService.listTermsByMorpheme(userId, morphemeId, category, query, page, size)
+            morphemeListingService.listTermsByMorpheme(userId, morphemeId, query, page, size)
         )
 
     override fun getGlossaries(userId: UUID, category: String?): ApiResponse<GlossaryListResponse> =

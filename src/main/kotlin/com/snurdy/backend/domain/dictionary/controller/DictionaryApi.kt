@@ -80,8 +80,6 @@ interface DictionaryApi {
     fun listTermsByMorpheme(
         @CurrentUserId userId: UUID,
         @PathVariable morphemeId: Long,
-        @Parameter(description = "대분류 필터")
-        @RequestParam(required = false) category: String?,
         @Parameter(description = "검색 키워드 (spelling/meaning/abbreviation)")
         @RequestParam(required = false) query: String?,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,

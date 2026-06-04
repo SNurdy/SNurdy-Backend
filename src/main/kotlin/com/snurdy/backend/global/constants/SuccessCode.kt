@@ -51,7 +51,8 @@ enum class UserSuccess(
     UPDATE_MARKETING_CONSENT(HttpStatus.OK, "USER_S013", "마케팅 수신 동의를 변경했습니다"),
     GET_DASHBOARD(HttpStatus.OK, "USER_S020", "학습 리포트 대시보드 조회에 성공했습니다"),
     LIST_DASHBOARD_GLOSSARIES(HttpStatus.OK, "USER_S021", "과 목록 조회에 성공했습니다"),
-    LIST_DASHBOARD_GLOSSARY_STATISTICS(HttpStatus.OK, "USER_S022", "과 지표 리스트 조회에 성공했습니다")
+    LIST_DASHBOARD_GLOSSARY_STATISTICS(HttpStatus.OK, "USER_S022", "과 지표 리스트 조회에 성공했습니다"),
+    UPDATE_DEFAULT_TEST_TYPE(HttpStatus.OK, "USER_S030", "기본 테스트 유형을 변경했습니다")
 }
 
 enum class MigrationSuccess(
@@ -73,7 +74,9 @@ enum class LearningSuccess(
 ) : SuccessCode {
     GET_NEXT_TERMS(HttpStatus.OK, "LEARNING_S010", "학습할 다음 단어 목록 조회에 성공했습니다"),
     GET_REVIEW_TERMS(HttpStatus.OK, "LEARNING_S011", "복습 대상 단어 목록 조회에 성공했습니다"),
-    SUBMIT(HttpStatus.OK, "LEARNING_S012", "학습 결과를 반영했습니다")
+    SUBMIT(HttpStatus.OK, "LEARNING_S012", "학습 결과를 반영했습니다"),
+    START_TEST(HttpStatus.OK, "LEARNING_S020", "테스트 문제를 출제했습니다"),
+    SUBMIT_TEST(HttpStatus.OK, "LEARNING_S021", "테스트 결과를 반영했습니다")
 }
 
 enum class CalendarSuccess(

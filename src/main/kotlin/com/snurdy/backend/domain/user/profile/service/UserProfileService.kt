@@ -1,8 +1,11 @@
 package com.snurdy.backend.domain.user.profile.service
 
+import com.snurdy.backend.domain.learning.entity.TestType
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
+import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
+import com.snurdy.backend.domain.user.profile.dto.toDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.profile.dto.toMarketingConsentResponse
 import com.snurdy.backend.domain.user.profile.dto.toProfileResponse
 import com.snurdy.backend.domain.user.account.entity.UserEntity
@@ -43,6 +46,13 @@ class UserProfileService(
         user.setMarketingConsent(agreed, clock.instant())
 
         return user.toMarketingConsentResponse()
+    }
+
+    @Transactional
+    fun updateDefaultTestType(userId: UUID, defaultTestType: TestType?): UpdateDefaultTestTypeResponse {
+        val user = findActiveUser(userId)
+        user.defaultTestType = defaultTestType
+        return user.toDefaultTestTypeResponse()
     }
 
     private fun findActiveUser(userId: UUID): UserEntity {

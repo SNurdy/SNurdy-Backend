@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.profile.dto
 
+import com.snurdy.backend.domain.learning.entity.TestType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Size
@@ -14,6 +15,8 @@ data class UserProfileResponse(
     val profileImageUrl: String?,
     val marketingConsent: Boolean,
     val marketingConsentAt: Instant?,
+    @field:Schema(description = "사용자 기본 테스트 유형, null 이면 다음 테스트 진입 시 선택 모달 노출")
+    val defaultTestType: TestType?,
     val createdAt: Instant?
 )
 
@@ -40,6 +43,17 @@ data class MarketingConsentResponse(
     val marketingConsentAt: Instant?
 )
 
+@Schema(description = "기본 테스트 유형 변경 요청, null 전달 시 다음 진입에서 선택 모달 강제")
+data class UpdateDefaultTestTypeRequest(
+    @field:Schema(description = "사용자 기본 테스트 유형", example = "MEANING_TO_TERM")
+    val defaultTestType: TestType?
+)
+
+@Schema(description = "기본 테스트 유형 변경 응답")
+data class UpdateDefaultTestTypeResponse(
+    val defaultTestType: TestType?
+)
+
 // UserEntity 는 auth 의 toUserInfo() 와 동시 사용되어 1:N 케이스 - 의미 키워드로 구분
 fun UserEntity.toProfileResponse() = UserProfileResponse(
     id = id,
@@ -48,10 +62,15 @@ fun UserEntity.toProfileResponse() = UserProfileResponse(
     profileImageUrl = profileImageUrl,
     marketingConsent = marketingConsent,
     marketingConsentAt = marketingConsentAt,
+    defaultTestType = defaultTestType,
     createdAt = createdAt
 )
 
 fun UserEntity.toMarketingConsentResponse() = MarketingConsentResponse(
     marketingConsent = marketingConsent,
     marketingConsentAt = marketingConsentAt
+)
+
+fun UserEntity.toDefaultTestTypeResponse() = UpdateDefaultTestTypeResponse(
+    defaultTestType = defaultTestType
 )

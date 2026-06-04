@@ -2,6 +2,8 @@ package com.snurdy.backend.domain.user.profile.controller
 
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentRequest
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
+import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeRequest
+import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
@@ -45,4 +47,13 @@ interface UserProfileApi {
         @CurrentUserId userId: UUID,
         @RequestBody @Valid request: MarketingConsentRequest
     ): ApiResponse<MarketingConsentResponse>
+
+    @Operation(summary = "기본 테스트 유형 변경 (다음부터 묻지 않기)")
+    @ApiSuccessCode("USER_S030")
+    @ApiErrorCodes("USER_E010", "USER_E005")
+    @PutMapping("/preferences/test-type")
+    fun updateDefaultTestType(
+        @CurrentUserId userId: UUID,
+        @RequestBody @Valid request: UpdateDefaultTestTypeRequest
+    ): ApiResponse<UpdateDefaultTestTypeResponse>
 }

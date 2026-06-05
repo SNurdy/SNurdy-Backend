@@ -3,7 +3,7 @@ package com.snurdy.backend.domain.progress.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.progress.dto.LearningAnswerEvent
+import com.snurdy.backend.domain.progress.dto.ProgressEvent
 import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
 import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
@@ -48,7 +48,7 @@ class ProgressUpdateService(
 ) {
 
     @Transactional
-    fun updateProgress(userId: UUID, events: List<LearningAnswerEvent>) {
+    fun updateProgress(userId: UUID, events: List<ProgressEvent>) {
         if (events.isEmpty()) return
 
         val user = findUser(userId)
@@ -56,7 +56,7 @@ class ProgressUpdateService(
         val now = clock.instant()
         val dailyDate = now.atZone(APP_ZONE_ID).toLocalDate()
 
-        val context = SubmitContext.prefetch(
+        val context = ProgressBatchCache.prefetch(
             userId = userId,
             events = events,
             glossaryTermRepository = glossaryTermRepository,
@@ -64,7 +64,7 @@ class ProgressUpdateService(
             termRepository = termRepository,
             termProgressRepository = termProgressRepository
         )
-        val aggregation = LearningAggregation()
+        val aggregation = ProgressAggregation()
         val newProgresses = mutableListOf<TermProgressEntity>()
 
         events.forEach { event ->
@@ -79,7 +79,7 @@ class ProgressUpdateService(
         if (newProgresses.isNotEmpty()) {
             termProgressRepository.saveAll(newProgresses)
         }
-        applyLearningAggregation(user, aggregation, now, dailyDate)
+        applyProgressAggregation(user, aggregation, now, dailyDate)
     }
 
     private fun updateGlossaryProgresses(user: UserEntity, learnedByGlossary: Map<Long, Int>, now: Instant) {
@@ -155,7 +155,7 @@ class ProgressUpdateService(
                 }
             }
         }
-        user.applyLearningOutcome(learnedDelta = learnedDelta, newCurrentStreak = newStreak)
+        user.applyProgressOutcome(learnedDelta = learnedDelta, newCurrentStreak = newStreak)
     }
 
     private fun countStreakEndingAt(userId: UUID, endDate: LocalDate): Int {
@@ -178,9 +178,9 @@ class ProgressUpdateService(
         return streak
     }
 
-    private fun applyLearningAggregation(
+    private fun applyProgressAggregation(
         user: UserEntity,
-        aggregation: LearningAggregation,
+        aggregation: ProgressAggregation,
         now: Instant,
         today: LocalDate
     ) {
@@ -205,7 +205,7 @@ class ProgressUpdateService(
         }
     }
 
-    private class LearningAggregation {
+    private class ProgressAggregation {
         var learnedTotal: Int = 0
         var completedTotal: Int = 0
         val learnedByGlossary: MutableMap<Long, Int> = mutableMapOf()

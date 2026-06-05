@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.progress.service
 
-import com.snurdy.backend.domain.progress.dto.LearningAnswerEvent
+import com.snurdy.backend.domain.progress.dto.ProgressEvent
 import com.snurdy.backend.domain.progress.entity.TermProgressEntity
 import com.snurdy.backend.domain.progress.entity.TermProgressStatus
 import java.math.BigDecimal
@@ -9,17 +9,14 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.math.ceil
 
-/**
- * SM-2 변형 간격 반복 학습(SRS) 알고리즘.
- * DB 를 조회하지 않는 순수 계산 컴포넌트라 단위 테스트 시 Mock 이 필요 없다.
- */
+// SM-2 변형 간격 반복 학습(SRS) 알고리즘. DB 조회 없는 순수 계산 컴포넌트
 object SrsCalculator {
 
     val DEFAULT_EASE_FACTOR: BigDecimal = BigDecimal("2.50")
     val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
     private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
 
-    fun applyAnswer(progress: TermProgressEntity, event: LearningAnswerEvent, now: Instant): Boolean {
+    fun applyAnswer(progress: TermProgressEntity, event: ProgressEvent, now: Instant): Boolean {
         if (event.correct) {
             val previousReviewCount = progress.reviewCount
             val nextReviewCount = previousReviewCount + 1

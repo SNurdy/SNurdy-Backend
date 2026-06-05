@@ -1,11 +1,7 @@
 package com.snurdy.backend.domain.progress.service
 
-import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
-import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
-import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryTermId
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.progress.dto.LearningAnswerEvent
 import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
@@ -13,7 +9,6 @@ import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.entity.TermProgressEntity
-import com.snurdy.backend.domain.progress.entity.TermProgressStatus
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.repository.TermProgressRepository
@@ -61,7 +56,14 @@ class ProgressUpdateService(
         val now = clock.instant()
         val dailyDate = now.atZone(APP_ZONE_ID).toLocalDate()
 
-        val context = prefetchSubmitContext(userId, events)
+        val context = SubmitContext.prefetch(
+            userId = userId,
+            events = events,
+            glossaryTermRepository = glossaryTermRepository,
+            glossaryRepository = glossaryRepository,
+            termRepository = termRepository,
+            termProgressRepository = termProgressRepository
+        )
         val aggregation = LearningAggregation()
         val newProgresses = mutableListOf<TermProgressEntity>()
 
@@ -78,24 +80,6 @@ class ProgressUpdateService(
             termProgressRepository.saveAll(newProgresses)
         }
         applyLearningAggregation(user, aggregation, now, dailyDate)
-    }
-
-    // batch 전체에서 필요한 엔티티를 일괄 조회해 캐시. 이벤트 순회 중에는 DB hit 없이 메모리 lookup
-    private fun prefetchSubmitContext(userId: UUID, events: List<LearningAnswerEvent>): SubmitContext {
-        val glossaryIds = events.mapTo(mutableSetOf()) { it.glossaryId }
-        val termIds = events.mapTo(mutableSetOf()) { it.termId }
-
-        val validPairs = glossaryTermRepository
-            .findAllByIdGlossaryIdInAndIdTermIdIn(glossaryIds, termIds)
-            .mapTo(mutableSetOf()) { it.id }
-
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
-        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds.toList()).associateBy { it.id }
-        val progresses = termProgressRepository
-            .findAllByUserIdAndGlossaryIdInAndTermIdIn(userId, glossaryIds, termIds)
-            .associateByTo(mutableMapOf()) { GlossaryTermId(it.glossary.id, it.term.id) }
-
-        return SubmitContext(validPairs, glossaries, terms, progresses)
     }
 
     private fun updateGlossaryProgresses(user: UserEntity, learnedByGlossary: Map<Long, Int>, now: Instant) {
@@ -211,39 +195,6 @@ class ProgressUpdateService(
     companion object {
         private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
         private const val MAX_STREAK_LOOKBACK: Int = 365
-    }
-
-    private class SubmitContext(
-        private val validPairs: Set<GlossaryTermId>,
-        private val glossaries: Map<Long, GlossaryEntity>,
-        private val terms: Map<Long, TermEntity>,
-        private val progresses: MutableMap<GlossaryTermId, TermProgressEntity>
-    ) {
-        fun getOrCreateProgress(
-            user: UserEntity,
-            event: LearningAnswerEvent,
-            newProgresses: MutableList<TermProgressEntity>
-        ): TermProgressEntity {
-            val key = GlossaryTermId(event.glossaryId, event.termId)
-            if (key !in validPairs) throw ApiException(DictionaryError.TERM_NOT_IN_GLOSSARY)
-
-            progresses[key]?.let { return it }
-
-            val glossary = glossaries[event.glossaryId]
-                ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-            val term = terms[event.termId]
-                ?: throw ApiException(DictionaryError.TERM_NOT_FOUND)
-
-            val newProgress = TermProgressEntity(
-                user = user,
-                glossary = glossary,
-                term = term,
-                status = TermProgressStatus.NEW
-            )
-            progresses[key] = newProgress
-            newProgresses += newProgress
-            return newProgress
-        }
     }
 
     private data class DailyDelta(val learned: Int, val completed: Int) {

@@ -25,7 +25,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import java.time.ZoneId
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.util.UUID
 
 @Service
@@ -192,7 +192,6 @@ class TestService(
     companion object {
         private const val MULTIPLE_CHOICE_DISTRACTOR_COUNT = 3
         private const val SUPPLEMENT_FETCH_MULTIPLIER = 5
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
     }
 }
 

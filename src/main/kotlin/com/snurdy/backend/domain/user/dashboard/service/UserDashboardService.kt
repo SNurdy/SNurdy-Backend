@@ -25,7 +25,7 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
-import java.time.ZoneId
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
@@ -208,7 +208,6 @@ class UserDashboardService(
     }
 
     companion object {
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
         private const val DEFAULT_PERIOD_DAYS: Long = 7
     }
 }

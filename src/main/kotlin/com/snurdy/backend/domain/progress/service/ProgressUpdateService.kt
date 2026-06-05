@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.util.UUID
 
 // 호출자 책임 (TestService 등)
@@ -193,7 +193,6 @@ class ProgressUpdateService(
         userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
 
     companion object {
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
         private const val MAX_STREAK_LOOKBACK: Int = 365
     }
 

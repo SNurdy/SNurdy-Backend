@@ -25,7 +25,7 @@ import java.time.Clock
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
@@ -172,9 +172,5 @@ class WrongAnswerNoteService(
         WrongAnswerPeriod.WEEK -> "이번 주 틀린 단어"
         WrongAnswerPeriod.MONTH -> "이번 달 틀린 단어"
         WrongAnswerPeriod.ALL -> "전체 틀린 단어"
-    }
-
-    companion object {
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
     }
 }

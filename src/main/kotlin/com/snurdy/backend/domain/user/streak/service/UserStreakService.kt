@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.LocalDate
-import java.time.ZoneId
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.util.UUID
 
 // 사용자 학습 streak 조회 책임 전담
@@ -53,8 +53,4 @@ class UserStreakService(
 
     private fun findUser(userId: UUID): UserEntity =
         userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
-
-    companion object {
-        private val APP_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
-    }
 }

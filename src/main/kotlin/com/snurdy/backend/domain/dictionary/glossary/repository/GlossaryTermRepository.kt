@@ -64,6 +64,38 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     )
     fun findAllSimpleTermsByGlossaryId(@Param("glossaryId") glossaryId: Long): List<SimpleTermProjection>
 
+    // 학습 카드용 sampling. NEW (미학습 또는 status=NEW) 우선, 같은 그룹 내 random
+    // requireAbbreviation = true 면 abbreviation 보유 단어만
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation
+        FROM glossary_terms gt
+        JOIN terms t ON t.id = gt.term_id
+        LEFT JOIN term_progresses tp
+               ON tp.user_id = :userId
+              AND tp.glossary_id = :glossaryId
+              AND tp.term_id = t.id
+        WHERE gt.glossary_id = :glossaryId
+          AND t.deleted_at IS NULL
+          AND (:requireAbbreviation = FALSE
+               OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
+        ORDER BY
+          (tp.status IS NULL OR tp.status = 'NEW') DESC,
+          RAND()
+        LIMIT :count
+        """,
+        nativeQuery = true
+    )
+    fun sampleCardTerms(
+        @Param("userId") userId: UUID,
+        @Param("glossaryId") glossaryId: Long,
+        @Param("requireAbbreviation") requireAbbreviation: Boolean,
+        @Param("count") count: Int
+    ): List<SimpleTermProjection>
+
     @Query(
         value = """
         SELECT glossary_id AS glossaryId, COUNT(*) AS mappedTermCount

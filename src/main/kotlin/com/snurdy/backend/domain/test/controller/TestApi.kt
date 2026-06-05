@@ -20,7 +20,7 @@ import java.util.UUID
 @RequestMapping("/v2/test")
 interface TestApi {
 
-    @Operation(summary = "다지선다 보기 조회")
+    @Operation(summary = "다지선다 보기 생성")
     @ApiSuccessCode("TEST_S001")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E001", "TEST_E002")
     @PostMapping("/distractors")

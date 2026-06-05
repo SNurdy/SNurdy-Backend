@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
-@Schema(description = "다지선다 보기 조회 요청")
+@Schema(description = "다지선다 보기 생성 요청")
 data class DistractorsRequest(
     @field:NotNull
     @field:Positive
@@ -23,7 +23,7 @@ data class DistractorsRequest(
     val termIds: List<Long>
 )
 
-@Schema(description = "다지선다 보기 조회 응답")
+@Schema(description = "다지선다 보기 생성 응답")
 data class DistractorsResponse(
     @field:Schema(description = "termId 별 오답 보기 3개. 정답은 클라이언트가 cards 응답에서 derive 해 추가하고 shuffle")
     val distractorsByTermId: Map<Long, List<String>>

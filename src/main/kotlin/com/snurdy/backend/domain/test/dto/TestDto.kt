@@ -81,7 +81,7 @@ data class TestGlossarySnapshot(
     val progressRateAfter: Double,
     @field:Schema(description = "테스트 전 레벨 1 부터 5", example = "4")
     val levelBefore: Int,
-    @field:Schema(description = "이번 테스트로 레벨이 상승했을 때만 채워짐, 변화 없으면 응답에서 키 제외")
+    @field:Schema(description = "이번 테스트로 레벨이 상승했을 때만 채워짐, 변화 없으면 null")
     val levelUp: LevelUpEvent?
 )
 

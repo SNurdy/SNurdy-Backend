@@ -267,4 +267,4 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 중도 종료 재진입 | Home 부터 새로 시작. 이전 테스트 없던 일 처리 |
 | 테스트 코드 prefix | TEST_* (이전 LEARNING_S020/E020 등 미배포 폐기) |
 | 학습 카드 코드 prefix | CARD_* |
-| Jackson non_null | 글로벌 유지 (`default-property-inclusion: non_null`). null 필드는 응답에서 자동 제외 |
+| Jackson non_null | 글로벌 제거. null 필드도 응답에 명시적으로 노출 (응답 스키마 일관성 우선) |

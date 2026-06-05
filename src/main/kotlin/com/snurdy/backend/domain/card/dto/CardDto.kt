@@ -41,9 +41,9 @@ data class Card(
     val spelling: String,
     @field:Schema(description = "한글 의미", example = "심전도")
     val meaning: String,
-    @field:Schema(description = "약어, 없으면 응답에서 키 제외", example = "ECG")
+    @field:Schema(description = "약어, 없으면 null", example = "ECG")
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명, 카드 ? 버튼 콘텐츠. 없으면 응답에서 키 제외", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    @field:Schema(description = "상세 설명, 카드 ? 버튼 콘텐츠. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
     val explanation: String?,
     @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부", example = "false")
     val bookmarked: Boolean,

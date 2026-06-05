@@ -354,7 +354,7 @@ LIMIT :count
 }
 ```
 
-`glossary.levelUp` 은 레벨 상승 시 object, 변화 없으면 **응답에서 키 자체가 제외됨** (Jackson `default-property-inclusion: non_null` 글로벌 설정 유지). 클라이언트는 키 존재 여부로 레벨업 여부 판정.
+`glossary.levelUp` 은 레벨 상승 시 object, 변화 없으면 **명시적 `null`** 로 응답. 클라이언트는 null 여부로 레벨업 여부 판정.
 
 #### 처리 부수 효과 (server 내부)
 
@@ -452,20 +452,18 @@ enum class TestError(...) : ErrorCode {
 
 ## 8. 글로벌 설정 정책
 
-### Jackson non_null 유지
+### Jackson non_null 제거 (명시적 null 응답)
 ```yaml
 # application.yml
 spring:
   jackson:
     time-zone: UTC
-    default-property-inclusion: non_null
+    # default-property-inclusion 미설정 → 기본값 always 적용
 ```
 
-null 필드는 JSON 응답에서 자동 제외. 응답 payload 크기 절감 + 기존 운영 정책 유지.
+null 필드도 응답에 명시 (`"levelUp": null`). 응답 스키마 일관성 확보, 클라이언트가 키 존재 여부로 추측할 필요 없음.
 
-**클라이언트 영향**: nullable 필드는 응답에 키가 아예 없을 수 있음. iOS Codable 정의 시 nullable 필드는 모두 `Optional` 로 선언 필요 (decoding 시 키 없음 = nil).
-
-응답 예시에서 null 인 필드는 표기 생략하거나 명시적으로 "키 자체 제외됨" 으로 주석 표기.
+**클라이언트 영향**: nullable 필드는 항상 키가 노출되고 값만 null. iOS Codable 의 `Optional` 디코딩이 단순해짐. payload 크기는 약간 증가하지만 안정성 우선.
 
 ---
 
@@ -490,7 +488,7 @@ null 필드는 JSON 응답에서 자동 제외. 응답 payload 크기 절감 + �
 | 중도 종료 재진입 | Home 부터 새로 시작, 이전 테스트 없던 일 |
 | submit termId 검증 | glossary 소속만 (cards 일치 검증 없음) |
 | 패키지 rename | learning → progress |
-| Jackson non_null | 글로벌 유지, null 필드는 응답에서 자동 제외 |
+| Jackson non_null | 글로벌 제거, null 필드도 응답에 명시적으로 노출 |
 | testType prefix | TEST_* (이전 LEARNING_S020 등 폐기) |
 
 ---
@@ -501,7 +499,7 @@ null 필드는 JSON 응답에서 자동 제외. 응답 payload 크기 절감 + �
 |---|---|---|
 | 1 | 패키지 rename `domain/learning/` → `domain/progress/` | 모든 import 갱신 |
 | 2 | LearningCommandService → ProgressUpdateService rename | 시그니처 유지 |
-| 3 | (Jackson non_null 글로벌 설정은 유지) | - |
+| 3 | Jackson non_null 글로벌 제거 (null 명시적 노출) | application.yml |
 | 4 | SuccessCode/ErrorCode 정리 (LearningSuccess/Error 폐기, CardSuccess/TestSuccess/TestError 신설) | 미배포라 자유 |
 | 5 | `POST /v2/cards` (card 도메인 신설) | NEW 우선 SQL |
 | 6 | `POST /v2/test/distractors` (test 도메인 신설) | 정답 중복 방지 |

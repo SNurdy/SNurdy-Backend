@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.card.dto
 
+import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
@@ -39,5 +40,11 @@ data class Card(
     @field:Schema(description = "한글 의미")
     val meaning: String,
     @field:Schema(description = "약어, 없으면 null")
-    val abbreviation: String?
+    val abbreviation: String?,
+    @field:Schema(description = "상세 설명, 카드 ? 버튼 콘텐츠. 없으면 null")
+    val explanation: String?,
+    @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부")
+    val bookmarked: Boolean,
+    @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위. 색은 클라이언트가 order 순서대로 매핑")
+    val morphemes: List<OrderedMorpheme>
 )

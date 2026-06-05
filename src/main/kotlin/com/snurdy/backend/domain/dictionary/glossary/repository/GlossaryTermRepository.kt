@@ -23,7 +23,8 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         SELECT t.id AS termId,
                t.spelling AS spelling,
                t.meaning AS meaning,
-               t.abbreviation AS abbreviation
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
@@ -54,7 +55,8 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         SELECT t.id AS termId,
                t.spelling AS spelling,
                t.meaning AS meaning,
-               t.abbreviation AS abbreviation
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         WHERE gt.glossary_id = :glossaryId
@@ -71,7 +73,8 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
         SELECT t.id AS termId,
                t.spelling AS spelling,
                t.meaning AS meaning,
-               t.abbreviation AS abbreviation
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
         FROM glossary_terms gt
         JOIN terms t ON t.id = gt.term_id
         LEFT JOIN term_progresses tp
@@ -193,6 +196,7 @@ interface SimpleTermProjection {
     val spelling: String
     val meaning: String
     val abbreviation: String?
+    val explanation: String?
 }
 
 interface BulkTermGlossaryProjection {

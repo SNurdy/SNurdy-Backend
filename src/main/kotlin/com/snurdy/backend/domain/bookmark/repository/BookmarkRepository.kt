@@ -37,4 +37,20 @@ interface BookmarkRepository : JpaRepository<BookmarkEntity, BookmarkId> {
     fun deleteByIdUserIdAndIdGlossaryId(userId: UUID, glossaryId: Long)
 
     fun deleteByIdUserIdAndIdGlossaryIdAndIdTermId(userId: UUID, glossaryId: Long, termId: Long)
+
+    // 학습 카드용 batch lookup. 현재 학습 중인 단어장 안에서 북마크된 termId 목록만 반환
+    @Query(
+        value = """
+        SELECT b.id.termId
+        FROM BookmarkEntity b
+        WHERE b.id.userId = :userId
+          AND b.id.glossaryId = :glossaryId
+          AND b.id.termId IN :termIds
+        """
+    )
+    fun findBookmarkedTermIds(
+        @Param("userId") userId: UUID,
+        @Param("glossaryId") glossaryId: Long,
+        @Param("termIds") termIds: Collection<Long>
+    ): List<Long>
 }

@@ -76,6 +76,23 @@ enum class LearningSuccess(
     SUBMIT_TEST(HttpStatus.OK, "LEARNING_S021", "테스트 결과를 반영했습니다")
 }
 
+enum class CardSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_CARDS(HttpStatus.OK, "CARD_S001", "학습 카드를 조회했습니다")
+}
+
+enum class TestSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_DISTRACTORS(HttpStatus.OK, "TEST_S001", "다지선다 보기를 조회했습니다"),
+    SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다")
+}
+
 enum class CalendarSuccess(
     override val status: HttpStatus,
     override val code: String,

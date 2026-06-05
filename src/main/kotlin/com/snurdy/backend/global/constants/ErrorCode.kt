@@ -94,6 +94,15 @@ enum class LearningError(
     TEST_RESULT_INVALID(HttpStatus.BAD_REQUEST, "LEARNING_E021", "테스트 결과가 유효하지 않습니다")
 }
 
+enum class TestError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    TEST_TYPE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "TEST_E001", "단어장이 해당 테스트 유형의 출제 조건을 충족하지 않습니다"),
+    TEST_RESULT_INVALID(HttpStatus.BAD_REQUEST, "TEST_E002", "테스트 결과가 유효하지 않습니다")
+}
+
 enum class DictionaryError(
     override val status: HttpStatus,
     override val code: String,

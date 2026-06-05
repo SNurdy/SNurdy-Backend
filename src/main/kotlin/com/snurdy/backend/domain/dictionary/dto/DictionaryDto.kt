@@ -43,7 +43,7 @@ data class OrderedMorpheme(
     val meaning: String,
     @field:Schema(description = "용어 내 순서", example = "0")
     val order: Int,
-    @field:Schema(description = "하이라이팅 범위 (null이면 매칭 실패)")
+    @field:Schema(description = "[nullable] 하이라이팅 범위. null 이면 매칭 실패")
     val highlight: MorphemeHighlight? = null
 )
 

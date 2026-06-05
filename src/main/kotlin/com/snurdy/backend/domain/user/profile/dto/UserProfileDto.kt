@@ -51,7 +51,7 @@ data class UpdateDefaultTestTypeRequest(
 
 @Schema(description = "기본 테스트 유형 변경 응답")
 data class UpdateDefaultTestTypeResponse(
-    @field:Schema(description = "변경된 기본 테스트 유형, null 이면 다음 진입 시 모달 강제", example = "MEANING_TO_TERM")
+    @field:Schema(description = "[nullable] 변경된 기본 테스트 유형. null 이면 다음 진입 시 모달 강제", example = "MEANING_TO_TERM")
     val defaultTestType: TestType?
 )
 

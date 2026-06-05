@@ -2,10 +2,10 @@ package com.snurdy.backend.domain.user.dashboard.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
-import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.repository.TermProgressRepository
+import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
+import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
+import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.progress.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStatistic
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListItem
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse

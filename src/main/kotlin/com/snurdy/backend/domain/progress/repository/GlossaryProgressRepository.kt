@@ -1,7 +1,7 @@
-package com.snurdy.backend.domain.learning.repository
+package com.snurdy.backend.domain.progress.repository
 
-import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
-import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
+import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
+import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import org.springframework.data.jpa.repository.JpaRepository
 import java.util.UUID
 

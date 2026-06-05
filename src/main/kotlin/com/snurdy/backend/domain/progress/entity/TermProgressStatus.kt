@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.learning.entity
+package com.snurdy.backend.domain.progress.entity
 
 enum class TermProgressStatus {
     NEW,

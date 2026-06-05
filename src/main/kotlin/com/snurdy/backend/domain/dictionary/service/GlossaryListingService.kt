@@ -7,7 +7,7 @@ import com.snurdy.backend.domain.dictionary.dto.toResponse
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.domain.PageRequest

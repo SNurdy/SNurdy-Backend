@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.learning.service
+package com.snurdy.backend.domain.progress.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
@@ -7,16 +7,16 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.learning.dto.LearningAnswerEvent
-import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
-import com.snurdy.backend.domain.learning.entity.DailyProgressId
-import com.snurdy.backend.domain.learning.entity.GlossaryProgressEntity
-import com.snurdy.backend.domain.learning.entity.GlossaryProgressId
-import com.snurdy.backend.domain.learning.entity.TermProgressEntity
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
-import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.repository.TermProgressRepository
+import com.snurdy.backend.domain.progress.dto.LearningAnswerEvent
+import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
+import com.snurdy.backend.domain.progress.entity.DailyProgressId
+import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
+import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
+import com.snurdy.backend.domain.progress.entity.TermProgressEntity
+import com.snurdy.backend.domain.progress.entity.TermProgressStatus
+import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
+import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.progress.repository.TermProgressRepository
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
 import com.snurdy.backend.domain.user.wrongAnswerNote.service.WrongAnswerNoteService

@@ -1,7 +1,7 @@
-package com.snurdy.backend.domain.learning.repository
+package com.snurdy.backend.domain.progress.repository
 
-import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
-import com.snurdy.backend.domain.learning.entity.DailyProgressId
+import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
+import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import org.springframework.data.jpa.repository.JpaRepository
 import java.time.LocalDate
 import java.util.UUID

@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.streak.service
 
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
+import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.user.streak.dto.UserStreakResponse
 import com.snurdy.backend.domain.user.streak.dto.toStreakResponse
 import com.snurdy.backend.domain.user.account.entity.UserEntity

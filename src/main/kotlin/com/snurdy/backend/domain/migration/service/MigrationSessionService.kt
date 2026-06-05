@@ -1,9 +1,9 @@
 package com.snurdy.backend.domain.migration.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
-import com.snurdy.backend.domain.learning.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.learning.repository.TermProgressRepository
+import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
+import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
+import com.snurdy.backend.domain.progress.repository.TermProgressRepository
 import com.snurdy.backend.domain.migration.dto.MigrationStartResponse
 import com.snurdy.backend.domain.migration.dto.MigrationStatusResponse
 import com.snurdy.backend.domain.migration.dto.toResponse

@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.calendar.service
 
 import com.snurdy.backend.domain.calendar.dto.CalendarResponse
 import com.snurdy.backend.domain.calendar.dto.toResponse
-import com.snurdy.backend.domain.learning.repository.DailyProgressRepository
+import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.YearMonth

@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.migration.dto
 
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.progress.entity.TermProgressStatus
 import com.snurdy.backend.domain.migration.entity.MigrationSessionEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid

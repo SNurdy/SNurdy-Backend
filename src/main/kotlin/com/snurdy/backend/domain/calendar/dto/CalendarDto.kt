@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.calendar.dto
 
-import com.snurdy.backend.domain.learning.entity.DailyProgressEntity
+import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 

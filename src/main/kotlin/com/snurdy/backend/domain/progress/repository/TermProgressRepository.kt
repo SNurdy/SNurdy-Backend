@@ -1,7 +1,7 @@
-package com.snurdy.backend.domain.learning.repository
+package com.snurdy.backend.domain.progress.repository
 
-import com.snurdy.backend.domain.learning.entity.TermProgressEntity
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.progress.entity.TermProgressEntity
+import com.snurdy.backend.domain.progress.entity.TermProgressStatus
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository

@@ -1,8 +1,8 @@
-package com.snurdy.backend.domain.learning.service
+package com.snurdy.backend.domain.progress.service
 
-import com.snurdy.backend.domain.learning.dto.LearningAnswerEvent
-import com.snurdy.backend.domain.learning.entity.TermProgressEntity
-import com.snurdy.backend.domain.learning.entity.TermProgressStatus
+import com.snurdy.backend.domain.progress.dto.LearningAnswerEvent
+import com.snurdy.backend.domain.progress.entity.TermProgressEntity
+import com.snurdy.backend.domain.progress.entity.TermProgressStatus
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant

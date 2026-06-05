@@ -1,15 +1,16 @@
-package com.snurdy.backend.domain.learning.entity
+package com.snurdy.backend.domain.progress.entity
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import java.io.Serializable
+import java.time.LocalDate
 import java.util.UUID
 
 @Embeddable
-data class GlossaryProgressId(
+data class DailyProgressId(
     @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
     val userId: UUID,
 
-    @Column(name = "glossary_id", nullable = false)
-    val glossaryId: Long
+    @Column(name = "date", nullable = false)
+    val date: LocalDate
 ) : Serializable

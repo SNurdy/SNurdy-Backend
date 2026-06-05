@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.learning.entity
+package com.snurdy.backend.domain.progress.entity
 
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.user.account.entity.UserEntity

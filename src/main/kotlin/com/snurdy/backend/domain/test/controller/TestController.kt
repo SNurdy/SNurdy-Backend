@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.test.controller
 
+import com.snurdy.backend.domain.test.dto.DistractorsRequest
+import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitTestRequest
 import com.snurdy.backend.domain.test.dto.SubmitTestResponse
 import com.snurdy.backend.domain.test.service.TestService
@@ -12,6 +14,15 @@ import java.util.UUID
 class TestController(
     private val testService: TestService
 ) : TestApi {
+
+    override fun listDistractors(
+        userId: UUID,
+        request: DistractorsRequest
+    ): ApiResponse<DistractorsResponse> =
+        ApiResponse.success(
+            TestSuccess.LIST_DISTRACTORS,
+            testService.listDistractors(userId, request)
+        )
 
     override fun submitTest(
         userId: UUID,

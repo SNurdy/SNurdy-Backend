@@ -7,6 +7,28 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
+@Schema(description = "다지선다 보기 조회 요청")
+data class DistractorsRequest(
+    @field:NotNull
+    @field:Positive
+    @field:Schema(description = "대상 단어장 id", example = "12")
+    val glossaryId: Long,
+
+    @field:NotNull
+    @field:Schema(description = "테스트 유형, MC_PICK_TERM / MC_PICK_MEANING / MC_PICK_ABBR 만 허용", example = "MC_PICK_TERM")
+    val testType: TestType,
+
+    @field:NotEmpty
+    @field:Schema(description = "보기를 만들 단어 id 목록, cards 응답의 termId 를 그대로 전달")
+    val termIds: List<Long>
+)
+
+@Schema(description = "다지선다 보기 조회 응답")
+data class DistractorsResponse(
+    @field:Schema(description = "termId 별 오답 보기 3개. 정답은 클라이언트가 cards 응답에서 derive 해 추가하고 shuffle")
+    val distractorsByTermId: Map<Long, List<String>>
+)
+
 @Schema(description = "테스트 결과 일괄 제출 요청")
 data class SubmitTestRequest(
     @field:NotNull

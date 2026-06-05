@@ -10,7 +10,7 @@ import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.progress.service.LearningCommandService
+import com.snurdy.backend.domain.progress.service.ProgressUpdateService
 import com.snurdy.backend.domain.test.dto.LevelUpEvent
 import com.snurdy.backend.domain.test.dto.StartTestRequest
 import com.snurdy.backend.domain.test.dto.StartTestResponse
@@ -37,7 +37,7 @@ class TestService(
     private val termRepository: TermRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
-    private val learningCommandService: LearningCommandService,
+    private val progressUpdateService: ProgressUpdateService,
     private val clock: Clock
 ) {
 
@@ -192,7 +192,7 @@ class TestService(
                 correct = result.correct
             )
         }
-        learningCommandService.submitLearning(userId, events)
+        progressUpdateService.updateProgress(userId, events)
 
         val learnedAfter = glossaryProgressRepository
             .findByIdOrNull(GlossaryProgressId(userId, request.glossaryId))

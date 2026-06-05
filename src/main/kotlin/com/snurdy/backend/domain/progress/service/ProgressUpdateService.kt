@@ -33,8 +33,14 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
 
+// 호출자 책임 (TestService 등)
+// - events 의 termId 가 단일 glossary 에 속하는 검증을 호출자가 수행할 것
+// - 호출자 도메인의 ErrorCode 로 검증 실패를 throw 할 것
+// 본 서비스 책임
+// - user 존재 확인
+// - SRS / GlossaryProgress / DailyProgress / streak / 오답노트 갱신
 @Service
-class LearningCommandService(
+class ProgressUpdateService(
     private val userRepository: UserRepository,
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
@@ -47,7 +53,7 @@ class LearningCommandService(
 ) {
 
     @Transactional
-    fun submitLearning(userId: UUID, events: List<LearningAnswerEvent>) {
+    fun updateProgress(userId: UUID, events: List<LearningAnswerEvent>) {
         if (events.isEmpty()) return
 
         val user = findUser(userId)
@@ -74,10 +80,7 @@ class LearningCommandService(
         applyLearningAggregation(user, aggregation, now, dailyDate)
     }
 
-    /**
-     * submitLearning 진입 시점에 batch 전체에서 필요한 엔티티를 일괄 조회해 캐시한다.
-     * 이벤트 순회 중에는 DB hit 없이 메모리 lookup만 수행.
-     */
+    // batch 전체에서 필요한 엔티티를 일괄 조회해 캐시. 이벤트 순회 중에는 DB hit 없이 메모리 lookup
     private fun prefetchSubmitContext(userId: UUID, events: List<LearningAnswerEvent>): SubmitContext {
         val glossaryIds = events.mapTo(mutableSetOf()) { it.glossaryId }
         val termIds = events.mapTo(mutableSetOf()) { it.termId }

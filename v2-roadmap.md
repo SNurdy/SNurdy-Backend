@@ -31,6 +31,7 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | done |
 | 2.8 | 테스트 분리 | 학습/테스트 phase 분리, 7종 testType, 시작/제출 endpoint | 2.4, 2.5 | done |
 | 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
+| 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/test-results 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | spec 완료, 구현 대기 |
 
 ---
 
@@ -195,6 +196,29 @@ SuccessCode/ErrorCode:
 
 ---
 
+### 2.10 학습/테스트 기능 확장 — spec 완료, 구현 대기
+
+상세 명세: `v2-phase-2.10-spec.md`
+
+Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제출 흐름을 기본 단어장에서 커스텀노트, 오답노트로 확장.
+
+정통 REST sub-resource 패턴 채택 — Phase 2.8 의 `POST /v2/cards`, `/v2/test/distractors`, `/v2/test/submit` 단일 endpoint 가 noteType polymorphic body 로 분기되는 RPC 스타일을 폐기하고, 노트 타입별 URL 분리. 기본 단어장도 새 URL 로 이전.
+
+구현 예정 endpoint (12개):
+- 기본 단어장: `POST /v2/glossaries/{glossaryId}/cards|distractors|test-results`
+- 커스텀노트: `POST /v2/custom-notes/{customNoteId}/cards|distractors|test-results`
+- 오답노트 (기간): `POST /v2/wrong-answer-note/by-period/{period}/cards|distractors|test-results`
+- 오답노트 (과): `POST /v2/wrong-answer-note/by-glossary/{glossaryId}/cards|distractors|test-results`
+
+핵심 정책:
+- SRS 갱신은 기본 단어장만, 커스텀/오답 제외
+- streak / DailyProgress / totalLearningTerms 는 모든 노트 타입 갱신 (학습 활동 인정)
+- 커스텀/오답 테스트의 levelUp / progressRate / levelBefore 는 항상 null 또는 0
+- 오답노트 졸업 없음 (정답 처리해도 wrong_answer_terms 유지)
+- distractors 출처: 기본 단어장은 같은 glossary 우선, 커스텀은 같은 customNote 우선, 오답은 각 단어의 sourceGlossaryId 기준 같은 과 우선
+
+---
+
 ## 진행 체크리스트
 
 각 단계 시작 시 `todo` -> `in-progress`, 끝나면 `done` 으로 위 표 상태 갱신.
@@ -268,3 +292,9 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 테스트 코드 prefix | TEST_* (이전 LEARNING_S020/E020 등 미배포 폐기) |
 | 학습 카드 코드 prefix | CARD_* |
 | Jackson non_null | 글로벌 제거. null 필드도 응답에 명시적으로 노출 (응답 스키마 일관성 우선) |
+| 학습/테스트 확장 URL 전략 | 정통 REST sub-resource 패턴 (Phase 2.10). noteType polymorphic body 폐기, 12개 endpoint 로 분리 |
+| 커스텀/오답 테스트 SRS | 제외. term_progresses / glossary_progresses 갱신 안 함 |
+| 커스텀/오답 테스트 streak / DailyProgress / totalLearningTerms | 갱신 (학습 활동 인정) |
+| 커스텀/오답 levelUp | 의미 없음, 항상 null |
+| 오답노트 졸업 정책 | 없음. 정답 처리해도 wrong_answer_terms 유지 (수동 삭제만) |
+| 오답노트 진입 방식 | by-period 또는 by-glossary 필터 필수 (양자택일, path 로 분리) |

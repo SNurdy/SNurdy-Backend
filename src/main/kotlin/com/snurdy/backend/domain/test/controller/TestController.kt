@@ -1,11 +1,9 @@
 package com.snurdy.backend.domain.test.controller
 
-import com.snurdy.backend.domain.test.dto.StartTestRequest
-import com.snurdy.backend.domain.test.dto.StartTestResponse
 import com.snurdy.backend.domain.test.dto.SubmitTestRequest
 import com.snurdy.backend.domain.test.dto.SubmitTestResponse
 import com.snurdy.backend.domain.test.service.TestService
-import com.snurdy.backend.global.constants.LearningSuccess
+import com.snurdy.backend.global.constants.TestSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -15,21 +13,12 @@ class TestController(
     private val testService: TestService
 ) : TestApi {
 
-    override fun startTest(
-        userId: UUID,
-        request: StartTestRequest
-    ): ApiResponse<StartTestResponse> =
-        ApiResponse.success(
-            LearningSuccess.START_TEST,
-            testService.startTest(userId, request)
-        )
-
     override fun submitTest(
         userId: UUID,
         request: SubmitTestRequest
     ): ApiResponse<SubmitTestResponse> =
         ApiResponse.success(
-            LearningSuccess.SUBMIT_TEST,
+            TestSuccess.SUBMIT_TEST,
             testService.submitTest(userId, request)
         )
 }

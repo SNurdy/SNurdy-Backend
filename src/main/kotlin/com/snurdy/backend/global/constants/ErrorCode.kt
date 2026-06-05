@@ -85,15 +85,6 @@ enum class UserError(
     DASHBOARD_GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_E020", "해당 과를 찾을 수 없습니다")
 }
 
-enum class LearningError(
-    override val status: HttpStatus,
-    override val code: String,
-    override val message: String
-) : ErrorCode {
-    TEST_TYPE_NOT_AVAILABLE(HttpStatus.BAD_REQUEST, "LEARNING_E020", "단어장이 해당 테스트 유형의 출제 조건을 충족하지 않습니다"),
-    TEST_RESULT_INVALID(HttpStatus.BAD_REQUEST, "LEARNING_E021", "테스트 결과가 유효하지 않습니다")
-}
-
 enum class TestError(
     override val status: HttpStatus,
     override val code: String,

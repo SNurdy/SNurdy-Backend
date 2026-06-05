@@ -11,8 +11,9 @@ import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.DictionarySuccess
 import com.snurdy.backend.global.constants.ErrorCode
-import com.snurdy.backend.global.constants.LearningError
-import com.snurdy.backend.global.constants.LearningSuccess
+import com.snurdy.backend.global.constants.CardSuccess
+import com.snurdy.backend.global.constants.TestError
+import com.snurdy.backend.global.constants.TestSuccess
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
 import com.snurdy.backend.global.constants.CustomNoteError
@@ -36,7 +37,7 @@ object ApiCodeRegistry {
             CommonError.entries,
             AuthError.entries,
             UserError.entries,
-            LearningError.entries,
+            TestError.entries,
             MigrationError.entries,
             DictionaryError.entries,
             CustomNoteError.entries,
@@ -56,7 +57,8 @@ object ApiCodeRegistry {
             AuthSuccess.entries,
             UserSuccess.entries,
             BookmarkSuccess.entries,
-            LearningSuccess.entries,
+            CardSuccess.entries,
+            TestSuccess.entries,
             CalendarSuccess.entries,
             DictionarySuccess.entries,
             CustomNoteSuccess.entries,

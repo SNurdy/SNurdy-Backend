@@ -156,7 +156,7 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 구현된 endpoint:
 - `PUT /v2/users/me/preferences/test-type` — 사용자 기본 테스트 유형 변경
 - `POST /v2/cards` — 학습 카드 조회 (NEW 우선 + RAND 단일 SQL, requireAbbreviation 자동 매핑)
-- `POST /v2/test/distractors` — 다지선다 보기 생성 (MC_* testType 일 때만 호출, distractors 3개)
+- `POST /v2/test/distractors` — 다지선다 오답 생성 (MC_* testType 일 때만 호출, distractors 3개)
 - `POST /v2/test/submit` — 테스트 결과 일괄 제출 (응답에 progressRate before/after + levelUp)
 
 도메인 패키지:

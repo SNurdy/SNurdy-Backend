@@ -80,7 +80,7 @@ enum class TestSuccess(
     override val code: String,
     override val message: String
 ) : SuccessCode {
-    LIST_DISTRACTORS(HttpStatus.OK, "TEST_S001", "다지선다 보기를 생성했습니다"),
+    LIST_DISTRACTORS(HttpStatus.OK, "TEST_S001", "다지선다 오답을 생성했습니다"),
     SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다")
 }
 

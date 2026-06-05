@@ -79,7 +79,7 @@ class MigrationUploadService(
         }
 
         return try {
-            if (hasExistingLearningData(userId)) {
+            if (hasExistingProgressData(userId)) {
                 throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
             }
 
@@ -254,7 +254,7 @@ class MigrationUploadService(
         user.replaceSummaryFromMigration(
             currentStreakValue = payload.currentStreak,
             longestStreakValue = payload.longestStreak,
-            totalLearning = payload.totalLearningTerms
+            totalLearningTerms = payload.totalLearningTerms
         )
     }
 
@@ -305,7 +305,7 @@ class MigrationUploadService(
             .toBigDecimal()
             .setScale(2, RoundingMode.HALF_UP)
 
-    private fun hasExistingLearningData(userId: UUID): Boolean =
+    private fun hasExistingProgressData(userId: UUID): Boolean =
         termProgressRepository.existsByUserId(userId) ||
             glossaryProgressRepository.existsByUserId(userId) ||
             bookmarkRepository.existsByIdUserId(userId) ||

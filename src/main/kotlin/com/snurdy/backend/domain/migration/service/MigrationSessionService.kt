@@ -57,7 +57,7 @@ class MigrationSessionService(
             return MigrationStartResponse(migrationId = existing.id.toString())
         }
 
-        if (hasExistingLearningData(userId)) {
+        if (hasExistingProgressData(userId)) {
             throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
         }
 
@@ -161,7 +161,7 @@ class MigrationSessionService(
     internal fun findUser(userId: UUID): UserEntity =
         userRepository.findByIdOrNull(userId) ?: throw ApiException(UserError.NOT_FOUND)
 
-    private fun hasExistingLearningData(userId: UUID): Boolean =
+    private fun hasExistingProgressData(userId: UUID): Boolean =
         termProgressRepository.existsByUserId(userId) ||
             glossaryProgressRepository.existsByUserId(userId) ||
             bookmarkRepository.existsByIdUserId(userId) ||

@@ -154,42 +154,6 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     )
     fun findGlossariesByTermIds(@Param("termIds") termIds: List<Long>): List<BulkTermGlossaryProjection>
 
-    /**
-     * 사용자가 아직 학습하지 않은(=progress 없거나 status=NEW) 용어 카드를 DB 단에서 필터·LIMIT.
-     * getNextTerms 의 메모리 폭발 회피용.
-     */
-    @Query(
-        value = """
-        SELECT t.id AS termId,
-               t.spelling AS spelling,
-               t.meaning AS meaning,
-               t.abbreviation AS abbreviation,
-               (CASE WHEN EXISTS (
-                   SELECT 1 FROM bookmarks b
-                   WHERE b.user_id = :userId
-                     AND b.glossary_id = :glossaryId
-                     AND b.term_id = t.id
-               ) THEN 1 ELSE 0 END) AS bookmarked
-        FROM glossary_terms gt
-        JOIN terms t ON t.id = gt.term_id
-        LEFT JOIN term_progresses tp
-               ON tp.user_id = :userId
-              AND tp.glossary_id = :glossaryId
-              AND tp.term_id = t.id
-        WHERE gt.glossary_id = :glossaryId
-          AND t.deleted_at IS NULL
-          AND (tp.status IS NULL OR tp.status = 'NEW')
-        ORDER BY t.id
-        LIMIT :size
-        """,
-        nativeQuery = true
-    )
-    fun findNewLearningCards(
-        @Param("userId") userId: UUID,
-        @Param("glossaryId") glossaryId: Long,
-        @Param("size") size: Int
-    ): List<NewLearningCardProjection>
-
 }
 
 interface SimpleTermProjection {
@@ -197,14 +161,6 @@ interface SimpleTermProjection {
     val spelling: String
     val meaning: String
     val abbreviation: String?
-}
-
-interface NewLearningCardProjection {
-    val termId: Long
-    val spelling: String
-    val meaning: String
-    val abbreviation: String?
-    val bookmarked: Int
 }
 
 interface BulkTermGlossaryProjection {

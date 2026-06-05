@@ -111,13 +111,13 @@ class UserEntity(
         longestStreak = maxOf(longestStreak, currentStreak)
     }
 
-    /** 마이그레이션 시 요약 지표를 덮어쓴다. */
-    fun replaceSummaryFromMigration(currentStreakValue: Int, longestStreakValue: Int, totalLearning: Int) {
+    // 마이그레이션 시 요약 지표를 덮어쓴다
+    fun replaceSummaryFromMigration(currentStreakValue: Int, longestStreakValue: Int, totalLearningTerms: Int) {
         val normalizedCurrent = currentStreakValue.coerceAtLeast(0)
         val normalizedLongest = longestStreakValue.coerceAtLeast(0)
         currentStreak = normalizedCurrent
         longestStreak = maxOf(normalizedLongest, normalizedCurrent)
-        totalLearningTerms = totalLearning.coerceAtLeast(0)
+        this.totalLearningTerms = totalLearningTerms.coerceAtLeast(0)
     }
 
     companion object {

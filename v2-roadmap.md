@@ -29,7 +29,7 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 2.5 | 오답노트 | 기간별/과별 조회, 다중 해제 | Phase 1.2 | done |
 | 2.6 | 단어 카드 메모 | upsert/조회/삭제 | Phase 1.4 | done |
 | 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | done |
-| 2.8 | 테스트 분리 | 단어장 종류별 submit | 2.4, 2.5 | 보류 (재검토) |
+| 2.8 | 테스트 분리 | 학습/테스트 phase 분리, 7종 testType, 시작/제출 endpoint | 2.4, 2.5 | done |
 | 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
 
 ---
@@ -147,17 +147,43 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 ---
 
-### 2.8 테스트 분리 — 보류 (재검토)
+### 2.8 학습/테스트 분리 — done
 
-당초 계획: 단어장 종류별로 별도 submit endpoint.
+상세 명세: `v2-phase-2.8-spec.md`
 
-현재 상태: 기존 `POST /v1/learning/submit` 이 모든 단어장 종류 처리. 오답 발생 시 `WrongAnswerNoteService.recordIncorrect` 자동 호출. 단어장 종류별 분기가 service 안에 이미 흡수됨.
+학습 flow 를 카드 phase (인지 학습) 와 테스트 phase (정오 평가) 로 분리. card / test / progress 3개 도메인 패키지로 책임 분담. 디자인 PNG 의 "테스트를 완료해야 오늘의 학습 진도가 반영돼요" 카피와 일관.
 
-본 단계의 실제 가치 재검토 필요:
-- 별도 endpoint 분리가 클라이언트에 명확성을 주는가 vs 통합이 단순한가
-- 현재 통합 흐름이 정상 작동 중이라 추가 가치 불확실
+구현된 endpoint:
+- `PUT /v2/users/me/preferences/test-type` — 사용자 기본 테스트 유형 변경
+- `POST /v2/cards` — 학습 카드 조회 (NEW 우선 + RAND 단일 SQL, requireAbbreviation 자동 매핑)
+- `POST /v2/test/distractors` — 다지선다 보기 조회 (MC_* testType 일 때만 호출, distractors 3개)
+- `POST /v2/test/submit` — 테스트 결과 일괄 제출 (응답에 progressRate before/after + levelUp)
 
-결정: 추가 요구사항 발생 전까지 보류.
+도메인 패키지:
+- `domain/card/` — 학습 카드 조회 책임
+- `domain/test/` — 다지선다 보기 + 테스트 제출 책임
+- `domain/progress/` — SRS / TermProgress / GlossaryProgress / DailyProgress (이전 learning 패키지 rename)
+  - `ProgressUpdateService.updateProgress` — test 가 submit 시 위임 호출
+  - `ProgressBatchCache` — events batch prefetch 캐시 (N+1 회피)
+  - `SrsCalculator` — SM-2 변형 알고리즘
+
+핵심 설계:
+- TestType enum 7종 (TERM_TO_MEANING, MEANING_TO_TERM, LISTEN_AND_WRITE, WRITE_ABBREVIATION, MC_PICK_TERM, MC_PICK_MEANING, MC_PICK_ABBR)
+- 카드/테스트 단어 일치는 client 책임 (cards 응답 termIds 를 distractors/submit 에 전달)
+- 카드 phase 진행 중 backend 호출 없음 (시작 시 cards 1회만)
+- 테스트 phase 진행 중 backend 호출 없음 (시작 시 distractors 1회만 MC 인 경우)
+- 정오 판정은 클라이언트 책임 (테스트 본문 prompt 와 correctAnswer 모두 클라가 cards 데이터에서 derive)
+- 다지선다 보기는 같은 단어장 우선 + 부족 시 다른 단어장 random 보충, 정답 텍스트와 중복 안 되게 server 가 보장
+- submit 시 SRS/오답노트/streak/totalLearningTerms 갱신은 `ProgressUpdateService.updateProgress` 위임
+- dailyProgress 활성 = 오늘 첫 테스트 완료 (카드 phase 가 호출 없으므로)
+
+UserEntity.defaultTestType 컬럼 추가 (V40). null 이면 다음 진입 시 모달 강제.
+
+SuccessCode/ErrorCode:
+- `USER_S030 UPDATE_DEFAULT_TEST_TYPE`
+- `CARD_S001 LIST_CARDS`
+- `TEST_S001 LIST_DISTRACTORS`, `TEST_S002 SUBMIT_TEST`
+- `TEST_E001 TEST_TYPE_NOT_AVAILABLE`, `TEST_E002 TEST_RESULT_INVALID`
 
 ---
 
@@ -175,7 +201,12 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 
 ### 남은 작업
 
-1. **2.8 테스트 분리** — 보류. 사용자 피드백/디자인 요구 후 재검토
+Phase 2 모든 단계 완료.
+
+후속 검토 항목 (별도 phase):
+- 테스트 정오 판정 서버 측 재검증 (부정행위 방지)
+- SRS due 우선 출제 sampling 알고리즘
+- 자주 틀린 단어 (3회+ 오답, 홈 daily 1) 별도 endpoint
 
 ---
 
@@ -219,3 +250,21 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 단어장별 레벨 산출 | `GlossaryProgressCalculator` (학습률 기반, 저장 컬럼 없음) |
 | DTO 매핑 컨벤션 | Kotlin extension function (`toResponse`/`toEntity`/의미 키워드) |
 | 도메인 아키텍처 | 현재 Spring 표준 layered. DDD-Lite 도입 검토 중 (별도 명세 `ddd-lite-migration-spec.md`) |
+| 학습/테스트 phase 분리 | 카드 phase 는 backend 호출 없음. 진도/streak/totalLearningTerms 갱신은 테스트 submit 시점만 |
+| TestType enum | 7종 분리 (작성형 4 + 다지선다 3 variant). UI 5종 표시 시 클라이언트가 매핑 |
+| 테스트 출제 개수 | 클라이언트가 결정 (학습하기 Home UI), 1 부터 50. 단어 수 부족하면 가능한 만큼만 출제 |
+| 다지선다 보기 출처 | 같은 단어장 우선 + 부족 시 다른 단어장 random 보충 |
+| 테스트 정오 판정 | 클라이언트 책임 (응답에 correctAnswer 동봉). 추후 서버 재검증 도입 가능성 열어둠 |
+| 테스트 sessionId | 도입 안 함 (stateless cards/distractors/submit). 부정행위 방지는 후속 검토 |
+| default test type 저장 | UserEntity 컬럼 (user_preferences 분리 보류) |
+| 도메인 패키지 분리 | `domain/card/` + `domain/test/` + `domain/progress/` 3개로 책임 분담 (learning 패키지는 progress 로 rename) |
+| ProgressUpdateService 책임 | internal API. 호출자가 termId-glossary 매핑 검증 책임, 본 서비스는 user 존재 확인 + SRS/streak/오답노트 갱신만 |
+| ProgressBatchCache | events batch prefetch 캐시 (N+1 회피용). 별도 파일로 추출 |
+| cards 의 testType 노출 | 도메인 누수 임시 허용 (추후 generic filter 로 리팩토링) |
+| 카드 sampling 알고리즘 | NEW 우선 + RAND, 단일 SQL (term_progresses LEFT JOIN) |
+| 다지선다 정답 중복 보장 | server 가 정답 derive 후 distractors 에서 정답 텍스트 제외. 각 문제 단위로만 적용 |
+| 카드/테스트 단어 일치 | client 가 cards termIds 를 distractors/submit 에 전달 (server stateless 유지) |
+| 중도 종료 재진입 | Home 부터 새로 시작. 이전 테스트 없던 일 처리 |
+| 테스트 코드 prefix | TEST_* (이전 LEARNING_S020/E020 등 미배포 폐기) |
+| 학습 카드 코드 prefix | CARD_* |
+| Jackson non_null | 글로벌 유지 (`default-property-inclusion: non_null`). null 필드는 응답에서 자동 제외 |

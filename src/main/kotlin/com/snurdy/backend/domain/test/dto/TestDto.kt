@@ -25,7 +25,10 @@ data class DistractorsRequest(
 
 @Schema(description = "다지선다 보기 생성 응답")
 data class DistractorsResponse(
-    @field:Schema(description = "termId 별 오답 보기 3개. 정답은 클라이언트가 cards 응답에서 derive 해 추가하고 shuffle")
+    @field:Schema(
+        description = "termId 별 오답 보기 3개. 정답은 클라이언트가 cards 응답에서 derive 해 추가하고 shuffle",
+        example = """{"101":["Hemoglobin","Hematocrit","Erythrocyte"],"302":["Heart Rate","Blood Pressure","Body Temperature"],"183":["Magnetic Resonance Imaging","Computed Tomography","Positron Emission Tomography"]}"""
+    )
     val distractorsByTermId: Map<Long, List<String>>
 )
 

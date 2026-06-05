@@ -62,23 +62,24 @@ data class TestResultItem(
 
 @Schema(description = "테스트 제출 응답")
 data class SubmitTestResponse(
-    @field:Schema(description = "정답 문제 수")
+    @field:Schema(description = "정답 문제 수", example = "25")
     val correctCount: Int,
-    @field:Schema(description = "오답 문제 수")
+    @field:Schema(description = "오답 문제 수", example = "5")
     val incorrectCount: Int,
-    @field:Schema(description = "오늘 첫 테스트로 학습 진도가 반영되었는지 여부")
+    @field:Schema(description = "오늘 첫 테스트로 학습 진도가 반영되었는지 여부", example = "true")
     val todayGoalCompleted: Boolean,
     val glossary: TestGlossarySnapshot
 )
 
 @Schema(description = "테스트 후 단어장 진척률/레벨 스냅샷")
 data class TestGlossarySnapshot(
+    @field:Schema(description = "단어장 id", example = "12")
     val glossaryId: Long,
-    @field:Schema(description = "테스트 전 진척률 0 부터 100")
+    @field:Schema(description = "테스트 전 진척률 0 부터 100", example = "80.0")
     val progressRateBefore: Double,
-    @field:Schema(description = "테스트 후 진척률 0 부터 100")
+    @field:Schema(description = "테스트 후 진척률 0 부터 100", example = "85.0")
     val progressRateAfter: Double,
-    @field:Schema(description = "테스트 전 레벨 1 부터 5")
+    @field:Schema(description = "테스트 전 레벨 1 부터 5", example = "4")
     val levelBefore: Int,
     @field:Schema(description = "이번 테스트로 레벨이 상승했을 때만 채워짐, 변화 없으면 응답에서 키 제외")
     val levelUp: LevelUpEvent?
@@ -86,6 +87,8 @@ data class TestGlossarySnapshot(
 
 @Schema(description = "단어장 레벨 상승 이벤트")
 data class LevelUpEvent(
+    @field:Schema(description = "상승 전 레벨", example = "4")
     val from: Int,
+    @field:Schema(description = "상승 후 레벨", example = "5")
     val to: Int
 )

@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.dashboard.dto
 
+import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.DayOfWeek
 import java.time.Instant
@@ -38,7 +39,12 @@ data class DashboardSelectedGlossary(
     val progressRate: Double,
     @field:Schema(description = "1 부터 5 까지 다마고치 레벨", example = "5")
     val level: Int,
-    val lastLearnedAt: Instant?
+    val lastLearnedAt: Instant?,
+    @field:Schema(
+        description = "테스트하기 단어 수 selector 의 최대치로 사용. testType 별 가용 단어 수. " +
+            "WRITE_ABBREVIATION / MC_PICK_ABBR 은 abbreviation 보유 단어 수, 나머지는 전체 단어 수"
+    )
+    val availableCounts: Map<TestType, Int>
 )
 
 @Schema(description = "7일치 막대 그래프 데이터")

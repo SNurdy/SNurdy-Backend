@@ -189,6 +189,21 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     )
     fun findGlossariesByTermIds(@Param("termIds") termIds: List<Long>): List<BulkTermGlossaryProjection>
 
+    // 테스트 가용 단어 수 집계 — totalCount + abbreviationCount 한 SELECT 로
+    // dashboard selectedGlossary 의 availableCounts 매핑 입력
+    @Query(
+        value = """
+        SELECT COUNT(*) AS totalCount,
+               SUM(CASE WHEN t.abbreviation IS NOT NULL AND t.abbreviation <> '' THEN 1 ELSE 0 END) AS abbreviationCount
+          FROM glossary_terms gt
+          JOIN terms t ON t.id = gt.term_id
+         WHERE gt.glossary_id = :glossaryId
+           AND t.deleted_at IS NULL
+        """,
+        nativeQuery = true
+    )
+    fun countAvailableTerms(@Param("glossaryId") glossaryId: Long): GlossaryAvailableCountProjection
+
 }
 
 interface SimpleTermProjection {
@@ -224,4 +239,9 @@ interface TermGlossaryProjection {
     val glossaryId: Long
     val category: String
     val title: String
+}
+
+interface GlossaryAvailableCountProjection {
+    val totalCount: Long
+    val abbreviationCount: Long
 }

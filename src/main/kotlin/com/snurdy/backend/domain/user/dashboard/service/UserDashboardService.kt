@@ -1,8 +1,11 @@
 package com.snurdy.backend.domain.user.dashboard.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryAvailableCountProjection
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
+import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.repository.TermProgressRepository
@@ -36,6 +39,7 @@ class UserDashboardService(
     private val userStreakService: UserStreakService,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val glossaryRepository: GlossaryRepository,
+    private val glossaryTermRepository: GlossaryTermRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val termProgressRepository: TermProgressRepository,
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
@@ -161,6 +165,7 @@ class UserDashboardService(
             ?: return null
 
         val progressRate = GlossaryProgressCalculator.progressRate(latestProgress.learnedCount, meta.termCount)
+        val availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
         return DashboardSelectedGlossary(
             glossaryId = meta.glossaryId,
             category = meta.category,
@@ -169,8 +174,22 @@ class UserDashboardService(
             totalTermCount = meta.termCount,
             progressRate = progressRate,
             level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            lastLearnedAt = latestProgress.lastLearnedAt
+            lastLearnedAt = latestProgress.lastLearnedAt,
+            availableCounts = availableCounts
         )
+    }
+
+    // testType 별 가용 단어 수 매핑
+    // abbreviation 계열 테스트는 abbreviation 보유 단어 수, 그 외는 전체 단어 수
+    private fun buildAvailableCounts(counts: GlossaryAvailableCountProjection): Map<TestType, Int> {
+        val total = counts.totalCount.toInt()
+        val abbreviation = counts.abbreviationCount.toInt()
+        return TestType.values().associateWith { type ->
+            when (type) {
+                TestType.WRITE_ABBREVIATION, TestType.MC_PICK_ABBR -> abbreviation
+                else -> total
+            }
+        }
     }
 
     // 7일치 데이터 빌드. 학습 안 한 날은 0 으로 채워 항상 7개 반환

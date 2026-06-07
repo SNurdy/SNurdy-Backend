@@ -31,7 +31,7 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | done |
 | 2.8 | 테스트 분리 | 학습/테스트 phase 분리, 7종 testType, 시작/제출 endpoint | 2.4, 2.5 | done |
 | 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
-| 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/test-results 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | spec 완료, 구현 대기 |
+| 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/submit 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | spec 완료, 구현 대기 |
 
 ---
 
@@ -202,20 +202,21 @@ SuccessCode/ErrorCode:
 
 Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제출 흐름을 기본 단어장에서 커스텀노트, 오답노트로 확장.
 
-정통 REST sub-resource 패턴 채택 — Phase 2.8 의 `POST /v2/cards`, `/v2/test/distractors`, `/v2/test/submit` 단일 endpoint 가 noteType polymorphic body 로 분기되는 RPC 스타일을 폐기하고, 노트 타입별 URL 분리. 기본 단어장도 새 URL 로 이전.
+정통 REST sub-resource 패턴 채택 — Phase 2.8 의 `POST /v2/cards`, `/v2/test/distractors`, `/v2/test/submit` 단일 endpoint 가 noteType polymorphic body 로 분기되는 RPC 스타일을 폐기하고, 노트 타입별 URL 분리. 기본 단어장도 새 URL 로 이전. 커스텀노트 도메인은 URL 을 singular 로 통일 (`/v2/custom-notes` → `/v2/custom-note`, breaking).
 
 구현 예정 endpoint (12개):
-- 기본 단어장: `POST /v2/glossaries/{glossaryId}/cards|distractors|test-results`
-- 커스텀노트: `POST /v2/custom-notes/{customNoteId}/cards|distractors|test-results`
-- 오답노트 (기간): `POST /v2/wrong-answer-note/by-period/{period}/cards|distractors|test-results`
-- 오답노트 (과): `POST /v2/wrong-answer-note/by-glossary/{glossaryId}/cards|distractors|test-results`
+- 기본 단어장: `POST /v2/glossaries/{glossaryId}/cards|distractors|submit`
+- 커스텀노트: `POST /v2/custom-note/{customNoteId}/cards|distractors|submit`
+- 오답노트 (기간): `POST /v2/wrong-answer-note/by-period/{period}/cards|distractors|submit`
+- 오답노트 (과): `POST /v2/wrong-answer-note/by-glossary/{glossaryId}/cards|distractors|submit`
 
 핵심 정책:
-- SRS 갱신은 기본 단어장만, 커스텀/오답 제외
-- streak / DailyProgress / totalLearningTerms 는 모든 노트 타입 갱신 (학습 활동 인정)
-- 커스텀/오답 테스트의 levelUp / progressRate / levelBefore 는 항상 null 또는 0
-- 오답노트 졸업 없음 (정답 처리해도 wrong_answer_terms 유지)
+- 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) 은 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 전반에 반영 X (방식 B 채택)
+- 오답 자동 기록 (WrongAnswerTerm) 은 4종 모두 갱신. 진도와 별개 트랙. 커스텀노트는 sourceGlossaryId = null (기획 의도, 사용자가 과 선택 불가)
+- 응답 DTO 분리 — 기본 단어장은 `SubmitGlossaryTestResponse` (todayGoalCompleted, glossary 진척 포함), 커스텀/오답은 `SubmitNoteTestResponse` (correctCount, incorrectCount, recordedIncorrectCount)
+- 오답노트 졸업 없음 (정답 처리해도 wrong_answer_terms 유지, totalIncorrectCount += 1 만)
 - distractors 출처: 기본 단어장은 같은 glossary 우선, 커스텀은 같은 customNote 우선, 오답은 각 단어의 sourceGlossaryId 기준 같은 과 우선
+- cards 단어 부족 정책 (방식 B): 4종 공통 — count > available 시 `TEST_E001`. 클라이언트가 사전에 단어장/노트 상세 응답의 `availableCounts` 로 출제 개수 selector max 결정
 
 ---
 
@@ -276,7 +277,7 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 도메인 아키텍처 | 현재 Spring 표준 layered. DDD-Lite 도입 검토 중 (별도 명세 `ddd-lite-migration-spec.md`) |
 | 학습/테스트 phase 분리 | 카드 phase 는 backend 호출 없음. 진도/streak/totalLearningTerms 갱신은 테스트 submit 시점만 |
 | TestType enum | 7종 분리 (작성형 4 + 다지선다 3 variant). UI 5종 표시 시 클라이언트가 매핑 |
-| 테스트 출제 개수 | 클라이언트가 결정 (학습하기 Home UI), 1 부터 50. 단어 수 부족하면 가능한 만큼만 출제 |
+| 테스트 출제 개수 | 클라이언트가 결정 (학습하기 Home UI), 1 부터 50. 부족 케이스 처리는 Phase 2.10 에서 방식 B 로 변경 — 클라이언트가 가용 단어 수 이하로 사전 제한, 서버는 count > available 시 `TEST_E001` |
 | 다지선다 보기 출처 | 같은 단어장 우선 + 부족 시 다른 단어장 random 보충 |
 | 테스트 정오 판정 | 클라이언트 책임 (응답에 correctAnswer 동봉). 추후 서버 재검증 도입 가능성 열어둠 |
 | 테스트 sessionId | 도입 안 함 (stateless cards/distractors/submit). 부정행위 방지는 후속 검토 |
@@ -293,8 +294,13 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 학습 카드 코드 prefix | CARD_* |
 | Jackson non_null | 글로벌 제거. null 필드도 응답에 명시적으로 노출 (응답 스키마 일관성 우선) |
 | 학습/테스트 확장 URL 전략 | 정통 REST sub-resource 패턴 (Phase 2.10). noteType polymorphic body 폐기, 12개 endpoint 로 분리 |
-| 커스텀/오답 테스트 SRS | 제외. term_progresses / glossary_progresses 갱신 안 함 |
-| 커스텀/오답 테스트 streak / DailyProgress / totalLearningTerms | 갱신 (학습 활동 인정) |
-| 커스텀/오답 levelUp | 의미 없음, 항상 null |
-| 오답노트 졸업 정책 | 없음. 정답 처리해도 wrong_answer_terms 유지 (수동 삭제만) |
+| 학습/테스트 확장 URL 동사 | submit 유지 (test-results 폐기). cards/distractors 는 명사 |
+| 학습/테스트 확장 URL 단/복수 | 커스텀노트 도메인 전체 singular 통일 (`/v2/custom-note`). 오답노트는 기존 singular 유지 |
+| 커스텀/오답 테스트 진도 트래킹 | 전반 제외 (방식 B). SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak 모두 갱신 안 함 |
+| 커스텀/오답 테스트 오답 자동 기록 | 4종 모두 갱신 (진도와 별개 트랙). 커스텀노트는 sourceGlossaryId = null |
+| 커스텀/오답 응답 DTO | 기본 단어장과 분리 — `SubmitGlossaryTestResponse` / `SubmitNoteTestResponse` |
+| 카드 단어 부족 정책 | 4종 공통 방식 B. count > available 시 `TEST_E001`. 가능한 만큼만 반환 정책 폐기 |
+| 가용 단어 수 노출 | 단어장/노트 상세 응답에 `availableCounts` 필드 추가, testType 별 카운트 |
+| ProgressUpdateService 메서드 | `updateProgressWithSrs` 1개만 유지. 커스텀/오답은 호출 안 함 |
+| 오답노트 졸업 정책 | 없음. 정답 처리해도 wrong_answer_terms 유지 (수동 삭제만), totalIncorrectCount 만 += 1 |
 | 오답노트 진입 방식 | by-period 또는 by-glossary 필터 필수 (양자택일, path 로 분리) |

@@ -1,7 +1,5 @@
 package com.snurdy.backend.domain.test.controller
 
-import com.snurdy.backend.domain.test.dto.DistractorsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitTestRequest
 import com.snurdy.backend.domain.test.dto.SubmitTestResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
@@ -19,15 +17,6 @@ import java.util.UUID
 @Tag(name = "Test", description = "v2 테스트 API")
 @RequestMapping("/v2/test")
 interface TestApi {
-
-    @Operation(summary = "다지선다 오답 생성")
-    @ApiSuccessCode("TEST_S001")
-    @ApiErrorCodes("DICTIONARY_E001", "TEST_E001", "TEST_E002")
-    @PostMapping("/distractors")
-    fun listDistractors(
-        @CurrentUserId userId: UUID,
-        @RequestBody @Valid request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse>
 
     @Operation(summary = "테스트 결과 일괄 제출")
     @ApiSuccessCode("TEST_S002")

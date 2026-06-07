@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.customNote.repository
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermEntity
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermId
 import org.springframework.data.domain.Page
@@ -111,13 +112,9 @@ interface CustomNoteTermProjection {
 }
 
 // 카드 sampling projection (glossaryId 포함). 커스텀노트와 오답노트 공용
-interface NoteCardTermProjection {
-    val termId: Long
+// SimpleTermProjection 상속해 distractor helper 의 입력 풀로도 재활용 가능
+interface NoteCardTermProjection : SimpleTermProjection {
     val glossaryId: Long
-    val spelling: String
-    val meaning: String
-    val abbreviation: String?
-    val explanation: String?
 }
 
 interface NoteTermCountProjection {

@@ -10,11 +10,6 @@ import jakarta.validation.constraints.Positive
 @Schema(description = "다지선다 오답 생성 요청")
 data class DistractorsRequest(
     @field:NotNull
-    @field:Positive
-    @field:Schema(description = "대상 단어장 id", example = "12")
-    val glossaryId: Long,
-
-    @field:NotNull
     @field:Schema(description = "테스트 유형, MC_PICK_TERM / MC_PICK_MEANING / MC_PICK_ABBR 만 허용", example = "MC_PICK_TERM")
     val testType: TestType,
 

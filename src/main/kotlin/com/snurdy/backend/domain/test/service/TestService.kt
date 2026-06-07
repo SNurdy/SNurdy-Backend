@@ -18,6 +18,10 @@ import com.snurdy.backend.domain.test.dto.SubmitTestRequest
 import com.snurdy.backend.domain.test.dto.SubmitTestResponse
 import com.snurdy.backend.domain.test.dto.TestGlossarySnapshot
 import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
+import com.snurdy.backend.domain.user.customNote.service.CustomNoteService
+import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
@@ -25,7 +29,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.util.UUID
 
 @Service
@@ -36,30 +39,92 @@ class TestService(
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val progressUpdateService: ProgressUpdateService,
+    private val customNoteService: CustomNoteService,
+    private val customNoteTermRepository: CustomNoteTermRepository,
+    private val wrongAnswerTermRepository: WrongAnswerTermRepository,
     private val clock: Clock
 ) {
 
+    // POST /v2/test/glossaries/{glossaryId}/distractors
     @Transactional(readOnly = true)
-    fun listDistractors(userId: UUID, request: DistractorsRequest): DistractorsResponse {
-        if (!request.testType.isMultipleChoice()) {
-            throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-        }
-        if (!glossaryRepository.existsById(request.glossaryId)) {
+    fun listGlossaryDistractors(
+        userId: UUID,
+        glossaryId: Long,
+        request: DistractorsRequest
+    ): DistractorsResponse {
+        validateMultipleChoice(request.testType)
+        if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
+        val pool = glossaryTermRepository.findAllSimpleTermsByGlossaryId(glossaryId)
+        return buildDistractorsResponse(request.testType, request.termIds, pool)
+    }
 
-        val glossaryTerms = glossaryTermRepository.findAllSimpleTermsByGlossaryId(request.glossaryId)
-        val termById = glossaryTerms.associateBy { it.termId }
+    // POST /v2/test/custom-notes/{customNoteId}/distractors
+    @Transactional(readOnly = true)
+    fun listCustomNoteDistractors(
+        userId: UUID,
+        customNoteId: Long,
+        request: DistractorsRequest
+    ): DistractorsResponse {
+        validateMultipleChoice(request.testType)
+        customNoteService.requireNoteOwnership(userId, customNoteId)
+        val pool: List<SimpleTermProjection> = customNoteTermRepository
+            .findCardTermsByNoteId(noteId = customNoteId, requireAbbreviation = false)
+        return buildDistractorsResponse(request.testType, request.termIds, pool)
+    }
+
+    // POST /v2/test/wrong-answer-notes/by-period/{period}/distractors
+    // POST /v2/test/wrong-answer-notes/by-glossary/{glossaryId}/distractors
+    // 두 endpoint 가 같은 흐름. termId 별 glossaryId 매핑 후 그 단어장의 다른 단어로 distractor 생성
+    @Transactional(readOnly = true)
+    fun listWrongAnswerDistractors(userId: UUID, request: DistractorsRequest): DistractorsResponse {
+        validateMultipleChoice(request.testType)
+
+        val distinctTermIds = request.termIds.distinct()
+        val termGlossaryMap = wrongAnswerTermRepository
+            .findGlossaryIdsByUserAndTermIds(userId, distinctTermIds)
+            .associate { it.termId to it.glossaryId }
+        if (termGlossaryMap.size != distinctTermIds.size) {
+            throw ApiException(TestError.TEST_RESULT_INVALID)
+        }
+
+        val glossaryIds = termGlossaryMap.values.toSet()
+        val poolByGlossaryId = glossaryIds.associateWith {
+            glossaryTermRepository.findAllSimpleTermsByGlossaryId(it)
+        }
 
         val distractorsMap = request.termIds.associateWith { termId ->
-            val target = termById[termId]
+            val glossaryId = termGlossaryMap[termId]!!
+            val pool = poolByGlossaryId[glossaryId].orEmpty()
+            val target = pool.firstOrNull { it.termId == termId }
                 ?: throw ApiException(TestError.TEST_RESULT_INVALID)
             val correctAnswer = deriveCorrectAnswer(target, request.testType)
                 ?: throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-            buildDistractors(target, correctAnswer, request.testType, glossaryTerms)
+            buildDistractors(target, correctAnswer, request.testType, pool)
         }
-
         return DistractorsResponse(distractorsByTermId = distractorsMap)
+    }
+
+    // termIds 가 동일 컨텍스트 (1차 풀) 안에 있을 때 공용 처리
+    private fun buildDistractorsResponse(
+        testType: TestType,
+        termIds: List<Long>,
+        pool: List<SimpleTermProjection>
+    ): DistractorsResponse {
+        val termById = pool.associateBy { it.termId }
+        val distractorsMap = termIds.associateWith { termId ->
+            val target = termById[termId]
+                ?: throw ApiException(TestError.TEST_RESULT_INVALID)
+            val correctAnswer = deriveCorrectAnswer(target, testType)
+                ?: throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+            buildDistractors(target, correctAnswer, testType, pool)
+        }
+        return DistractorsResponse(distractorsByTermId = distractorsMap)
+    }
+
+    private fun validateMultipleChoice(testType: TestType) {
+        if (!testType.isMultipleChoice()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
     }
 
     private fun deriveCorrectAnswer(target: SimpleTermProjection, type: TestType): String? = when (type) {
@@ -69,15 +134,14 @@ class TestService(
         else -> null
     }
 
-    // 같은 단어장 우선, 부족하면 다른 단어장 random pool 에서 보충
-    // 정답 텍스트와 중복되는 후보는 모두 제외 (정답 중복 보장)
+    // 1차 풀 우선, 부족하면 글로벌 random 으로 보충. 정답 텍스트와 중복되는 후보는 제외
     private fun buildDistractors(
         target: SimpleTermProjection,
         correctAnswer: String,
         type: TestType,
-        glossaryPool: List<SimpleTermProjection>
+        primaryPool: List<SimpleTermProjection>
     ): List<String> {
-        val sameGlossary = glossaryPool.asSequence()
+        val fromPrimary = primaryPool.asSequence()
             .filter { it.termId != target.termId }
             .mapNotNull { extractText(it, type) }
             .filter { it != correctAnswer }
@@ -86,11 +150,11 @@ class TestService(
             .take(MULTIPLE_CHOICE_DISTRACTOR_COUNT)
             .toList()
 
-        if (sameGlossary.size >= MULTIPLE_CHOICE_DISTRACTOR_COUNT) return sameGlossary
+        if (fromPrimary.size >= MULTIPLE_CHOICE_DISTRACTOR_COUNT) return fromPrimary
 
-        val needed = MULTIPLE_CHOICE_DISTRACTOR_COUNT - sameGlossary.size
-        val taken = (sameGlossary + correctAnswer).toMutableSet()
-        val excludeIds = glossaryPool.mapTo(mutableSetOf()) { it.termId }
+        val needed = MULTIPLE_CHOICE_DISTRACTOR_COUNT - fromPrimary.size
+        val taken = (fromPrimary + correctAnswer).toMutableSet()
+        val excludeIds = primaryPool.mapTo(mutableSetOf()) { it.termId }
         val supplementary = mutableListOf<String>()
         val fetched = termRepository.findRandomDistractorTerms(
             excludeTermIds = excludeIds,
@@ -105,7 +169,7 @@ class TestService(
             if (supplementary.size == needed) break
         }
 
-        val combined = sameGlossary + supplementary
+        val combined = fromPrimary + supplementary
         if (combined.size < MULTIPLE_CHOICE_DISTRACTOR_COUNT) {
             throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
         }

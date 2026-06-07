@@ -18,6 +18,12 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         termIds: Collection<Long>
     ): List<WrongAnswerTermEntity>
 
+    // soft delete 무관 — recordIncorrects 가 deletedAt 상태와 관계 없이 row 찾아 복구
+    fun findAllByIdUserIdAndIdTermIdIn(
+        userId: UUID,
+        termIds: Collection<Long>
+    ): List<WrongAnswerTermEntity>
+
     // 기간별 카드 카운트. after 가 null 이면 ALL
     @Query(
         """

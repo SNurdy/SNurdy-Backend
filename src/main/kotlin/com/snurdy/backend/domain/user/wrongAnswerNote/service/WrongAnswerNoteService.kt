@@ -11,7 +11,6 @@ import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerTermsRespon
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermEntity
-import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
 import com.snurdy.backend.global.constants.DictionaryError
@@ -33,22 +32,45 @@ class WrongAnswerNoteService(
     private val clock: Clock
 ) {
 
-    // 학습 submit 시 오답 1건을 오답노트에 누적 반영. soft delete 상태였다면 복구하면서 누적값은 보존
+    // 기본 단어장 submit 시 오답 batch 누적 반영
+    // 신규 termId 면 INSERT, 기존 row 면 totalIncorrectCount += 1 + incorrectAt 갱신 + soft delete 복구
+    // glossaryId 는 호출자가 결정 (현재 학습 중인 단어장)
     @Transactional
-    fun recordIncorrect(userId: UUID, termId: Long, glossaryId: Long, occurredAt: Instant) {
-        val id = WrongAnswerTermId(userId = userId, termId = termId)
-        val existing = wrongAnswerTermRepository.findByIdOrNull(id)
-        if (existing == null) {
-            wrongAnswerTermRepository.save(
-                WrongAnswerTermEntity.firstIncorrect(
-                    userId = userId,
-                    termId = termId,
-                    glossaryId = glossaryId,
-                    occurredAt = occurredAt
-                )
+    fun recordIncorrects(userId: UUID, termIds: List<Long>, glossaryId: Long, occurredAt: Instant) {
+        if (termIds.isEmpty()) return
+        val distinctTermIds = termIds.distinct()
+
+        val existingByTermId = wrongAnswerTermRepository
+            .findAllByIdUserIdAndIdTermIdIn(userId, distinctTermIds)
+            .associateBy { it.id.termId }
+
+        val newTermIds = distinctTermIds.filter { it !in existingByTermId }
+        if (newTermIds.isNotEmpty()) {
+            wrongAnswerTermRepository.saveAll(
+                newTermIds.map { termId ->
+                    WrongAnswerTermEntity.firstIncorrect(
+                        userId = userId,
+                        termId = termId,
+                        glossaryId = glossaryId,
+                        occurredAt = occurredAt
+                    )
+                }
             )
-        } else {
-            existing.recordIncorrect(glossaryId, occurredAt)
+        }
+        existingByTermId.values.forEach { it.recordIncorrect(glossaryId, occurredAt) }
+    }
+
+    // 오답노트 submit 시 또 틀린 단어들의 누적값만 갱신
+    // 입력 termId 는 이미 wrong_answer_terms 에 있다는 전제 (오답노트 카드 학습 흐름)
+    // 신규 INSERT 안 함. glossaryId 는 기존 row 값 유지 — 처음 틀린 단어장 보존
+    @Transactional
+    fun recordIncorrectsAgain(userId: UUID, termIds: List<Long>, occurredAt: Instant) {
+        if (termIds.isEmpty()) return
+        val rows = wrongAnswerTermRepository
+            .findAllByIdUserIdAndIdTermIdIn(userId, termIds.distinct())
+        rows.forEach { row ->
+            val glossaryId = row.glossaryId ?: return@forEach
+            row.recordIncorrect(glossaryId, occurredAt)
         }
     }
 

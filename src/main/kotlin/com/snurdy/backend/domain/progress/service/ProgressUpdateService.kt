@@ -71,10 +71,13 @@ class ProgressUpdateService(
             val progress = context.getOrCreateProgress(user, event, newProgresses)
             val wasFirstLearned = SrsCalculator.applyAnswer(progress, event, now)
             aggregation.accumulate(event.glossaryId, dailyDate, wasFirstLearned)
-            if (!event.correct) {
-                wrongAnswerNoteService.recordIncorrect(userId, event.termId, event.glossaryId, now)
-            }
         }
+
+        events.filter { !it.correct }
+            .groupBy { it.glossaryId }
+            .forEach { (glossaryId, group) ->
+                wrongAnswerNoteService.recordIncorrects(userId, group.map { it.termId }, glossaryId, now)
+            }
 
         if (newProgresses.isNotEmpty()) {
             termProgressRepository.saveAll(newProgresses)

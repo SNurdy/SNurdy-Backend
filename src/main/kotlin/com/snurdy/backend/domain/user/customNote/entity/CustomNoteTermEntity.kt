@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.customNote.entity
 
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import jakarta.persistence.Column
 import jakarta.persistence.EmbeddedId
@@ -21,6 +22,11 @@ class CustomNoteTermEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "note_id", nullable = false)
     val note: CustomNoteEntity,
+
+    @MapsId("glossaryId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "glossary_id", nullable = false)
+    val glossary: GlossaryEntity,
 
     @MapsId("termId")
     @ManyToOne(fetch = FetchType.LAZY)

@@ -9,6 +9,9 @@ data class CustomNoteTermId(
     @Column(name = "note_id", nullable = false)
     val noteId: Long = 0L,
 
+    @Column(name = "glossary_id", nullable = false)
+    val glossaryId: Long = 0L,
+
     @Column(name = "term_id", nullable = false)
     val termId: Long = 0L
 ) : Serializable

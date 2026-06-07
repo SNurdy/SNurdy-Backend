@@ -1,6 +1,9 @@
 package com.snurdy.backend.domain.user.customNote.service
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
+import com.snurdy.backend.domain.user.customNote.dto.AddTermItem
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
@@ -27,7 +30,9 @@ import java.util.UUID
 class CustomNoteService(
     private val customNoteRepository: CustomNoteRepository,
     private val customNoteTermRepository: CustomNoteTermRepository,
-    private val termRepository: TermRepository
+    private val termRepository: TermRepository,
+    private val glossaryRepository: GlossaryRepository,
+    private val glossaryTermRepository: GlossaryTermRepository
 ) {
 
     @Transactional
@@ -117,46 +122,64 @@ class CustomNoteService(
     }
 
     @Transactional
-    fun addTerms(userId: UUID, noteId: Long, termIds: List<Long>): AddTermsResponse {
+    fun addTerms(userId: UUID, noteId: Long, items: List<AddTermItem>): AddTermsResponse {
         val note = findOwned(userId, noteId)
 
         val currentTermCount = customNoteTermRepository.countByIdNoteId(noteId)
-        if (currentTermCount + termIds.size > MAX_TERMS_PER_NOTE) {
+        if (currentTermCount + items.size > MAX_TERMS_PER_NOTE) {
             throw ApiException(CustomNoteError.TERM_LIMIT_EXCEEDED)
         }
 
-        val distinctTermIds = termIds.distinct()
-        val terms = termRepository.findByIdInAndDeletedAtIsNull(distinctTermIds).associateBy { it.id }
-        if (terms.size != distinctTermIds.size) {
+        val distinctItems = items.distinctBy { it.glossaryId to it.termId }
+
+        val termIds = distinctItems.map { it.termId }.distinct()
+        val terms = termRepository.findByIdInAndDeletedAtIsNull(termIds).associateBy { it.id }
+        if (terms.size != termIds.size) {
             throw ApiException(DictionaryError.TERM_NOT_FOUND)
         }
 
-        val existingTermIds = customNoteTermRepository
-            .findAllByIdNoteIdAndIdTermIdIn(noteId, distinctTermIds)
-            .mapTo(mutableSetOf()) { it.id.termId }
+        val glossaryIds = distinctItems.map { it.glossaryId }.distinct()
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+        if (glossaries.size != glossaryIds.size) {
+            throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
+        }
 
-        val newTermIds = distinctTermIds.filter { it !in existingTermIds }
-        if (newTermIds.isEmpty()) {
+        // (glossaryId, termId) 매핑이 실제 사전에 있는지 확인 — 임의의 쌍 입력 차단
+        val validPairs = glossaryTermRepository
+            .findAllByIdGlossaryIdInAndIdTermIdIn(glossaryIds, termIds)
+            .mapTo(mutableSetOf()) { it.id.glossaryId to it.id.termId }
+        val invalidItems = distinctItems.filter { (it.glossaryId to it.termId) !in validPairs }
+        if (invalidItems.isNotEmpty()) {
+            throw ApiException(DictionaryError.TERM_NOT_FOUND)
+        }
+
+        val existingPairs = customNoteTermRepository
+            .findAllByIdNoteIdAndIdGlossaryIdInAndIdTermIdIn(noteId, glossaryIds, termIds)
+            .mapTo(mutableSetOf()) { it.id.glossaryId to it.id.termId }
+
+        val newItems = distinctItems.filter { (it.glossaryId to it.termId) !in existingPairs }
+        if (newItems.isEmpty()) {
             return AddTermsResponse(
                 added = 0,
-                skipped = distinctTermIds.size,
+                skipped = distinctItems.size,
                 totalTermCount = currentTermCount
             )
         }
 
-        val newEntities = newTermIds.map { termId ->
+        val newEntities = newItems.map { item ->
             CustomNoteTermEntity(
-                id = CustomNoteTermId(noteId = noteId, termId = termId),
+                id = CustomNoteTermId(noteId = noteId, glossaryId = item.glossaryId, termId = item.termId),
                 note = note,
-                term = terms[termId]!!
+                glossary = glossaries[item.glossaryId]!!,
+                term = terms[item.termId]!!
             )
         }
         customNoteTermRepository.saveAll(newEntities)
 
         return AddTermsResponse(
-            added = newTermIds.size,
-            skipped = distinctTermIds.size - newTermIds.size,
-            totalTermCount = currentTermCount + newTermIds.size
+            added = newItems.size,
+            skipped = distinctItems.size - newItems.size,
+            totalTermCount = currentTermCount + newItems.size
         )
     }
 
@@ -178,29 +201,35 @@ class CustomNoteService(
     }
 
     @Transactional
-    fun deleteTerms(userId: UUID, noteId: Long, termIds: List<Long>) {
+    fun deleteTerms(userId: UUID, noteId: Long, items: List<AddTermItem>) {
         findOwned(userId, noteId)
-        val distinctTermIds = termIds.distinct()
+        val distinctItems = items.distinctBy { it.glossaryId to it.termId }
 
-        val existing = customNoteTermRepository
-            .findAllByIdNoteIdAndIdTermIdIn(noteId, distinctTermIds)
-            .mapTo(mutableSetOf()) { it.id.termId }
+        val glossaryIds = distinctItems.map { it.glossaryId }.distinct()
+        val termIds = distinctItems.map { it.termId }.distinct()
+
+        val existingPairs = customNoteTermRepository
+            .findAllByIdNoteIdAndIdGlossaryIdInAndIdTermIdIn(noteId, glossaryIds, termIds)
+            .mapTo(mutableSetOf()) { it.id.glossaryId to it.id.termId }
 
         // 하나라도 없으면 전체 거부 (단일 삭제와 일관)
-        if (existing.size != distinctTermIds.size) {
+        val requested = distinctItems.mapTo(mutableSetOf()) { it.glossaryId to it.termId }
+        if (existingPairs != requested) {
             throw ApiException(CustomNoteError.TERM_NOT_IN_NOTE)
         }
 
-        customNoteTermRepository.deleteAllByIdNoteIdAndIdTermIdIn(noteId, distinctTermIds)
+        distinctItems.forEach { item ->
+            customNoteTermRepository.deleteByIdNoteIdAndIdGlossaryIdAndIdTermId(noteId, item.glossaryId, item.termId)
+        }
     }
 
     @Transactional
-    fun deleteTerm(userId: UUID, noteId: Long, termId: Long) {
+    fun deleteTerm(userId: UUID, noteId: Long, glossaryId: Long, termId: Long) {
         findOwned(userId, noteId)
-        if (!customNoteTermRepository.existsByIdNoteIdAndIdTermId(noteId, termId)) {
+        if (!customNoteTermRepository.existsByIdNoteIdAndIdGlossaryIdAndIdTermId(noteId, glossaryId, termId)) {
             throw ApiException(CustomNoteError.TERM_NOT_IN_NOTE)
         }
-        customNoteTermRepository.deleteByIdNoteIdAndIdTermId(noteId, termId)
+        customNoteTermRepository.deleteByIdNoteIdAndIdGlossaryIdAndIdTermId(noteId, glossaryId, termId)
     }
 
     private fun findOwned(userId: UUID, noteId: Long): CustomNoteEntity {

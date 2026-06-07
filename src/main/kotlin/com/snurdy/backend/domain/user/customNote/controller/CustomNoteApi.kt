@@ -94,13 +94,14 @@ interface CustomNoteApi {
         @RequestBody @Valid request: AddTermsToCustomNoteRequest
     ): ApiResponse<AddTermsResponse>
 
-    @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
+    @Operation(summary = "커스텀 단어장에서 단어 단일 삭제. path 의 (glossaryId, termId) 쌍으로 식별")
     @ApiSuccessCode("CUSTOM_NOTE_S007")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
-    @DeleteMapping("/{noteId}/terms/{termId}")
+    @DeleteMapping("/{noteId}/terms/{glossaryId}/{termId}")
     fun deleteTerm(
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
+        @PathVariable glossaryId: Long,
         @PathVariable termId: Long
     ): ApiResponse<Unit>
 

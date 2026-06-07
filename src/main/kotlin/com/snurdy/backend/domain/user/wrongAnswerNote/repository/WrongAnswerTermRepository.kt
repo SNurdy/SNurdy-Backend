@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.wrongAnswerNote.repository
 
-import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
+import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermEntity
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import org.springframework.data.domain.Page
@@ -35,13 +35,13 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     // 대시보드 과 지표 리스트의 과별 오답 단어 종 수 batch. N+1 회피
     @Query(
         """
-        SELECT w.sourceGlossaryId AS glossaryId, COUNT(w) AS wrongCount
+        SELECT w.glossaryId AS glossaryId, COUNT(w) AS wrongCount
           FROM WrongAnswerTermEntity w
          WHERE w.id.userId = :userId
-           AND w.sourceGlossaryId IN :glossaryIds
+           AND w.glossaryId IN :glossaryIds
            AND w.deletedAt IS NULL
            AND (:after IS NULL OR w.incorrectAt >= :after)
-         GROUP BY w.sourceGlossaryId
+         GROUP BY w.glossaryId
         """
     )
     fun countActiveByGlossaries(
@@ -50,18 +50,18 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("after") after: Instant?
     ): List<GlossaryWrongCountProjection>
 
-    // 과별 그루핑 카운트 (source_glossary_id 별 단어 수)
+    // 과별 그루핑 카운트 (glossary_id 별 단어 수)
     @Query(
         """
-        SELECT w.sourceGlossaryId AS sourceGlossaryId, COUNT(w) AS incorrectTermCount
+        SELECT w.glossaryId AS glossaryId, COUNT(w) AS incorrectTermCount
           FROM WrongAnswerTermEntity w
          WHERE w.id.userId = :userId
            AND w.deletedAt IS NULL
-           AND w.sourceGlossaryId IS NOT NULL
-         GROUP BY w.sourceGlossaryId
+           AND w.glossaryId IS NOT NULL
+         GROUP BY w.glossaryId
         """
     )
-    fun groupBySourceGlossary(@Param("userId") userId: UUID): List<GlossaryWrongAnswerGroup>
+    fun groupByGlossary(@Param("userId") userId: UUID): List<GlossaryWrongAnswerGroup>
 
     // 활성 단어 목록 — 검색어 없음 (incorrect_at DESC)
     @Query(
@@ -76,7 +76,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
          WHERE wat.user_id = :userId
            AND wat.deleted_at IS NULL
            AND (:after IS NULL OR wat.incorrect_at >= :after)
-           AND (:sourceGlossaryId IS NULL OR wat.source_glossary_id = :sourceGlossaryId)
+           AND (:glossaryId IS NULL OR wat.glossary_id = :glossaryId)
          ORDER BY wat.incorrect_at DESC, t.id ASC
         """,
         countQuery = """
@@ -86,14 +86,14 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
          WHERE wat.user_id = :userId
            AND wat.deleted_at IS NULL
            AND (:after IS NULL OR wat.incorrect_at >= :after)
-           AND (:sourceGlossaryId IS NULL OR wat.source_glossary_id = :sourceGlossaryId)
+           AND (:glossaryId IS NULL OR wat.glossary_id = :glossaryId)
         """,
         nativeQuery = true
     )
     fun findActiveTerms(
         @Param("userId") userId: UUID,
         @Param("after") after: Instant?,
-        @Param("sourceGlossaryId") sourceGlossaryId: Long?,
+        @Param("glossaryId") glossaryId: Long?,
         pageable: Pageable
     ): Page<WrongAnswerTermItemProjection>
 
@@ -110,7 +110,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
          WHERE wat.user_id = :userId
            AND wat.deleted_at IS NULL
            AND (:after IS NULL OR wat.incorrect_at >= :after)
-           AND (:sourceGlossaryId IS NULL OR wat.source_glossary_id = :sourceGlossaryId)
+           AND (:glossaryId IS NULL OR wat.glossary_id = :glossaryId)
            AND MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE)
          ORDER BY MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE) DESC,
                   wat.incorrect_at DESC,
@@ -123,7 +123,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
          WHERE wat.user_id = :userId
            AND wat.deleted_at IS NULL
            AND (:after IS NULL OR wat.incorrect_at >= :after)
-           AND (:sourceGlossaryId IS NULL OR wat.source_glossary_id = :sourceGlossaryId)
+           AND (:glossaryId IS NULL OR wat.glossary_id = :glossaryId)
            AND MATCH(t.spelling, t.meaning, t.abbreviation) AGAINST(:query IN BOOLEAN MODE)
         """,
         nativeQuery = true
@@ -131,7 +131,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     fun searchActiveTerms(
         @Param("userId") userId: UUID,
         @Param("after") after: Instant?,
-        @Param("sourceGlossaryId") sourceGlossaryId: Long?,
+        @Param("glossaryId") glossaryId: Long?,
         @Param("query") query: String,
         pageable: Pageable
     ): Page<WrongAnswerTermItemProjection>
@@ -141,6 +141,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     @Query(
         value = """
         SELECT t.id AS termId,
+               wat.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation,
@@ -160,12 +161,13 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("userId") userId: UUID,
         @Param("after") after: Instant?,
         @Param("requireAbbreviation") requireAbbreviation: Boolean
-    ): List<SimpleTermProjection>
+    ): List<NoteCardTermProjection>
 
-    // 카드용 단어 전체 조회 — 과 필터 (sourceGlossaryId). RAND 정렬
+    // 카드용 단어 전체 조회 — 과 필터 (glossaryId). RAND 정렬
     @Query(
         value = """
         SELECT t.id AS termId,
+               wat.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation,
@@ -174,7 +176,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
           JOIN terms t ON t.id = wat.term_id AND t.deleted_at IS NULL
          WHERE wat.user_id = :userId
            AND wat.deleted_at IS NULL
-           AND wat.source_glossary_id = :sourceGlossaryId
+           AND wat.glossary_id = :glossaryId
            AND (:requireAbbreviation = FALSE
                 OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
          ORDER BY RAND()
@@ -183,15 +185,15 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     )
     fun findCardTermsByGlossary(
         @Param("userId") userId: UUID,
-        @Param("sourceGlossaryId") sourceGlossaryId: Long,
+        @Param("glossaryId") glossaryId: Long,
         @Param("requireAbbreviation") requireAbbreviation: Boolean
-    ): List<SimpleTermProjection>
+    ): List<NoteCardTermProjection>
 
-    // distractor 출처 결정용 — termId 별 sourceGlossaryId 조회 (active row 만)
+    // distractor 출처 결정용 — termId 별 glossaryId 조회 (active row 만)
     @Query(
         value = """
         SELECT wat.term_id AS termId,
-               wat.source_glossary_id AS sourceGlossaryId
+               wat.glossary_id AS glossaryId
           FROM wrong_answer_terms wat
          WHERE wat.user_id = :userId
            AND wat.term_id IN :termIds
@@ -199,10 +201,10 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         """,
         nativeQuery = true
     )
-    fun findSourceGlossaryIdsByUserAndTermIds(
+    fun findGlossaryIdsByUserAndTermIds(
         @Param("userId") userId: UUID,
         @Param("termIds") termIds: Collection<Long>
-    ): List<WrongAnswerSourceGlossaryProjection>
+    ): List<WrongAnswerTermGlossaryProjection>
 
 }
 
@@ -215,7 +217,7 @@ interface WrongAnswerTermItemProjection {
 }
 
 interface GlossaryWrongAnswerGroup {
-    val sourceGlossaryId: Long
+    val glossaryId: Long
     val incorrectTermCount: Long
 }
 
@@ -224,7 +226,7 @@ interface GlossaryWrongCountProjection {
     val wrongCount: Long
 }
 
-interface WrongAnswerSourceGlossaryProjection {
+interface WrongAnswerTermGlossaryProjection {
     val termId: Long
-    val sourceGlossaryId: Long
+    val glossaryId: Long
 }

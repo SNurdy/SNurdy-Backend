@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.user.customNote.repository
 
-import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermEntity
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermId
 import org.springframework.data.domain.Page
@@ -15,7 +14,6 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     fun countByIdNoteId(noteId: Long): Long
 
     // 여러 노트의 단어 수를 한 번에 조회
-    // 목록 화면에서 N+1 회피 용도
     @Query(
         """
         SELECT cnt.id.noteId AS noteId, COUNT(cnt) AS termCount
@@ -26,13 +24,15 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     )
     fun countByNoteIds(@Param("noteIds") noteIds: Collection<Long>): List<NoteTermCountProjection>
 
-    fun existsByIdNoteIdAndIdTermId(noteId: Long, termId: Long): Boolean
+    fun existsByIdNoteIdAndIdGlossaryIdAndIdTermId(noteId: Long, glossaryId: Long, termId: Long): Boolean
 
-    fun findAllByIdNoteIdAndIdTermIdIn(noteId: Long, termIds: Collection<Long>): List<CustomNoteTermEntity>
+    fun findAllByIdNoteIdAndIdGlossaryIdInAndIdTermIdIn(
+        noteId: Long,
+        glossaryIds: Collection<Long>,
+        termIds: Collection<Long>
+    ): List<CustomNoteTermEntity>
 
-    fun deleteByIdNoteIdAndIdTermId(noteId: Long, termId: Long)
-
-    fun deleteAllByIdNoteIdAndIdTermIdIn(noteId: Long, termIds: Collection<Long>)
+    fun deleteByIdNoteIdAndIdGlossaryIdAndIdTermId(noteId: Long, glossaryId: Long, termId: Long)
 
     fun deleteByIdNoteId(noteId: Long)
 
@@ -40,6 +40,7 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     @Query(
         value = """
         SELECT t.id AS termId,
+               cnt.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation
@@ -62,8 +63,8 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     @Modifying
     @Query(
         value = """
-        INSERT INTO custom_note_terms (note_id, term_id, created_at)
-        SELECT :targetNoteId, term_id, CURRENT_TIMESTAMP
+        INSERT INTO custom_note_terms (note_id, glossary_id, term_id, created_at)
+        SELECT :targetNoteId, glossary_id, term_id, CURRENT_TIMESTAMP
           FROM custom_note_terms
          WHERE note_id = :sourceNoteId
         """,
@@ -76,10 +77,10 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
 
     // 노트의 카드용 단어 전체 조회. createdAt ASC 정렬 (학습 순서)
     // requireAbbreviation = true 면 abbreviation 보유 단어만 (WRITE_ABBREVIATION / MC_PICK_ABBR)
-    // distractor 1차 풀로도 사용 (requireAbbreviation = false 호출)
     @Query(
         value = """
         SELECT t.id AS termId,
+               cnt.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation,
@@ -97,14 +98,26 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     fun findCardTermsByNoteId(
         @Param("noteId") noteId: Long,
         @Param("requireAbbreviation") requireAbbreviation: Boolean
-    ): List<SimpleTermProjection>
+    ): List<NoteCardTermProjection>
 }
 
+// 단어 목록 페이지 항목 (glossaryId 포함)
 interface CustomNoteTermProjection {
     val termId: Long
+    val glossaryId: Long
     val spelling: String
     val meaning: String
     val abbreviation: String?
+}
+
+// 카드 sampling projection (glossaryId 포함). 커스텀노트와 오답노트 공용
+interface NoteCardTermProjection {
+    val termId: Long
+    val glossaryId: Long
+    val spelling: String
+    val meaning: String
+    val abbreviation: String?
+    val explanation: String?
 }
 
 interface NoteTermCountProjection {

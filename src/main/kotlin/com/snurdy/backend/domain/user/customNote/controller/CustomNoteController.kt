@@ -48,11 +48,11 @@ class CustomNoteController(
     ): ApiResponse<AddTermsResponse> =
         ApiResponse.success(
             CustomNoteSuccess.ADD_TERMS,
-            customNoteService.addTerms(userId, noteId, request.termIds)
+            customNoteService.addTerms(userId, noteId, request.items)
         )
 
-    override fun deleteTerm(userId: UUID, noteId: Long, termId: Long): ApiResponse<Unit> {
-        customNoteService.deleteTerm(userId, noteId, termId)
+    override fun deleteTerm(userId: UUID, noteId: Long, glossaryId: Long, termId: Long): ApiResponse<Unit> {
+        customNoteService.deleteTerm(userId, noteId, glossaryId, termId)
         return ApiResponse.success(CustomNoteSuccess.DELETE_TERM)
     }
 
@@ -72,7 +72,7 @@ class CustomNoteController(
         noteId: Long,
         request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit> {
-        customNoteService.deleteTerms(userId, noteId, request.termIds)
+        customNoteService.deleteTerms(userId, noteId, request.items)
         return ApiResponse.success(CustomNoteSuccess.DELETE_TERMS)
     }
 

@@ -35,7 +35,7 @@ class WrongAnswerNoteService(
 
     // 학습 submit 시 오답 1건을 오답노트에 누적 반영. soft delete 상태였다면 복구하면서 누적값은 보존
     @Transactional
-    fun recordIncorrect(userId: UUID, termId: Long, sourceGlossaryId: Long, occurredAt: Instant) {
+    fun recordIncorrect(userId: UUID, termId: Long, glossaryId: Long, occurredAt: Instant) {
         val id = WrongAnswerTermId(userId = userId, termId = termId)
         val existing = wrongAnswerTermRepository.findByIdOrNull(id)
         if (existing == null) {
@@ -43,12 +43,12 @@ class WrongAnswerNoteService(
                 WrongAnswerTermEntity.firstIncorrect(
                     userId = userId,
                     termId = termId,
-                    sourceGlossaryId = sourceGlossaryId,
+                    glossaryId = glossaryId,
                     occurredAt = occurredAt
                 )
             )
         } else {
-            existing.recordIncorrect(sourceGlossaryId, occurredAt)
+            existing.recordIncorrect(glossaryId, occurredAt)
         }
     }
 
@@ -67,15 +67,15 @@ class WrongAnswerNoteService(
 
     @Transactional(readOnly = true)
     fun listByGlossary(userId: UUID): WrongAnswerGlossaryCardListResponse {
-        val groups = wrongAnswerTermRepository.groupBySourceGlossary(userId)
+        val groups = wrongAnswerTermRepository.groupByGlossary(userId)
         if (groups.isEmpty()) return WrongAnswerGlossaryCardListResponse(glossaries = emptyList())
 
-        val glossaryIds = groups.map { it.sourceGlossaryId }
+        val glossaryIds = groups.map { it.glossaryId }
         val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
 
         val cards = groups
             .mapNotNull { group ->
-                val glossary = glossaries[group.sourceGlossaryId] ?: return@mapNotNull null
+                val glossary = glossaries[group.glossaryId] ?: return@mapNotNull null
                 glossary.toWrongAnswerCard(group.incorrectTermCount)
             }
             .sortedBy { it.glossaryId }
@@ -92,7 +92,7 @@ class WrongAnswerNoteService(
     ): WrongAnswerTermsResponse {
         val now = clock.instant()
         val after = period.thresholdAfter(now)
-        return paginatedTerms(userId, after = after, sourceGlossaryId = null, page = page, size = size, query = query)
+        return paginatedTerms(userId, after = after, glossaryId = null, page = page, size = size, query = query)
     }
 
     @Transactional(readOnly = true)
@@ -105,7 +105,7 @@ class WrongAnswerNoteService(
     ): WrongAnswerTermsResponse {
         glossaryRepository.findByIdOrNull(glossaryId)
             ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        return paginatedTerms(userId, after = null, sourceGlossaryId = glossaryId, page = page, size = size, query = query)
+        return paginatedTerms(userId, after = null, glossaryId = glossaryId, page = page, size = size, query = query)
     }
 
     @Transactional
@@ -127,7 +127,7 @@ class WrongAnswerNoteService(
     private fun paginatedTerms(
         userId: UUID,
         after: Instant?,
-        sourceGlossaryId: Long?,
+        glossaryId: Long?,
         page: Int,
         size: Int,
         query: String?
@@ -135,9 +135,9 @@ class WrongAnswerNoteService(
         val pageable = PageRequest.of(page, size)
         val trimmedQuery = query?.trim()?.takeIf { it.isNotEmpty() }
         val result: Page<WrongAnswerTermItemProjection> = if (trimmedQuery == null) {
-            wrongAnswerTermRepository.findActiveTerms(userId, after, sourceGlossaryId, pageable)
+            wrongAnswerTermRepository.findActiveTerms(userId, after, glossaryId, pageable)
         } else {
-            wrongAnswerTermRepository.searchActiveTerms(userId, after, sourceGlossaryId, trimmedQuery, pageable)
+            wrongAnswerTermRepository.searchActiveTerms(userId, after, glossaryId, trimmedQuery, pageable)
         }
         return WrongAnswerTermsResponse(
             page = result.number,

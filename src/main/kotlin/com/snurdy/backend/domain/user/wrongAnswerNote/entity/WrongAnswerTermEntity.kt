@@ -13,8 +13,8 @@ class WrongAnswerTermEntity(
     @EmbeddedId
     val id: WrongAnswerTermId,
 
-    @Column(name = "source_glossary_id")
-    var sourceGlossaryId: Long? = null,
+    @Column(name = "glossary_id")
+    var glossaryId: Long? = null,
 
     @Column(name = "incorrect_at", nullable = false)
     var incorrectAt: Instant,
@@ -27,8 +27,8 @@ class WrongAnswerTermEntity(
 ) {
 
     // 재오답 발생. soft delete 상태였다면 자동 복구하면서 누적값은 보존
-    fun recordIncorrect(sourceGlossaryId: Long, occurredAt: Instant) {
-        this.sourceGlossaryId = sourceGlossaryId
+    fun recordIncorrect(glossaryId: Long, occurredAt: Instant) {
+        this.glossaryId = glossaryId
         this.incorrectAt = occurredAt
         this.totalIncorrectCount += 1
         this.deletedAt = null
@@ -45,11 +45,11 @@ class WrongAnswerTermEntity(
         fun firstIncorrect(
             userId: UUID,
             termId: Long,
-            sourceGlossaryId: Long,
+            glossaryId: Long,
             occurredAt: Instant
         ): WrongAnswerTermEntity = WrongAnswerTermEntity(
             id = WrongAnswerTermId(userId = userId, termId = termId),
-            sourceGlossaryId = sourceGlossaryId,
+            glossaryId = glossaryId,
             incorrectAt = occurredAt,
             totalIncorrectCount = 1,
             deletedAt = null

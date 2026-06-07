@@ -4,8 +4,10 @@ import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermProjection
 import com.snurdy.backend.global.validation.CodePointSize
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.time.Instant
@@ -25,15 +27,25 @@ data class UpdateCustomNoteRequest(
     val title: String
 )
 
-@Schema(description = "단어장에 단어 추가 요청")
+@Schema(description = "단어장에 단어 추가 요청. 단어가 어느 단어장에서 선택되었는지 (glossaryId) 와 termId 쌍")
 data class AddTermsToCustomNoteRequest(
-    @field:NotEmpty(message = "추가할 단어 ID 목록이 비어 있을 수 없습니다")
+    @field:NotEmpty(message = "추가할 단어 항목이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 추가할 수 있습니다")
-    @field:Schema(
-        description = "추가할 사전 단어 ID 목록 (최대 100개)",
-        example = "[123, 456, 789]"
-    )
-    val termIds: List<@Positive Long>
+    @field:Valid
+    val items: List<AddTermItem>
+)
+
+@Schema(description = "추가할 단어 항목 (단어가 속한 단어장 id + 단어 id)")
+data class AddTermItem(
+    @field:NotNull
+    @field:Positive
+    @field:Schema(description = "단어가 선택된 단어장 id", example = "12")
+    val glossaryId: Long,
+
+    @field:NotNull
+    @field:Positive
+    @field:Schema(description = "단어 id", example = "101")
+    val termId: Long
 )
 
 @Schema(description = "커스텀 단어장 요약")
@@ -59,15 +71,12 @@ data class AddTermsResponse(
     val totalTermCount: Long
 )
 
-@Schema(description = "단어장에서 단어 다중 삭제 요청. 입력한 단어가 모두 단어장에 있어야 처리")
+@Schema(description = "단어장에서 단어 다중 삭제 요청. 입력한 (glossaryId, termId) 쌍이 모두 단어장에 있어야 처리")
 data class DeleteTermsFromCustomNoteRequest(
-    @field:NotEmpty(message = "삭제할 단어 ID 목록이 비어 있을 수 없습니다")
+    @field:NotEmpty(message = "삭제할 단어 항목이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
-    @field:Schema(
-        description = "삭제할 단어 ID 목록 (최대 100개)",
-        example = "[123, 456]"
-    )
-    val termIds: List<@Positive Long>
+    @field:Valid
+    val items: List<AddTermItem>
 )
 
 @Schema(description = "단어장 다중 삭제 요청. 모두 본인 소유여야 처리")
@@ -95,7 +104,10 @@ data class CustomNoteTermsResponse(
 
 @Schema(description = "단어장 내 단어 항목")
 data class CustomNoteTermItem(
+    @field:Schema(description = "단어 id", example = "101")
     val id: Long,
+    @field:Schema(description = "단어가 속한 단어장 id", example = "12")
+    val glossaryId: Long,
     val spelling: String,
     val meaning: String,
     val abbreviation: String?
@@ -110,6 +122,7 @@ fun CustomNoteEntity.toResponse(termCount: Long) = CustomNoteResponse(
 
 fun CustomNoteTermProjection.toResponse() = CustomNoteTermItem(
     id = termId,
+    glossaryId = glossaryId,
     spelling = spelling,
     meaning = meaning,
     abbreviation = abbreviation

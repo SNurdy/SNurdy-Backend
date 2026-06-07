@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Validated
-@Tag(name = "Admin-Dictionary", description = "관리자 사전 데이터 조회 API")
+@Tag(name = "Admin Dictionary", description = "관리자 사전 데이터 조회 API")
 @RequestMapping("/v1/admin/dictionary")
 interface AdminDictionaryApi {
 

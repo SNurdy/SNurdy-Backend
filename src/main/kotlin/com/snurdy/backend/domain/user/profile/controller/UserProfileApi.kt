@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "User-Profile", description = "v2 사용자 프로필 API")
+@Tag(name = "User Profile", description = "v2 사용자 프로필 API")
 @RequestMapping("/v2/users/me")
 interface UserProfileApi {
 

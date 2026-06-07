@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.time.LocalDate
 import java.util.UUID
 
-@Tag(name = "User-Dashboard", description = "마이페이지 대시보드 API")
+@Tag(name = "User Dashboard", description = "마이페이지 대시보드 API")
 @RequestMapping("/v2/users/me")
 interface UserDashboardApi {
 

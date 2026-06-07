@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 
 @Validated
-@Tag(name = "Admin-AuditLog", description = "관리자 감사 로그 조회 API")
+@Tag(name = "Admin AuditLog", description = "관리자 감사 로그 조회 API")
 @RequestMapping("/v1/admin/audit-logs")
 interface AdminAuditLogApi {
 

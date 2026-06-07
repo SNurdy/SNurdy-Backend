@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @Validated
-@Tag(name = "Wrong-Answer-Note", description = "오답노트 API")
+@Tag(name = "Wrong Answer Note", description = "오답노트 API")
 @RequestMapping("/v2/wrong-answer-note")
 interface WrongAnswerNoteApi {
 

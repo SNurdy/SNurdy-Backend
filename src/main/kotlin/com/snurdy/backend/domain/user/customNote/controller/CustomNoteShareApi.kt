@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.util.UUID
 
-@Tag(name = "Custom-Note-Share", description = "커스텀 단어장 공유 API")
+@Tag(name = "Custom Note Share", description = "커스텀 단어장 공유 API")
 @RequestMapping("/v2/custom-notes")
 interface CustomNoteShareApi {
 

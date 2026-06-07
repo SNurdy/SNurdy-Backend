@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "Term-Memo", description = "단어 메모 API (사용자 본인 메모 작성/수정/삭제)")
+@Tag(name = "Term Memo", description = "단어 메모 API (사용자 본인 메모 작성/수정/삭제)")
 @RequestMapping("/v2/terms/{termId}/memo")
 interface TermMemoApi {
 

@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.web.bind.annotation.GetMapping
 import java.util.UUID
 
-@Tag(name = "User-Streak", description = "사용자 학습 streak API")
+@Tag(name = "User Streak", description = "사용자 학습 streak API")
 interface UserStreakApi {
 
     @Operation(summary = "내 스트릭 조회")

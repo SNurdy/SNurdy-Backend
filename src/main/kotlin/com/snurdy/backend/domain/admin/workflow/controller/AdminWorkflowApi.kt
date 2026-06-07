@@ -13,7 +13,7 @@ import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
 @Validated
-@Tag(name = "Admin-Workflow", description = "관리자 변경 요청 워크플로우 API")
+@Tag(name = "Admin Workflow", description = "관리자 변경 요청 워크플로우 API")
 @RequestMapping("/v1/admin/workflows")
 interface AdminWorkflowApi {
 

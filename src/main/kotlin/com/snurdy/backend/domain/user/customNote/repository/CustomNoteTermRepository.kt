@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.customNote.repository
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermEntity
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermId
 import org.springframework.data.domain.Page
@@ -72,6 +73,49 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
         @Param("sourceNoteId") sourceNoteId: Long,
         @Param("targetNoteId") targetNoteId: Long
     ): Int
+
+    // 학습 카드 sampling. createdAt 순 (Phase 2.10 결정 E1)
+    // requireAbbreviation = true 면 abbreviation 보유 단어만
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
+          FROM custom_note_terms cnt
+          JOIN terms t ON t.id = cnt.term_id
+         WHERE cnt.note_id = :noteId
+           AND t.deleted_at IS NULL
+           AND (:requireAbbreviation = FALSE
+                OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
+         ORDER BY cnt.created_at ASC, t.id ASC
+         LIMIT :count
+        """,
+        nativeQuery = true
+    )
+    fun sampleCardTerms(
+        @Param("noteId") noteId: Long,
+        @Param("requireAbbreviation") requireAbbreviation: Boolean,
+        @Param("count") count: Int
+    ): List<SimpleTermProjection>
+
+    // distractor 1차 풀 — 같은 노트의 전체 단어 (deletedAt 활성)
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
+          FROM custom_note_terms cnt
+          JOIN terms t ON t.id = cnt.term_id
+         WHERE cnt.note_id = :noteId
+           AND t.deleted_at IS NULL
+        """,
+        nativeQuery = true
+    )
+    fun findAllSimpleTermsByNoteId(@Param("noteId") noteId: Long): List<SimpleTermProjection>
 }
 
 interface CustomNoteTermProjection {

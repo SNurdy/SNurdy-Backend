@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.user.wrongAnswerNote.repository
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermEntity
 import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import org.springframework.data.domain.Page
@@ -135,6 +136,78 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         pageable: Pageable
     ): Page<WrongAnswerTermItemProjection>
 
+    // 학습 카드 sampling — 기간 필터 (after IS NULL 이면 ALL). RAND 정렬
+    // requireAbbreviation = true 면 abbreviation 보유 단어만
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
+          FROM wrong_answer_terms wat
+          JOIN terms t ON t.id = wat.term_id AND t.deleted_at IS NULL
+         WHERE wat.user_id = :userId
+           AND wat.deleted_at IS NULL
+           AND (:after IS NULL OR wat.incorrect_at >= :after)
+           AND (:requireAbbreviation = FALSE
+                OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
+         ORDER BY RAND()
+         LIMIT :count
+        """,
+        nativeQuery = true
+    )
+    fun sampleCardTermsByPeriod(
+        @Param("userId") userId: UUID,
+        @Param("after") after: Instant?,
+        @Param("requireAbbreviation") requireAbbreviation: Boolean,
+        @Param("count") count: Int
+    ): List<SimpleTermProjection>
+
+    // 학습 카드 sampling — 과 필터 (sourceGlossaryId). RAND 정렬
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation,
+               t.explanation AS explanation
+          FROM wrong_answer_terms wat
+          JOIN terms t ON t.id = wat.term_id AND t.deleted_at IS NULL
+         WHERE wat.user_id = :userId
+           AND wat.deleted_at IS NULL
+           AND wat.source_glossary_id = :sourceGlossaryId
+           AND (:requireAbbreviation = FALSE
+                OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
+         ORDER BY RAND()
+         LIMIT :count
+        """,
+        nativeQuery = true
+    )
+    fun sampleCardTermsByGlossary(
+        @Param("userId") userId: UUID,
+        @Param("sourceGlossaryId") sourceGlossaryId: Long,
+        @Param("requireAbbreviation") requireAbbreviation: Boolean,
+        @Param("count") count: Int
+    ): List<SimpleTermProjection>
+
+    // distractor 출처 결정용 — termId 별 sourceGlossaryId 조회 (active row 만)
+    @Query(
+        value = """
+        SELECT wat.term_id AS termId,
+               wat.source_glossary_id AS sourceGlossaryId
+          FROM wrong_answer_terms wat
+         WHERE wat.user_id = :userId
+           AND wat.term_id IN :termIds
+           AND wat.deleted_at IS NULL
+        """,
+        nativeQuery = true
+    )
+    fun findSourceGlossaryIdsByUserAndTermIds(
+        @Param("userId") userId: UUID,
+        @Param("termIds") termIds: Collection<Long>
+    ): List<WrongAnswerSourceGlossaryProjection>
+
 }
 
 interface WrongAnswerTermItemProjection {
@@ -153,4 +226,9 @@ interface GlossaryWrongAnswerGroup {
 interface GlossaryWrongCountProjection {
     val glossaryId: Long
     val wrongCount: Long
+}
+
+interface WrongAnswerSourceGlossaryProjection {
+    val termId: Long
+    val sourceGlossaryId: Long
 }

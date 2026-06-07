@@ -47,7 +47,10 @@ data class WrongAnswerPeriodCard(
     val incorrectTermCount: Long
 )
 
-@Schema(description = "기간별 오답노트 카드 목록")
+@Schema(
+    description = "기간별 오답노트 카드 목록",
+    example = """{"periods":[{"period":"TODAY","label":"오늘 틀린 단어","incorrectTermCount":12},{"period":"WEEK","label":"이번 주 틀린 단어","incorrectTermCount":34},{"period":"MONTH","label":"이번 달 틀린 단어","incorrectTermCount":120},{"period":"ALL","label":"전체 틀린 단어","incorrectTermCount":340}]}"""
+)
 data class WrongAnswerPeriodCardListResponse(
     val periods: List<WrongAnswerPeriodCard>
 )

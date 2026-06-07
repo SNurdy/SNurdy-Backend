@@ -148,12 +148,11 @@ context id (glossaryId / customNoteId / period) 는 path 전용. body 에서 제
 ```json
 {
   "correctCount": 18,
-  "incorrectCount": 2,
-  "recordedIncorrectCount": 2
+  "incorrectCount": 2
 }
 ```
-- `recordedIncorrectCount`: 이번 제출로 wrong_answer_terms 에 신규 기록 또는 누적된 단어 수
 - 커스텀/오답은 진도 트래킹 안 함 (방식 B 채택) 이라 `todayGoalCompleted`, `glossary` 필드 없음
+- `recordedIncorrectCount` 같은 별도 필드 없음 — 오답노트는 incorrectCount 와 항상 동일 (의미 중복), 커스텀노트는 오답 기록 자체를 안 함
 
 ---
 
@@ -204,19 +203,18 @@ context id (glossaryId / customNoteId / period) 는 path 전용. body 에서 제
 |---|---|---|---|
 | TermProgressEntity (SRS) | ✅ 갱신 | ❌ | ❌ |
 | GlossaryProgressEntity (단어장 진척) | ✅ learnedCount + lastLearnedAt | ❌ | ❌ |
-| WrongAnswerTermEntity (오답 자동 기록) | ✅ 정답 시 무시, 오답 시 신규 INSERT 또는 누적 | ✅ 동일 (sourceGlossaryId = null) | ✅ 기존 row 의 totalIncorrectCount += 1, incorrectAt 갱신 |
+| WrongAnswerTermEntity (오답 자동 기록) | ✅ 정답 시 무시, 오답 시 신규 INSERT 또는 누적 | ❌ 기록 안 함 | ✅ 기존 row 의 totalIncorrectCount += 1, incorrectAt 갱신 |
 | DailyProgressEntity (일별 활동) | ✅ | ❌ | ❌ |
 | UserEntity.totalLearningTerms | ✅ NEW → LEARNING 전환분 | ❌ | ❌ |
 | UserEntity.currentStreak / longestStreak | ✅ | ❌ | ❌ |
 | 응답 `todayGoalCompleted` | 의미 있음 (오늘 첫 활동 여부) | 응답 없음 | 응답 없음 |
 | 응답 `glossary` | 값 채움 | 응답 없음 | 응답 없음 |
 | 응답 `levelUp` / `progressRate` / `levelBefore` | 의미 있음 | 응답 없음 | 응답 없음 |
-| 응답 `recordedIncorrectCount` | 응답 없음 | 의미 있음 | 의미 있음 |
 
-#### 오답 자동 기록 세부 (4종 공통 트랙)
+#### 오답 자동 기록 세부
 - **기본 단어장**: 신규 단어면 `firstIncorrect()` 로 INSERT, 기존이면 `recordIncorrect()` 로 누적. `sourceGlossaryId = 현재 glossaryId`
-- **커스텀노트**: 신규/기존 동일 처리. **`sourceGlossaryId = null`** — 기획 의도상 사용자가 과를 선택할 수 없는 단어장이므로 출처 과를 강제로 채우지 않음. 결과적으로 오답노트 by-glossary 필터에는 잡히지 않고 by-period 에만 노출
-- **오답노트**: 이미 wrong_answer_terms 에 있는 단어. 기존 row 의 `totalIncorrectCount += 1`, `incorrectAt` 갱신. 졸업 정책 없음 — 정답이어도 row 유지
+- **커스텀노트**: **오답 발생해도 wrong_answer_terms 에 기록 안 함**. 커스텀노트는 사용자가 단어 출처를 선택할 수 없는 구조라 `sourceGlossaryId` 를 의미 있게 매핑할 수 없음. by-glossary 필터에 잡히지 않을 단어를 wrong_answer_terms 에 누적해도 사용자 입장에서 활용 불가
+- **오답노트**: 이미 wrong_answer_terms 에 있는 단어. 기존 row 의 `totalIncorrectCount += 1`, `incorrectAt` 갱신. 졸업 정책 없음 — 정답이어도 row 유지, 재오답 발생 시 카운트 누적
 
 ### 4.4 가용 단어 수 제공 (방식 B 전제)
 
@@ -318,11 +316,11 @@ domain/
 - `updateProgressActivityOnly` 같은 별도 메서드 불필요
 
 ### WrongAnswerNoteService 변경
-- `recordIncorrects(userId, termIds, sourceGlossaryId: Long?, occurredAt)` 시그니처
-- sourceGlossaryId 가 nullable 이라 커스텀노트 호출 시 null 전달 가능
-- 기본 단어장: sourceGlossaryId = 현재 glossaryId
-- 커스텀노트: sourceGlossaryId = null
-- 오답노트 테스트: 기존 row 누적만 (recordIncorrect 호출, sourceGlossaryId 는 기존 값 유지)
+메서드 분리:
+- `recordIncorrects(userId, termIds, sourceGlossaryId: Long, occurredAt)` — 기본 단어장 submit 에서 호출. 신규면 INSERT, 기존이면 누적. sourceGlossaryId non-null
+- `incrementExistingIncorrects(userId, termIds, occurredAt)` — 오답노트 submit 에서 호출. 기존 row 의 `totalIncorrectCount += 1`, `incorrectAt` 갱신만 (단어가 이미 wrong_answer_terms 에 있다는 전제)
+
+커스텀노트 submit 은 WrongAnswerNoteService 호출 자체를 안 함.
 
 ### 영향 받는 기존 응답
 - 단어장 상세, 커스텀노트 상세, 오답노트 진입 응답 → `availableCounts` 필드 추가
@@ -341,10 +339,10 @@ domain/
 | distractors body | `{ testType, termIds }` (공통) |
 | submit body | `{ testType, results }` (공통) |
 | 응답 envelope (cards) | context id 노출 안 함, `{ cards: [...] }` 만 |
-| 응답 envelope (submit) | DTO 분리 — `SubmitGlossaryTestResponse` (기본 전용) / `SubmitNoteTestResponse` (커스텀/오답 공용) |
-| 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) | 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 전반에 반영 X (방식 B) |
-| 오답 자동 기록 | 4종 모두 갱신 (진도와 별개 트랙). 커스텀노트는 sourceGlossaryId = null |
-| 오답노트 졸업 | 없음. 정답 처리해도 wrong_answer_terms 그대로 유지, totalIncorrectCount 만 += 1 |
+| 응답 envelope (submit) | DTO 분리 — `SubmitGlossaryTestResponse` (기본 전용) / `SubmitNoteTestResponse` (커스텀/오답 공용, `{ correctCount, incorrectCount }` 만) |
+| 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) | 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 / 스트릭 전반에 영향 X (방식 B) |
+| 오답 자동 기록 | 기본 단어장 + 오답노트만 갱신. **커스텀노트는 기록 안 함** — 사용자가 단어 출처(과) 를 선택할 수 없는 구조라 sourceGlossaryId 매핑 불가, 오답노트에 누적해도 활용 불가 |
+| 오답노트 재오답 | totalIncorrectCount += 1, incorrectAt 갱신. 졸업 없음, 정답이어도 row 유지 |
 | 커스텀노트 권한 | ownerId == userId 검증 |
 | 오답노트 진입 | by-period 또는 by-glossary 필터 필수 (경로 분리) |
 | distractors 출처 (오답노트) | 각 단어의 sourceGlossaryId 기준 같은 과 우선 |

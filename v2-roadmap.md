@@ -211,10 +211,10 @@ Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제�
 - 오답노트 (과): `POST /v2/wrong-answer-note/by-glossary/{glossaryId}/cards|distractors|submit`
 
 핵심 정책:
-- 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) 은 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 전반에 반영 X (방식 B 채택)
-- 오답 자동 기록 (WrongAnswerTerm) 은 4종 모두 갱신. 진도와 별개 트랙. 커스텀노트는 sourceGlossaryId = null (기획 의도, 사용자가 과 선택 불가)
-- 응답 DTO 분리 — 기본 단어장은 `SubmitGlossaryTestResponse` (todayGoalCompleted, glossary 진척 포함), 커스텀/오답은 `SubmitNoteTestResponse` (correctCount, incorrectCount, recordedIncorrectCount)
-- 오답노트 졸업 없음 (정답 처리해도 wrong_answer_terms 유지, totalIncorrectCount += 1 만)
+- 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) 은 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 / 스트릭 전반에 영향 X (방식 B 채택)
+- 오답 자동 기록 (WrongAnswerTerm) 은 기본 단어장 + 오답노트만 갱신. 커스텀노트는 기록 안 함 (과 선택 불가 구조라 sourceGlossaryId 매핑 불가, 오답노트에 누적해도 활용 불가)
+- 오답노트 재오답은 totalIncorrectCount += 1, incorrectAt 갱신. 졸업 없음, 정답이어도 row 유지
+- 응답 DTO 분리 — 기본 단어장은 `SubmitGlossaryTestResponse` (todayGoalCompleted, glossary 진척 포함), 커스텀/오답은 `SubmitNoteTestResponse` (`{ correctCount, incorrectCount }` 만)
 - distractors 출처: 기본 단어장은 같은 glossary 우선, 커스텀은 같은 customNote 우선, 오답은 각 단어의 sourceGlossaryId 기준 같은 과 우선
 - cards 단어 부족 정책 (방식 B): 4종 공통 — count > available 시 `TEST_E001`. 클라이언트가 사전에 단어장/노트 상세 응답의 `availableCounts` 로 출제 개수 selector max 결정
 
@@ -297,8 +297,9 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 학습/테스트 확장 URL 동사 | submit 유지 (test-results 폐기). cards/distractors 는 명사 |
 | 학습/테스트 확장 URL 단/복수 | 커스텀노트 도메인 전체 singular 통일 (`/v2/custom-note`). 오답노트는 기존 singular 유지 |
 | 커스텀/오답 테스트 진도 트래킹 | 전반 제외 (방식 B). SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak 모두 갱신 안 함 |
-| 커스텀/오답 테스트 오답 자동 기록 | 4종 모두 갱신 (진도와 별개 트랙). 커스텀노트는 sourceGlossaryId = null |
-| 커스텀/오답 응답 DTO | 기본 단어장과 분리 — `SubmitGlossaryTestResponse` / `SubmitNoteTestResponse` |
+| 커스텀노트 오답 자동 기록 | 기록 안 함. 과 선택 불가 구조라 sourceGlossaryId 매핑 불가, 오답노트에 누적해도 활용 불가 |
+| 오답노트 재오답 처리 | totalIncorrectCount += 1, incorrectAt 갱신. 졸업 없음, 정답이어도 row 유지 |
+| 커스텀/오답 응답 DTO | 기본 단어장과 분리 — `SubmitGlossaryTestResponse` / `SubmitNoteTestResponse` (커스텀/오답은 `{ correctCount, incorrectCount }` 만) |
 | 카드 단어 부족 정책 | 4종 공통 방식 B. count > available 시 `TEST_E001`. 가능한 만큼만 반환 정책 폐기 |
 | 가용 단어 수 노출 | 단어장/노트 상세 응답에 `availableCounts` 필드 추가, testType 별 카운트 |
 | ProgressUpdateService 메서드 | `updateProgressWithSrs` 1개만 유지. 커스텀/오답은 호출 안 함 |

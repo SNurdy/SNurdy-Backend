@@ -136,7 +136,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         pageable: Pageable
     ): Page<WrongAnswerTermItemProjection>
 
-    // 학습 카드 sampling — 기간 필터 (after IS NULL 이면 ALL). RAND 정렬
+    // 카드용 단어 전체 조회 — 기간 필터 (after IS NULL 이면 ALL). RAND 정렬 (카드 노출 순서)
     // requireAbbreviation = true 면 abbreviation 보유 단어만
     @Query(
         value = """
@@ -153,18 +153,16 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
            AND (:requireAbbreviation = FALSE
                 OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
          ORDER BY RAND()
-         LIMIT :count
         """,
         nativeQuery = true
     )
-    fun sampleCardTermsByPeriod(
+    fun findCardTermsByPeriod(
         @Param("userId") userId: UUID,
         @Param("after") after: Instant?,
-        @Param("requireAbbreviation") requireAbbreviation: Boolean,
-        @Param("count") count: Int
+        @Param("requireAbbreviation") requireAbbreviation: Boolean
     ): List<SimpleTermProjection>
 
-    // 학습 카드 sampling — 과 필터 (sourceGlossaryId). RAND 정렬
+    // 카드용 단어 전체 조회 — 과 필터 (sourceGlossaryId). RAND 정렬
     @Query(
         value = """
         SELECT t.id AS termId,
@@ -180,15 +178,13 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
            AND (:requireAbbreviation = FALSE
                 OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
          ORDER BY RAND()
-         LIMIT :count
         """,
         nativeQuery = true
     )
-    fun sampleCardTermsByGlossary(
+    fun findCardTermsByGlossary(
         @Param("userId") userId: UUID,
         @Param("sourceGlossaryId") sourceGlossaryId: Long,
-        @Param("requireAbbreviation") requireAbbreviation: Boolean,
-        @Param("count") count: Int
+        @Param("requireAbbreviation") requireAbbreviation: Boolean
     ): List<SimpleTermProjection>
 
     // distractor 출처 결정용 — termId 별 sourceGlossaryId 조회 (active row 만)

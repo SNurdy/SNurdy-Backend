@@ -74,8 +74,9 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
         @Param("targetNoteId") targetNoteId: Long
     ): Int
 
-    // 학습 카드 sampling. createdAt 순 (Phase 2.10 결정 E1)
-    // requireAbbreviation = true 면 abbreviation 보유 단어만
+    // 노트의 카드용 단어 전체 조회. createdAt ASC 정렬 (학습 순서)
+    // requireAbbreviation = true 면 abbreviation 보유 단어만 (WRITE_ABBREVIATION / MC_PICK_ABBR)
+    // distractor 1차 풀로도 사용 (requireAbbreviation = false 호출)
     @Query(
         value = """
         SELECT t.id AS termId,
@@ -90,32 +91,13 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
            AND (:requireAbbreviation = FALSE
                 OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
          ORDER BY cnt.created_at ASC, t.id ASC
-         LIMIT :count
         """,
         nativeQuery = true
     )
-    fun sampleCardTerms(
+    fun findCardTermsByNoteId(
         @Param("noteId") noteId: Long,
-        @Param("requireAbbreviation") requireAbbreviation: Boolean,
-        @Param("count") count: Int
+        @Param("requireAbbreviation") requireAbbreviation: Boolean
     ): List<SimpleTermProjection>
-
-    // distractor 1차 풀 — 같은 노트의 전체 단어 (deletedAt 활성)
-    @Query(
-        value = """
-        SELECT t.id AS termId,
-               t.spelling AS spelling,
-               t.meaning AS meaning,
-               t.abbreviation AS abbreviation,
-               t.explanation AS explanation
-          FROM custom_note_terms cnt
-          JOIN terms t ON t.id = cnt.term_id
-         WHERE cnt.note_id = :noteId
-           AND t.deleted_at IS NULL
-        """,
-        nativeQuery = true
-    )
-    fun findAllSimpleTermsByNoteId(@Param("noteId") noteId: Long): List<SimpleTermProjection>
 }
 
 interface CustomNoteTermProjection {

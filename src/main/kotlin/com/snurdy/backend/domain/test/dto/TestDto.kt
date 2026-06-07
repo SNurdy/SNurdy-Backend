@@ -14,7 +14,10 @@ data class DistractorsRequest(
     val testType: TestType,
 
     @field:NotEmpty
-    @field:Schema(description = "보기를 만들 단어 id 목록, cards 응답의 termId 를 그대로 전달")
+    @field:Schema(
+        description = "보기를 만들 단어 id 목록, cards 응답의 termId 를 그대로 전달",
+        example = "[101, 183, 302]"
+    )
     val termIds: List<Long>
 )
 

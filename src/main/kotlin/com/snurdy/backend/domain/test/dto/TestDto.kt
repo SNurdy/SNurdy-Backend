@@ -27,7 +27,7 @@ data class DistractorsResponse(
     val distractorsByTermId: Map<Long, List<String>>
 )
 
-@Schema(description = "테스트 결과 일괄 제출 요청. 컨텍스트 id 는 path 로 전달")
+@Schema(description = "테스트 결과 일괄 제출 요청. 대상 단어장/노트는 URL path 에서 받음")
 data class SubmitRequest(
     @field:NotNull
     @field:Schema(description = "테스트 유형", example = "MEANING_TO_TERM")

@@ -88,7 +88,7 @@ class TestService(
         return DistractorsResponse(distractorsByTermId = distractorsMap)
     }
 
-    // termIds 가 동일 컨텍스트 (1차 풀) 안에 있을 때 공용 처리
+    // termIds 가 같은 1차 풀 안에 있을 때 공용 처리 (기본 단어장 / 커스텀노트)
     private fun buildDistractorsResponse(
         testType: TestType,
         termIds: List<Long>,

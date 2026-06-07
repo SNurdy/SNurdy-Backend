@@ -1,8 +1,6 @@
 package com.snurdy.backend.domain.card.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.card.dto.CardsRequest
-import com.snurdy.backend.domain.card.dto.CardsResponse
 import com.snurdy.backend.domain.card.dto.CustomNoteCard
 import com.snurdy.backend.domain.card.dto.CustomNoteCardsResponse
 import com.snurdy.backend.domain.card.dto.GlossaryCard
@@ -49,24 +47,6 @@ class CardService(
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
     private val clock: Clock
 ) {
-
-    @Transactional(readOnly = true)
-    fun listCards(userId: UUID, request: CardsRequest): CardsResponse {
-        if (!glossaryRepository.existsById(request.glossaryId)) {
-            throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        }
-
-        val picked = glossaryTermRepository.pickCardTermsForTest(
-            userId = userId,
-            glossaryId = request.glossaryId,
-            requireAbbreviation = request.testType.requiresAbbreviation(),
-            count = request.count
-        )
-        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-
-        val cards = buildGlossaryCards(userId, request.glossaryId, picked)
-        return CardsResponse(glossaryId = request.glossaryId, cards = cards)
-    }
 
     // POST /v2/test/glossaries/{glossaryId}/cards
     @Transactional(readOnly = true)

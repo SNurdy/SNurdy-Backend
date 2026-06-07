@@ -6,32 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
-import jakarta.validation.constraints.Positive
-
-@Schema(description = "학습 카드 조회 요청")
-data class CardsRequest(
-    @field:NotNull
-    @field:Positive
-    @field:Schema(description = "대상 단어장 id", example = "12")
-    val glossaryId: Long,
-
-    @field:NotNull
-    @field:Schema(description = "이어질 테스트 유형, 출제 단어 필터링 기준", example = "MEANING_TO_TERM")
-    val testType: TestType,
-
-    @field:Min(1)
-    @field:Max(50)
-    @field:Schema(description = "조회할 카드 수", example = "30")
-    val count: Int
-)
-
-@Schema(description = "학습 카드 조회 응답")
-data class CardsResponse(
-    @field:Schema(description = "대상 단어장 id", example = "12")
-    val glossaryId: Long,
-    @field:Schema(description = "출제된 학습 카드 목록")
-    val cards: List<GlossaryCard>
-)
 
 @Schema(description = "기본 단어장 학습 카드 1개")
 data class GlossaryCard(

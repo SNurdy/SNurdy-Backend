@@ -38,22 +38,22 @@ class CardService(
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
 
-        val sampled = glossaryTermRepository.sampleCardTerms(
+        val picked = glossaryTermRepository.pickCardTermsForTest(
             userId = userId,
             glossaryId = request.glossaryId,
             requireAbbreviation = request.testType.requiresAbbreviation(),
             count = request.count
         )
-        if (sampled.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        val termIds = sampled.map { it.termId }
+        val termIds = picked.map { it.termId }
         val morphemesByTermId = fetchMorphemesByTermId(termIds)
         val variantsByMorphemeId = fetchVariantsByMorphemeId(morphemesByTermId.values.flatten())
         val bookmarkedTermIds = bookmarkRepository
             .findBookmarkedTermIds(userId, request.glossaryId, termIds)
             .toSet()
 
-        val cards = sampled.map { term ->
+        val cards = picked.map { term ->
             buildCard(
                 term = term,
                 bookmarked = term.termId in bookmarkedTermIds,

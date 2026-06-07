@@ -42,7 +42,8 @@ data class DashboardSelectedGlossary(
     val lastLearnedAt: Instant?,
     @field:Schema(
         description = "테스트하기 단어 수 selector 의 최대치로 사용. testType 별 가용 단어 수. " +
-            "WRITE_ABBREVIATION / MC_PICK_ABBR 은 abbreviation 보유 단어 수, 나머지는 전체 단어 수"
+            "WRITE_ABBREVIATION / MC_PICK_ABBR 은 abbreviation 보유 단어 수, 나머지는 전체 단어 수",
+        example = """{"TERM_TO_MEANING":100,"MEANING_TO_TERM":100,"LISTEN_AND_WRITE":100,"WRITE_ABBREVIATION":42,"MC_PICK_TERM":100,"MC_PICK_MEANING":100,"MC_PICK_ABBR":42}"""
     )
     val availableCounts: Map<TestType, Int>
 )

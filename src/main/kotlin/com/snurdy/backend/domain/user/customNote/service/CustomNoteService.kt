@@ -212,6 +212,13 @@ class CustomNoteService(
         return note
     }
 
+    // 다른 도메인 (test 등) 에서 커스텀노트 소유 검증만 필요할 때 호출
+    // 존재 안 함 -> NOT_FOUND, 소유 불일치 -> FORBIDDEN
+    @Transactional(readOnly = true)
+    fun requireNoteOwnership(userId: UUID, noteId: Long) {
+        findOwned(userId, noteId)
+    }
+
     companion object {
         private const val MAX_NOTES_PER_USER = 20L
         private const val MAX_TERMS_PER_NOTE = 250L

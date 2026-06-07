@@ -5,6 +5,7 @@ import com.snurdy.backend.domain.user.wrongAnswerNote.dto.DeleteTermsFromWrongAn
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerGlossaryCardListResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriod
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriodCard
+import com.snurdy.backend.domain.user.wrongAnswerNote.dto.thresholdAfter
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriodCardListResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerTermsResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toResponse
@@ -22,11 +23,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
-import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
-import com.snurdy.backend.global.constants.APP_ZONE_ID
-import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 @Service
@@ -62,7 +59,7 @@ class WrongAnswerNoteService(
             WrongAnswerPeriodCard(
                 period = period,
                 label = labelOf(period),
-                incorrectTermCount = wrongAnswerTermRepository.countActive(userId, thresholdOf(period, now))
+                incorrectTermCount = wrongAnswerTermRepository.countActive(userId, period.thresholdAfter(now))
             )
         }
         return WrongAnswerPeriodCardListResponse(periods = cards)
@@ -94,7 +91,7 @@ class WrongAnswerNoteService(
         query: String?
     ): WrongAnswerTermsResponse {
         val now = clock.instant()
-        val after = thresholdOf(period, now)
+        val after = period.thresholdAfter(now)
         return paginatedTerms(userId, after = after, sourceGlossaryId = null, page = page, size = size, query = query)
     }
 
@@ -150,21 +147,6 @@ class WrongAnswerNoteService(
             hasNext = result.hasNext(),
             terms = result.content.map { it.toResponse() }
         )
-    }
-
-    // 자연주 (이번 주 월요일 00:00 KST), 자연월 (이번 달 1일 00:00 KST) 기준
-    private fun thresholdOf(period: WrongAnswerPeriod, now: Instant): Instant? {
-        val today = LocalDate.ofInstant(now, APP_ZONE_ID)
-        return when (period) {
-            WrongAnswerPeriod.TODAY -> today.atStartOfDay(APP_ZONE_ID).toInstant()
-            WrongAnswerPeriod.WEEK -> today
-                .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-                .atStartOfDay(APP_ZONE_ID).toInstant()
-            WrongAnswerPeriod.MONTH -> today
-                .withDayOfMonth(1)
-                .atStartOfDay(APP_ZONE_ID).toInstant()
-            WrongAnswerPeriod.ALL -> null
-        }
     }
 
     private fun labelOf(period: WrongAnswerPeriod): String = when (period) {

@@ -53,4 +53,26 @@ interface BookmarkRepository : JpaRepository<BookmarkEntity, BookmarkId> {
         @Param("glossaryId") glossaryId: Long,
         @Param("termIds") termIds: Collection<Long>
     ): List<Long>
+
+    // 오답노트 카드용 batch lookup
+    // (glossaryId, termId) 쌍 단위 조회. 단어가 단어별로 다른 sourceGlossaryId 일 수 있음 (by-period)
+    @Query(
+        value = """
+        SELECT b.id.glossaryId AS glossaryId, b.id.termId AS termId
+        FROM BookmarkEntity b
+        WHERE b.id.userId = :userId
+          AND b.id.glossaryId IN :glossaryIds
+          AND b.id.termId IN :termIds
+        """
+    )
+    fun findBookmarkedPairs(
+        @Param("userId") userId: UUID,
+        @Param("glossaryIds") glossaryIds: Collection<Long>,
+        @Param("termIds") termIds: Collection<Long>
+    ): List<BookmarkPairProjection>
+}
+
+interface BookmarkPairProjection {
+    val glossaryId: Long
+    val termId: Long
 }

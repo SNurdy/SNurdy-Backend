@@ -2,10 +2,15 @@ package com.snurdy.backend.domain.user.wrongAnswerNote.dto
 
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
+import com.snurdy.backend.global.constants.APP_ZONE_ID
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 
 // 오답노트 기간 필터. 카드와 상세 endpoint 양쪽에서 사용
 // WEEK 는 자연주 (이번 주 월요일 00:00 KST 이후), MONTH 는 자연월 (이번 달 1일 00:00 KST 이후)
@@ -14,6 +19,22 @@ enum class WrongAnswerPeriod {
     WEEK,
     MONTH,
     ALL
+}
+
+// 기간 필터의 incorrectAt 하한값. ALL 은 null (무제한)
+// WrongAnswerNoteService 와 CardService 양쪽에서 사용
+fun WrongAnswerPeriod.thresholdAfter(now: Instant): Instant? {
+    val today = LocalDate.ofInstant(now, APP_ZONE_ID)
+    return when (this) {
+        WrongAnswerPeriod.TODAY -> today.atStartOfDay(APP_ZONE_ID).toInstant()
+        WrongAnswerPeriod.WEEK -> today
+            .with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+            .atStartOfDay(APP_ZONE_ID).toInstant()
+        WrongAnswerPeriod.MONTH -> today
+            .withDayOfMonth(1)
+            .atStartOfDay(APP_ZONE_ID).toInstant()
+        WrongAnswerPeriod.ALL -> null
+    }
 }
 
 @Schema(description = "기간별 오답노트 카드 1건")

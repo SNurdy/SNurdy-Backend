@@ -32,7 +32,7 @@ import org.springframework.http.HttpStatus
 import java.util.UUID
 
 @Validated
-@Tag(name = "Custom-Note", description = "사용자 커스텀 단어장 API")
+@Tag(name = "Custom Note", description = "사용자 커스텀 단어장 API")
 @RequestMapping("/v2/custom-notes")
 interface CustomNoteApi {
 

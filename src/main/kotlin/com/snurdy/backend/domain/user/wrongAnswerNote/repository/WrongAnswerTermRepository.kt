@@ -73,6 +73,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     @Query(
         value = """
         SELECT t.id AS id,
+               wat.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation,
@@ -107,6 +108,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     @Query(
         value = """
         SELECT t.id AS id,
+               wat.glossary_id AS glossaryId,
                t.spelling AS spelling,
                t.meaning AS meaning,
                t.abbreviation AS abbreviation,
@@ -216,6 +218,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
 
 interface WrongAnswerTermItemProjection {
     val id: Long
+    val glossaryId: Long
     val spelling: String
     val meaning: String
     val abbreviation: String?

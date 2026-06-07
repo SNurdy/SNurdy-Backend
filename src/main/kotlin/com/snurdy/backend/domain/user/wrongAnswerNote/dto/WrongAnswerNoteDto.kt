@@ -71,7 +71,10 @@ data class WrongAnswerGlossaryCardListResponse(
 
 @Schema(description = "오답 단어 1건")
 data class WrongAnswerTermItem(
+    @field:Schema(description = "단어 id", example = "101")
     val id: Long,
+    @field:Schema(description = "단어가 속한 단어장 id", example = "12")
+    val glossaryId: Long,
     val spelling: String,
     val meaning: String,
     val abbreviation: String?,
@@ -102,6 +105,7 @@ data class DeleteTermsFromWrongAnswerNoteRequest(
 
 fun WrongAnswerTermItemProjection.toResponse() = WrongAnswerTermItem(
     id = id,
+    glossaryId = glossaryId,
     spelling = spelling,
     meaning = meaning,
     abbreviation = abbreviation,

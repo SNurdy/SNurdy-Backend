@@ -34,6 +34,7 @@ spring:
 
 server:
   port: 8080
+  shutdown: graceful
   servlet:
     context-path: /api
     encoding:
@@ -44,6 +45,9 @@ server:
   tomcat:
     max-http-form-post-size: 10MB
     max-swallow-size: 10MB
+
+spring.lifecycle:
+  timeout-per-shutdown-phase: 30s
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}

@@ -1,15 +1,13 @@
 package com.snurdy.backend.domain.user.profile.service
 
-import com.snurdy.backend.domain.test.entity.TestType
-import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
-import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeResponse
-import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
-import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
-import com.snurdy.backend.domain.user.profile.dto.toDefaultTestTypeResponse
-import com.snurdy.backend.domain.user.profile.dto.toMarketingConsentResponse
-import com.snurdy.backend.domain.user.profile.dto.toProfileResponse
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
+import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
+import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
+import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
+import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
+import com.snurdy.backend.domain.user.profile.dto.toMarketingConsentResponse
+import com.snurdy.backend.domain.user.profile.dto.toProfileResponse
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.data.repository.findByIdOrNull
@@ -21,13 +19,15 @@ import java.util.UUID
 @Service
 class UserProfileService(
     private val userRepository: UserRepository,
+    private val userPreferenceService: UserPreferenceService,
     private val clock: Clock
 ) {
 
     @Transactional(readOnly = true)
     fun getProfile(userId: UUID): UserProfileResponse {
         val user = findActiveUser(userId)
-        return user.toProfileResponse()
+        val defaultTestType = userPreferenceService.getPreference(userId).defaultTestType
+        return user.toProfileResponse(defaultTestType)
     }
 
     @Transactional
@@ -37,7 +37,8 @@ class UserProfileService(
         request.nickname?.let { user.updateNickname(it) }
         request.profileImageUrl?.let { user.updateProfileImageUrl(it) }
 
-        return user.toProfileResponse()
+        val defaultTestType = userPreferenceService.getPreference(userId).defaultTestType
+        return user.toProfileResponse(defaultTestType)
     }
 
     @Transactional
@@ -46,13 +47,6 @@ class UserProfileService(
         user.setMarketingConsent(agreed, clock.instant())
 
         return user.toMarketingConsentResponse()
-    }
-
-    @Transactional
-    fun updateDefaultTestType(userId: UUID, defaultTestType: TestType?): UpdateDefaultTestTypeResponse {
-        val user = findActiveUser(userId)
-        user.defaultTestType = defaultTestType
-        return user.toDefaultTestTypeResponse()
     }
 
     private fun findActiveUser(userId: UUID): UserEntity {

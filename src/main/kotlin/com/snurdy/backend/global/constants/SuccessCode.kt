@@ -52,7 +52,8 @@ enum class UserSuccess(
     GET_DASHBOARD(HttpStatus.OK, "USER_S020", "학습 리포트 대시보드 조회에 성공했습니다"),
     LIST_DASHBOARD_GLOSSARIES(HttpStatus.OK, "USER_S021", "과 목록 조회에 성공했습니다"),
     LIST_DASHBOARD_GLOSSARY_STATISTICS(HttpStatus.OK, "USER_S022", "과 지표 리스트 조회에 성공했습니다"),
-    UPDATE_DEFAULT_TEST_TYPE(HttpStatus.OK, "USER_S030", "기본 테스트 유형을 변경했습니다")
+    UPDATE_DEFAULT_TEST_TYPE(HttpStatus.OK, "USER_S030", "기본 테스트 유형을 변경했습니다"),
+    UPDATE_SELECTED_GLOSSARY(HttpStatus.OK, "USER_S031", "선택된 단어장을 저장했습니다")
 }
 
 enum class MigrationSuccess(

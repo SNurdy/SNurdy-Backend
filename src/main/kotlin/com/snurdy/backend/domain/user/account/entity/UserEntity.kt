@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.user.account.entity
 
-import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -69,11 +68,7 @@ class UserEntity(
     var marketingConsent: Boolean = false,
 
     @Column(name = "marketing_consent_at")
-    var marketingConsentAt: Instant? = null,
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "default_test_type", length = 32)
-    var defaultTestType: TestType? = null
+    var marketingConsentAt: Instant? = null
 ) : BaseTimeEntity() {
 
     fun isDeleted(): Boolean = deletedAt != null

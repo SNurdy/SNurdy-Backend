@@ -2,8 +2,6 @@ package com.snurdy.backend.domain.user.profile.controller
 
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentRequest
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
-import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeRequest
-import com.snurdy.backend.domain.user.profile.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
 import com.snurdy.backend.domain.user.profile.service.UserProfileService
@@ -31,13 +29,4 @@ class UserProfileController(
         request: MarketingConsentRequest
     ): ApiResponse<MarketingConsentResponse> =
         ApiResponse.success(UserSuccess.UPDATE_MARKETING_CONSENT, userProfileService.updateMarketingConsent(userId, request.agreed))
-
-    override fun updateDefaultTestType(
-        userId: UUID,
-        request: UpdateDefaultTestTypeRequest
-    ): ApiResponse<UpdateDefaultTestTypeResponse> =
-        ApiResponse.success(
-            UserSuccess.UPDATE_DEFAULT_TEST_TYPE,
-            userProfileService.updateDefaultTestType(userId, request.defaultTestType)
-        )
 }

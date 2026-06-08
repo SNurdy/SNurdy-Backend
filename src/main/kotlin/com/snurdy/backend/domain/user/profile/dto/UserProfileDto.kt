@@ -43,20 +43,9 @@ data class MarketingConsentResponse(
     val marketingConsentAt: Instant?
 )
 
-@Schema(description = "기본 테스트 유형 변경 요청, null 전달 시 다음 진입에서 선택 모달 강제")
-data class UpdateDefaultTestTypeRequest(
-    @field:Schema(description = "사용자 기본 테스트 유형", example = "MEANING_TO_TERM")
-    val defaultTestType: TestType?
-)
-
-@Schema(description = "기본 테스트 유형 변경 응답")
-data class UpdateDefaultTestTypeResponse(
-    @field:Schema(description = "[nullable] 변경된 기본 테스트 유형. null 이면 다음 진입 시 모달 강제", example = "MEANING_TO_TERM")
-    val defaultTestType: TestType?
-)
-
 // UserEntity 는 auth 의 toUserInfo() 와 동시 사용되어 1:N 케이스 - 의미 키워드로 구분
-fun UserEntity.toProfileResponse() = UserProfileResponse(
+// defaultTestType 은 별도 source (UserPreference) 라 service 가 합성해서 전달
+fun UserEntity.toProfileResponse(defaultTestType: TestType?) = UserProfileResponse(
     id = id,
     email = email,
     nickname = nickname,
@@ -70,8 +59,4 @@ fun UserEntity.toProfileResponse() = UserProfileResponse(
 fun UserEntity.toMarketingConsentResponse() = MarketingConsentResponse(
     marketingConsent = marketingConsent,
     marketingConsentAt = marketingConsentAt
-)
-
-fun UserEntity.toDefaultTestTypeResponse() = UpdateDefaultTestTypeResponse(
-    defaultTestType = defaultTestType
 )

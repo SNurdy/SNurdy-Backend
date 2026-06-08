@@ -11,6 +11,8 @@ import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.account.entity.SocialType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
+import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
+import com.snurdy.backend.domain.user.preference.repository.UserPreferenceRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
@@ -38,6 +40,7 @@ class AuthServiceTest {
     private lateinit var appleSocialProvider: AppleSocialProvider
     private lateinit var googleSocialProvider: GoogleSocialProvider
     private lateinit var userRepository: UserRepository
+    private lateinit var userPreferenceRepository: UserPreferenceRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var jwtTokenProvider: JwtTokenProvider
     private lateinit var accessTokenBlacklistService: AccessTokenBlacklistService
@@ -51,6 +54,8 @@ class AuthServiceTest {
         appleSocialProvider = mockk()
         googleSocialProvider = mockk()
         userRepository = mockk()
+        userPreferenceRepository = mockk(relaxed = true)
+        every { userPreferenceRepository.save(any<UserPreferenceEntity>()) } answers { firstArg() }
         refreshTokenRepository = mockk()
         jwtTokenProvider = mockk()
         accessTokenBlacklistService = mockk(relaxed = true)
@@ -65,6 +70,7 @@ class AuthServiceTest {
             appleSocialProvider = appleSocialProvider,
             googleSocialProvider = googleSocialProvider,
             userRepository = userRepository,
+            userPreferenceRepository = userPreferenceRepository,
             refreshTokenRepository = refreshTokenRepository,
             jwtTokenProvider = jwtTokenProvider,
             accessTokenBlacklistService = accessTokenBlacklistService,

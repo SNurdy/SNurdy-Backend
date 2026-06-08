@@ -10,8 +10,8 @@ import java.time.LocalDate
 data class UserDashboardResponse(
     @field:Schema(description = "사용자 streak 요약")
     val streak: DashboardStreak,
-    @field:Schema(description = "다마고치 영역에 표시할 선택된 과. 학습 시작한 과가 없으면 null")
-    val selectedGlossary: DashboardSelectedGlossary?,
+    @field:Schema(description = "다마고치 영역에 표시할 선택된 과. 사용자가 명시 선택한 값 (신규 유저는 가입 시점에 심장내과 자동 세팅)")
+    val selectedGlossary: DashboardSelectedGlossary,
     @field:Schema(description = "7일치 학습 막대 그래프 데이터")
     val weekStatistics: DashboardWeekStatistics,
     @field:Schema(description = "응답 생성 시각")
@@ -39,6 +39,7 @@ data class DashboardSelectedGlossary(
     val progressRate: Double,
     @field:Schema(description = "1 부터 5 까지 다마고치 레벨", example = "5")
     val level: Int,
+    @field:Schema(description = "마지막 학습 시각. 학습 이력 없으면 null")
     val lastLearnedAt: Instant?,
     @field:Schema(
         description = "테스트하기 단어 수 selector 의 최대치로 사용. testType 별 가용 단어 수. " +

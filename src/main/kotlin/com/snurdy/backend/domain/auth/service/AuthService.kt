@@ -13,6 +13,8 @@ import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.account.entity.SocialType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
+import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
+import com.snurdy.backend.domain.user.preference.repository.UserPreferenceRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
@@ -30,6 +32,7 @@ class AuthService(
     private val appleSocialProvider: AppleSocialProvider,
     private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
+    private val userPreferenceRepository: UserPreferenceRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider,
     private val accessTokenBlacklistService: AccessTokenBlacklistService,
@@ -94,7 +97,9 @@ class AuthService(
 
     private fun createNewUser(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse =
         runCatching {
-            userRepository.save(userInfo.toEntity(socialType))
+            val savedUser = userRepository.save(userInfo.toEntity(socialType))
+            userPreferenceRepository.save(UserPreferenceEntity(userId = savedUser.id))
+            savedUser
         }.recoverCatching { e ->
             if (e is DataIntegrityViolationException) {
                 userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)

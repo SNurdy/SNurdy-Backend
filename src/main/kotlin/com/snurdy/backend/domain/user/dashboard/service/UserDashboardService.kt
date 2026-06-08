@@ -19,7 +19,10 @@ import com.snurdy.backend.domain.user.dashboard.dto.DashboardSelectedGlossary
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
 import com.snurdy.backend.domain.user.dashboard.dto.DashboardWeekStatistics
 import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
+import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
+import com.snurdy.backend.global.constants.DictionaryError
+import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -37,6 +40,7 @@ import java.util.UUID
 @Service
 class UserDashboardService(
     private val userStreakService: UserStreakService,
+    private val userPreferenceService: UserPreferenceService,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
@@ -151,30 +155,31 @@ class UserDashboardService(
         return DashboardGlossaryStatisticsResponse(period = period, glossaries = items)
     }
 
-    // 메인 다마고치 영역 default 선택 과
-    // lastLearnedAt 가장 최근 학습한 과 1개. 학습 시작한 과가 없으면 null
-    private fun buildSelectedGlossary(userId: UUID): DashboardSelectedGlossary? {
-        val progresses = glossaryProgressRepository.findAllByIdUserId(userId)
-        val latestProgress = progresses
-            .filter { it.lastLearnedAt != null }
-            .maxByOrNull { it.lastLearnedAt!! }
-            ?: return null
+    // 메인 다마고치 영역 선택 과
+    // 사용자가 명시 선택한 user_preferences.selected_glossary_id 만 본다
+    // 신규 유저는 가입 service 가 심장내과 (glossaryId=6) 로 INSERT 해두므로 항상 값 존재
+    // 사용자 학습으로 인한 자동 변경 없음
+    private fun buildSelectedGlossary(userId: UUID): DashboardSelectedGlossary {
+        val selectedGlossaryId = userPreferenceService.getPreference(userId).selectedGlossaryId
 
         val meta = glossaryRepository.findGlossaryTermCounts()
-            .firstOrNull { it.glossaryId == latestProgress.id.glossaryId }
-            ?: return null
+            .firstOrNull { it.glossaryId == selectedGlossaryId }
+            ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
 
-        val progressRate = GlossaryProgressCalculator.progressRate(latestProgress.learnedCount, meta.termCount)
+        val progress = glossaryProgressRepository.findAllByIdUserId(userId)
+            .firstOrNull { it.id.glossaryId == selectedGlossaryId }
+        val learnedCount = progress?.learnedCount ?: 0
+        val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, meta.termCount)
         val availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
         return DashboardSelectedGlossary(
             glossaryId = meta.glossaryId,
             category = meta.category,
             title = meta.title,
-            learnedCount = latestProgress.learnedCount,
+            learnedCount = learnedCount,
             totalTermCount = meta.termCount,
             progressRate = progressRate,
             level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            lastLearnedAt = latestProgress.lastLearnedAt,
+            lastLearnedAt = progress?.lastLearnedAt,
             availableCounts = availableCounts
         )
     }

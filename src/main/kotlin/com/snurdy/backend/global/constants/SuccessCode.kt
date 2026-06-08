@@ -69,6 +69,14 @@ enum class MigrationSuccess(
     DECLINE(HttpStatus.OK, "MIGRATION_S005", "마이그레이션을 거부했습니다")
 }
 
+enum class ProfileImageSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    UPLOAD(HttpStatus.OK, "PROFILE_IMAGE_S001", "프로필 이미지를 변경했습니다")
+}
+
 enum class CardSuccess(
     override val status: HttpStatus,
     override val code: String,

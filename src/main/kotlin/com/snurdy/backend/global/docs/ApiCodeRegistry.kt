@@ -18,6 +18,8 @@ import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
 import com.snurdy.backend.global.constants.CustomNoteError
 import com.snurdy.backend.global.constants.CustomNoteSuccess
+import com.snurdy.backend.global.constants.ProfileImageError
+import com.snurdy.backend.global.constants.ProfileImageSuccess
 import com.snurdy.backend.global.constants.SuccessCode
 import com.snurdy.backend.global.constants.TermMemoError
 import com.snurdy.backend.global.constants.TermMemoSuccess
@@ -41,6 +43,7 @@ object ApiCodeRegistry {
             MigrationError.entries,
             DictionaryError.entries,
             CustomNoteError.entries,
+            ProfileImageError.entries,
             WrongAnswerNoteError.entries,
             TermMemoError.entries,
             AdminError.entries,
@@ -62,6 +65,7 @@ object ApiCodeRegistry {
             CalendarSuccess.entries,
             DictionarySuccess.entries,
             CustomNoteSuccess.entries,
+            ProfileImageSuccess.entries,
             WrongAnswerNoteSuccess.entries,
             TermMemoSuccess.entries,
             MigrationSuccess.entries,

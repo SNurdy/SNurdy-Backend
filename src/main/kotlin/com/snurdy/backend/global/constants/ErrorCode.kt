@@ -85,6 +85,16 @@ enum class UserError(
     DASHBOARD_GLOSSARY_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_E020", "해당 과를 찾을 수 없습니다")
 }
 
+enum class ProfileImageError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    REQUIRED(HttpStatus.BAD_REQUEST, "PROFILE_IMAGE_E001", "이미지 파일이 필요합니다"),
+    INVALID_FORMAT(HttpStatus.BAD_REQUEST, "PROFILE_IMAGE_E002", "지원하지 않는 이미지 형식입니다 (jpg, png 만 허용)"),
+    TOO_LARGE(HttpStatus.PAYLOAD_TOO_LARGE, "PROFILE_IMAGE_E003", "이미지 크기는 5MB 이하여야 합니다")
+}
+
 enum class TestError(
     override val status: HttpStatus,
     override val code: String,

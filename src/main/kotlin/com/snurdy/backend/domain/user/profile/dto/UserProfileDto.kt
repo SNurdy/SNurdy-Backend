@@ -40,6 +40,12 @@ data class MarketingConsentResponse(
     val marketingConsentAt: Instant?
 )
 
+@Schema(description = "프로필 이미지 업로드 응답")
+data class ProfileImageUploadResponse(
+    @field:Schema(description = "업로드된 프로필 이미지 public URL", example = "https://snurdy-backend-prod.s3.ap-northeast-2.amazonaws.com/profile-images/abc/uuid.jpg")
+    val profileImageUrl: String
+)
+
 // UserEntity 는 auth 의 toUserInfo() 와 동시 사용되어 1:N 케이스 - 의미 키워드로 구분
 fun UserEntity.toProfileResponse() = UserProfileResponse(
     id = id,

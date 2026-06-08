@@ -55,6 +55,21 @@ jwt:
 sharing:
   custom-note-url-prefix: ${SHARING_CUSTOM_NOTE_URL_PREFIX:https://snurdy.org/shared/}
 
+spring.cloud.aws:
+  region:
+    static: ${AWS_REGION:ap-northeast-2}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+  s3:
+    enabled: true
+
+storage:
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    object-prefix: ${AWS_S3_OBJECT_PREFIX:}
+    profile-image-max-size-bytes: 5242880
+
 oauth:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}

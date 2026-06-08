@@ -58,6 +58,9 @@ dependencies {
     implementation ("org.flywaydb:flyway-core")
     implementation ("org.flywaydb:flyway-mysql")
 
+    // Spring Cloud AWS - S3
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
+
     // test
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -68,6 +71,7 @@ dependencies {
 dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
+        mavenBom("io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1")
     }
 }
 

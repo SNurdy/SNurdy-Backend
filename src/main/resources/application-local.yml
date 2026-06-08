@@ -13,6 +13,10 @@ logging:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
+storage:
+  s3:
+    object-prefix: "local/"
+
 cors:
   allowed-origins:
     - "http://localhost:5173"

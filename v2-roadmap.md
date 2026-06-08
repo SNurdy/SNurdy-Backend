@@ -31,7 +31,8 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 2.7 | 공유 단어장 | 코드 + URL 듀얼 공유, 본인 단어장으로 복제 | Phase 1.2, 2.4 | done |
 | 2.8 | 테스트 분리 | 학습/테스트 phase 분리, 7종 testType, 시작/제출 endpoint | 2.4, 2.5 | done |
 | 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
-| 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/submit 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | spec 완료, 구현 대기 |
+| 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/submit 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | done |
+| 2.11 | Daily goal | 사용자별 일일 학습 목표 단어 수 (10/20/30/40/50). todayGoalCompleted 로직 정정 | 2.10 | todo |
 
 ---
 
@@ -204,11 +205,11 @@ Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제�
 
 정통 REST sub-resource 패턴 채택 — Phase 2.8 의 `POST /v2/cards`, `/v2/test/distractors`, `/v2/test/submit` 단일 endpoint 가 noteType polymorphic body 로 분기되는 RPC 스타일을 폐기하고, 노트 타입별 URL 분리. 기본 단어장도 새 URL 로 이전. 커스텀노트 도메인은 URL 을 singular 로 통일 (`/v2/custom-notes` → `/v2/custom-note`, breaking).
 
-구현 예정 endpoint (12개):
-- 기본 단어장: `POST /v2/glossaries/{glossaryId}/cards|distractors|submit`
-- 커스텀노트: `POST /v2/custom-note/{customNoteId}/cards|distractors|submit`
-- 오답노트 (기간): `POST /v2/wrong-answer-note/by-period/{period}/cards|distractors|submit`
-- 오답노트 (과): `POST /v2/wrong-answer-note/by-glossary/{glossaryId}/cards|distractors|submit`
+구현 예정 endpoint (12개, URL prefix `/v2/test/` 통일):
+- 기본 단어장: `POST /v2/test/glossaries/{glossaryId}/cards|distractors|submit`
+- 커스텀노트: `POST /v2/test/custom-notes/{customNoteId}/cards|distractors|submit`
+- 오답노트 (기간): `POST /v2/test/wrong-answer-notes/by-period/{period}/cards|distractors|submit`
+- 오답노트 (과): `POST /v2/test/wrong-answer-notes/by-glossary/{glossaryId}/cards|distractors|submit`
 
 핵심 정책:
 - 진도 트래킹 (SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak) 은 기본 단어장만 갱신. 커스텀/오답은 진도 시스템 / 스트릭 전반에 영향 X (방식 B 채택)
@@ -226,7 +227,8 @@ Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제�
 
 ### 남은 작업
 
-Phase 2 모든 단계 완료.
+- Phase 2.10 구현 (spec 완료)
+- Phase 2.11 daily goal 신설 (spec 미작성)
 
 후속 검토 항목 (별도 phase):
 - 테스트 정오 판정 서버 측 재검증 (부정행위 방지)
@@ -293,15 +295,20 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 테스트 코드 prefix | TEST_* (이전 LEARNING_S020/E020 등 미배포 폐기) |
 | 학습 카드 코드 prefix | CARD_* |
 | Jackson non_null | 글로벌 제거. null 필드도 응답에 명시적으로 노출 (응답 스키마 일관성 우선) |
-| 학습/테스트 확장 URL 전략 | 정통 REST sub-resource 패턴 (Phase 2.10). noteType polymorphic body 폐기, 12개 endpoint 로 분리 |
+| 학습/테스트 확장 URL 전략 | 정통 REST sub-resource + `/v2/test/` prefix 통일 (Phase 2.10, 옵션 B). noteType polymorphic body 폐기, 12개 endpoint 로 분리 |
 | 학습/테스트 확장 URL 동사 | submit 유지 (test-results 폐기). cards/distractors 는 명사 |
-| 학습/테스트 확장 URL 단/복수 | 커스텀노트 도메인 전체 singular 통일 (`/v2/custom-note`). 오답노트는 기존 singular 유지 |
+| 학습/테스트 확장 URL 단/복수 | 노트 타입 plural 통일 (glossaries, custom-notes, wrong-answer-notes). 기존 `/v2/custom-notes/*` 그대로 (breaking 없음) |
+| 학습/테스트 확장 도메인 구조 | card 도메인 폐지 후 test 도메인으로 흡수. controller 노트 타입별 3 파일, service 는 CardService / TestService 두 개로 책임 분리 |
 | 커스텀/오답 테스트 진도 트래킹 | 전반 제외 (방식 B). SRS / GlossaryProgress / DailyProgress / totalLearningTerms / streak 모두 갱신 안 함 |
 | 커스텀노트 오답 자동 기록 | 기록 안 함. 과 선택 불가 구조라 sourceGlossaryId 매핑 불가, 오답노트에 누적해도 활용 불가 |
 | 오답노트 재오답 처리 | totalIncorrectCount += 1, incorrectAt 갱신. 졸업 없음, 정답이어도 row 유지 |
 | 커스텀/오답 응답 DTO | 기본 단어장과 분리 — `SubmitGlossaryTestResponse` / `SubmitNoteTestResponse` (커스텀/오답은 `{ correctCount, incorrectCount }` 만) |
 | 카드 단어 부족 정책 | 4종 공통 방식 B. count > available 시 `TEST_E001`. 가능한 만큼만 반환 정책 폐기 |
-| 가용 단어 수 노출 | 단어장/노트 상세 응답에 `availableCounts` 필드 추가, testType 별 카운트 |
+| 가용 단어 수 노출 | **기본 단어장 상세 응답에만** `availableCounts` 필드 추가. 커스텀/오답은 단어 수 고정이라 selector 자체가 없음 |
 | ProgressUpdateService 메서드 | `updateProgressWithSrs` 1개만 유지. 커스텀/오답은 호출 안 함 |
 | 오답노트 졸업 정책 | 없음. 정답 처리해도 wrong_answer_terms 유지 (수동 삭제만), totalIncorrectCount 만 += 1 |
 | 오답노트 진입 방식 | by-period 또는 by-glossary 필터 필수 (양자택일, path 로 분리) |
+| 커스텀노트 cards 정렬 | createdAt 순 |
+| distractors 풀 부족 처리 | 한 단어만 못 채워도 전체 `TEST_E001` (전체 단어 약 3000개라 실 발생 거의 없음) |
+| submit termId 검증 | 기본 단어장 submit 만 적용 (기존 `validateTermIdsBelongToGlossary` 유지). 커스텀/오답은 클라 책임 |
+| `wrong_answer_terms.sourceGlossaryId` | non-null (오답노트 단어는 항상 sourceGlossaryId 가짐) |

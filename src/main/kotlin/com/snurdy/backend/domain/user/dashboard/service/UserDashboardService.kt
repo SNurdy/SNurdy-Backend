@@ -58,7 +58,26 @@ class UserDashboardService(
         val resolvedEnd = resolvedStart.plusDays(DEFAULT_PERIOD_DAYS - 1)
 
         val streakResponse = userStreakService.getStreak(userId)
-        val selectedGlossary = buildSelectedGlossary(userId)
+        val selectedGlossaryId = userPreferenceService.getPreference(userId).selectedGlossaryId
+        val selectedGlossary = glossaryRepository.findGlossaryTermCounts()
+            .firstOrNull { it.glossaryId == selectedGlossaryId }
+            ?.let { meta ->
+                val progress = glossaryProgressRepository.findAllByIdUserId(userId)
+                    .firstOrNull { it.id.glossaryId == selectedGlossaryId }
+                val learnedCount = progress?.learnedCount ?: 0
+                val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, meta.termCount)
+                DashboardSelectedGlossary(
+                    glossaryId = meta.glossaryId,
+                    category = meta.category,
+                    title = meta.title,
+                    learnedCount = learnedCount,
+                    totalTermCount = meta.termCount,
+                    progressRate = progressRate,
+                    level = GlossaryProgressCalculator.levelFromRate(progressRate),
+                    lastLearnedAt = progress?.lastLearnedAt,
+                    availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
+                )
+            } ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         val weekStatistics = buildWeekStatistics(userId, resolvedStart, resolvedEnd)
 
         return UserDashboardResponse(
@@ -153,35 +172,6 @@ class UserDashboardService(
             }
 
         return DashboardGlossaryStatisticsResponse(period = period, glossaries = items)
-    }
-
-    // 메인 다마고치 영역 선택 과
-    // 사용자가 명시 선택한 user_preferences.selected_glossary_id 만 본다
-    // 신규 유저는 가입 service 가 심장내과 (glossaryId=6) 로 INSERT 해두므로 항상 값 존재
-    // 사용자 학습으로 인한 자동 변경 없음
-    private fun buildSelectedGlossary(userId: UUID): DashboardSelectedGlossary {
-        val selectedGlossaryId = userPreferenceService.getPreference(userId).selectedGlossaryId
-
-        val meta = glossaryRepository.findGlossaryTermCounts()
-            .firstOrNull { it.glossaryId == selectedGlossaryId }
-            ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-
-        val progress = glossaryProgressRepository.findAllByIdUserId(userId)
-            .firstOrNull { it.id.glossaryId == selectedGlossaryId }
-        val learnedCount = progress?.learnedCount ?: 0
-        val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, meta.termCount)
-        val availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
-        return DashboardSelectedGlossary(
-            glossaryId = meta.glossaryId,
-            category = meta.category,
-            title = meta.title,
-            learnedCount = learnedCount,
-            totalTermCount = meta.termCount,
-            progressRate = progressRate,
-            level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            lastLearnedAt = progress?.lastLearnedAt,
-            availableCounts = availableCounts
-        )
     }
 
     // testType 별 가용 단어 수 매핑

@@ -2,7 +2,6 @@ package com.snurdy.backend.domain.user.profile.service
 
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
-import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
 import com.snurdy.backend.domain.user.profile.dto.MarketingConsentResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileResponse
 import com.snurdy.backend.domain.user.profile.dto.UserProfileUpdateRequest
@@ -19,16 +18,12 @@ import java.util.UUID
 @Service
 class UserProfileService(
     private val userRepository: UserRepository,
-    private val userPreferenceService: UserPreferenceService,
     private val clock: Clock
 ) {
 
     @Transactional(readOnly = true)
-    fun getProfile(userId: UUID): UserProfileResponse {
-        val user = findActiveUser(userId)
-        val defaultTestType = userPreferenceService.getPreference(userId).defaultTestType
-        return user.toProfileResponse(defaultTestType)
-    }
+    fun getProfile(userId: UUID): UserProfileResponse =
+        findActiveUser(userId).toProfileResponse()
 
     @Transactional
     fun updateProfile(userId: UUID, request: UserProfileUpdateRequest): UserProfileResponse {
@@ -37,8 +32,7 @@ class UserProfileService(
         request.nickname?.let { user.updateNickname(it) }
         request.profileImageUrl?.let { user.updateProfileImageUrl(it) }
 
-        val defaultTestType = userPreferenceService.getPreference(userId).defaultTestType
-        return user.toProfileResponse(defaultTestType)
+        return user.toProfileResponse()
     }
 
     @Transactional

@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeReques
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
+import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -11,14 +12,21 @@ import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "User Preference", description = "v2 사용자 환경 설정 API (기본 테스트 유형, 선택된 단어장)")
+@Tag(name = "User Preference", description = "v2 사용자 학습 옵션 API (기본 테스트 유형, 선택된 단어장)")
 @RequestMapping("/v2/users/me/preferences")
 interface UserPreferenceApi {
+
+    @Operation(summary = "사용자 학습 옵션 조회 (defaultTestType, selectedGlossaryId)")
+    @ApiSuccessCode("USER_S032")
+    @ApiErrorCodes("USER_E010")
+    @GetMapping
+    fun getPreferences(@CurrentUserId userId: UUID): ApiResponse<UserPreferenceResponse>
 
     @Operation(summary = "기본 테스트 유형 변경 (다음부터 묻지 않기)")
     @ApiSuccessCode("USER_S030")

@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeReques
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
+import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
 import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
 import com.snurdy.backend.global.constants.UserSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -14,6 +15,9 @@ import java.util.UUID
 class UserPreferenceController(
     private val userPreferenceService: UserPreferenceService
 ) : UserPreferenceApi {
+
+    override fun getPreferences(userId: UUID): ApiResponse<UserPreferenceResponse> =
+        ApiResponse.success(UserSuccess.GET_PREFERENCES, userPreferenceService.getPreferenceResponse(userId))
 
     override fun updateDefaultTestType(
         userId: UUID,

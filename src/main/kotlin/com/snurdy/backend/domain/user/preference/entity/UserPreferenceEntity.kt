@@ -10,7 +10,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.util.UUID
 
-// 사용자 환경 설정 (preference) 분리 테이블
+// 사용자 학습 옵션 (preference) 분리 테이블
 // UserEntity 비대화 해소 + selectedGlossaryId 영구화 목적으로 분리
 // row 는 가입 service 가 user 생성 트랜잭션 안에서 INSERT, 모든 user 에 대해 항상 존재
 @Entity

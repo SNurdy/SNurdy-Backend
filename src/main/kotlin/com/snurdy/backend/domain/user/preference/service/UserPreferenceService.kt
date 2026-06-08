@@ -4,7 +4,9 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
+import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
 import com.snurdy.backend.domain.user.preference.dto.toDefaultTestTypeResponse
+import com.snurdy.backend.domain.user.preference.dto.toResponse
 import com.snurdy.backend.domain.user.preference.dto.toSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
 import com.snurdy.backend.domain.user.preference.repository.UserPreferenceRepository
@@ -26,6 +28,10 @@ class UserPreferenceService(
     fun getPreference(userId: UUID): UserPreferenceEntity =
         userPreferenceRepository.findByIdOrNull(userId)
             ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
+
+    @Transactional(readOnly = true)
+    fun getPreferenceResponse(userId: UUID): UserPreferenceResponse =
+        getPreference(userId).toResponse()
 
     @Transactional
     fun updateDefaultTestType(userId: UUID, testType: TestType?): UpdateDefaultTestTypeResponse {

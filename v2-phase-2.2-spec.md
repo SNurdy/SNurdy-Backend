@@ -111,6 +111,11 @@
 - 페이지네이션 없음 (27개 고정)
 - 정렬 lastLearnedAt 내림차순 (학습 안 한 과는 null 이므로 마지막, glossaryId 오름차순으로 보조 정렬)
 
+**캐싱 정책 (iOS 책임)**
+- iOS 가 stale-while-revalidate 패턴 적용 (캐시 즉시 표시 + 백그라운드 갱신)
+- 백엔드는 Cache-Control / ETag 헤더 미적용 (iOS 자체 캐시 정책과 충돌 회피)
+- 학습 submit 후 진척률 변경 시 iOS 가 캐시 명시적 무효화
+
 **SuccessCode**
 - USER_S021 LIST_DASHBOARD_GLOSSARIES
 

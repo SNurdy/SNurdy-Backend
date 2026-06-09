@@ -15,6 +15,11 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
+swagger:
+  auth:
+    username: ${SWAGGER_AUTH_USERNAME:snurdy-dev}
+    password: ${SWAGGER_AUTH_PASSWORD}
+
 cors:
   allowed-origins:
     - "https://api-test.snurdy.org"

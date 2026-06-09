@@ -227,8 +227,9 @@ Phase 2.8 의 학습 카드 / 다지선다 오답 생성 / 테스트 결과 제�
 
 ### 남은 작업
 
-- Phase 2.10 구현 (spec 완료)
-- Phase 2.11 daily goal 신설 (spec 미작성)
+- Phase 2.11 daily goal 신설 (spec 작성 중)
+- 마이페이지 설정 화면 동의 항목 (기획 확인 후 spec 작성)
+- 커스텀노트 북마크 흐름 (단어를 커스텀 단어장에 저장) — 기존 북마크와의 관계 결정 후 spec
 
 후속 검토 항목 (별도 phase):
 - 테스트 정오 판정 서버 측 재검증 (부정행위 방지)
@@ -283,7 +284,7 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | 다지선다 보기 출처 | 같은 단어장 우선 + 부족 시 다른 단어장 random 보충 |
 | 테스트 정오 판정 | 클라이언트 책임 (응답에 correctAnswer 동봉). 추후 서버 재검증 도입 가능성 열어둠 |
 | 테스트 sessionId | 도입 안 함 (stateless cards/distractors/submit). 부정행위 방지는 후속 검토 |
-| default test type 저장 | UserEntity 컬럼 (user_preferences 분리 보류) |
+| default test type 저장 | `user_preferences.default_test_type` (V42 에서 UserEntity 컬럼에서 이관, V43 에서 users.default_test_type DROP) |
 | 도메인 패키지 분리 | `domain/card/` + `domain/test/` + `domain/progress/` 3개로 책임 분담 (learning 패키지는 progress 로 rename) |
 | ProgressUpdateService 책임 | internal API. 호출자가 termId-glossary 매핑 검증 책임, 본 서비스는 user 존재 확인 + SRS/streak/오답노트 갱신만 |
 | ProgressBatchCache | events batch prefetch 캐시 (N+1 회피용). 별도 파일로 추출 |
@@ -312,3 +313,19 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | distractors 풀 부족 처리 | 한 단어만 못 채워도 전체 `TEST_E001` (전체 단어 약 3000개라 실 발생 거의 없음) |
 | submit termId 검증 | 기본 단어장 submit 만 적용 (기존 `validateTermIdsBelongToGlossary` 유지). 커스텀/오답은 클라 책임 |
 | `wrong_answer_terms.sourceGlossaryId` | non-null (오답노트 단어는 항상 sourceGlossaryId 가짐) |
+| user preferences 도메인 분리 | `domain/user/preference/` 신설. `user_preferences` 테이블 1:1 매핑 (userId PK). defaultTestType + selectedGlossaryId + 향후 dailyGoal 통합 관리 |
+| user_preferences row 생성 시점 | 가입 service 가 user 생성 트랜잭션 안에서 INSERT. 기존 유저는 V42 일괄. 모든 user 에 row 보장 |
+| selectedGlossaryId 결정 로직 | `user_preferences.selected_glossary_id` 단일 source. 자동 fallback / lastLearnedAt 추적 폐기. 신규 유저는 심장내과(6) 자동 세팅, NOT NULL |
+| selected-glossary mutation endpoint | `PUT /v2/users/me/preferences/selected-glossary` body `{ glossaryId }` non-null. dashboard 도메인이 아닌 preference 도메인 (데이터 소유 원칙) |
+| preferences GET endpoint | `GET /v2/users/me/preferences` 신설. UserProfileResponse 에서 defaultTestType 분리 (breaking) |
+| 프로필 이미지 업로드 | `POST /v2/users/me/profile-image` multipart. 백엔드 multipart 경유 방식 (presigned URL 미사용) |
+| S3 라이브러리 | `io.awspring.cloud:spring-cloud-aws-starter-s3` 3.3.x (Spring Boot 3.4 호환). SDK v2 직접 사용 안 함 |
+| S3 환경 분리 | dev / prod 별도 버킷 (`snurdy-backend-dev`, `snurdy-backend-prod`). local 은 dev 버킷 공유 + `local/` prefix 격리 |
+| S3 버킷 구조 | 단일 버킷 + 도메인 폴더 prefix (`profile-images/{userId}/{uuid}.{ext}`). 향후 다른 도메인 이미지는 폴더만 추가 |
+| S3 객체 권한 | bucket policy 로 prefix 단위 public-read (ACL 비활성, 2024+ 권장 패턴) |
+| 프로필 이미지 허용 포맷 / 크기 | jpg, jpeg, png / 최대 5MB |
+| 커스텀노트 카드 bookmarked | 4종 카드 일관 (Phase 2.10 구현 시 누락 정정 — 단어별 sourceGlossaryId pair 로 bookmark 조회) |
+| dev Swagger 외부 노출 차단 | dev profile 전용 SecurityFilterChain (Order 0) 으로 swagger path 에 Basic Auth 적용. local / prod 영향 없음 |
+| Spring graceful shutdown | `server.shutdown: graceful` + 30s timeout. blue-green 배포 시 이전 슬롯 stop 시점 in-flight 요청 보호 |
+| prod blue-green 진단 | nginx + blue/green 컨테이너 (8080/8081) 구조 정상. deploy.sh 헬스체크 버그 (`24` vs `12`) 운영 단에서 fix 완료 |
+| DB destructive 마이그레이션 정책 | 누적 시 blue 슬롯 다운타임 가능 (V31/V32 등 drop/rename). expand-contract 패턴은 향후 도입 (현재는 짧은 다운타임 수용) |

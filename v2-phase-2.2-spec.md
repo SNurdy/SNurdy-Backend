@@ -66,9 +66,12 @@
 
 **필드 결정 사항**
 - streak 응답에서 currentStreak 제거 (디자인 마이페이지에 노출 안 됨, 별도 GET /v1/user/streak 에서 제공)
-- selectedGlossary default 사용자가 학습 시작한 glossary 중 lastLearnedAt 가장 최근 1개
-  - 학습 시작한 glossary 가 0개면 null
-- 사용자가 드롭다운으로 다른 과 선택 시 클라이언트가 endpoint 2.2 호출 후 화면 갱신
+- selectedGlossary 결정 로직 (정정 — 이전 lastLearnedAt 자동 선택 폐기)
+  - `user_preferences.selected_glossary_id` 단일 source. 자동 fallback / 최근 학습 추적 없음
+  - 신규 유저는 가입 service 가 심장내과 (glossaryId=6) 로 INSERT 해두므로 항상 값 존재 → 응답 non-null 보장
+  - 사용자가 학습을 진행해도 selectedGlossary 자동 변경 없음
+  - 변경하려면 PUT /v2/users/me/preferences/selected-glossary 호출 필요
+- 사용자가 드롭다운으로 다른 과 선택 시 클라이언트가 위 PUT endpoint 호출 후 dashboard 재조회
 - weekStatistics.days 는 항상 7개. 학습 데이터 없는 날도 learnedCount=0, completedCount=0 으로 채움
 
 **SuccessCode**

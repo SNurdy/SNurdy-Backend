@@ -97,6 +97,16 @@ class CardService(
         if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
         val termIds = picked.map { it.termId }
+        val glossaryIds = picked.mapNotNull { it.glossaryId.takeIf { id -> id > 0 } }.toSet()
+
+        val bookmarkedPairs = if (glossaryIds.isEmpty()) {
+            emptySet()
+        } else {
+            bookmarkRepository
+                .findBookmarkedPairs(userId, glossaryIds, termIds)
+                .mapTo(mutableSetOf()) { it.glossaryId to it.termId }
+        }
+
         val morphemesByTermId = fetchMorphemesByTermId(termIds)
         val variantsByMorphemeId = fetchVariantsByMorphemeId(morphemesByTermId.values.flatten())
         val cards = picked.map { term ->
@@ -107,6 +117,7 @@ class CardService(
                 meaning = term.meaning,
                 abbreviation = term.abbreviation,
                 explanation = term.explanation,
+                bookmarked = (term.glossaryId to term.termId) in bookmarkedPairs,
                 morphemes = buildOrderedMorphemes(term.spelling, morphemesByTermId[term.termId].orEmpty(), variantsByMorphemeId)
             )
         }

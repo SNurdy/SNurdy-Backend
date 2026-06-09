@@ -45,7 +45,7 @@ data class WrongAnswerCard(
     val morphemes: List<OrderedMorpheme>
 )
 
-@Schema(description = "커스텀노트 학습 카드 1개 (북마크 없음)")
+@Schema(description = "커스텀노트 학습 카드 1개")
 data class CustomNoteCard(
     @field:Schema(description = "단어 id", example = "101")
     val termId: Long,
@@ -59,6 +59,8 @@ data class CustomNoteCard(
     val abbreviation: String?,
     @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
     val explanation: String?,
+    @field:Schema(description = "단어가 속한 단어장에서 사용자가 북마크 했는지 여부", example = "false")
+    val bookmarked: Boolean,
     @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위")
     val morphemes: List<OrderedMorpheme>
 )

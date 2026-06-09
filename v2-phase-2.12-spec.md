@@ -12,8 +12,8 @@
 
 | 탭 | 화면 png | 사용 endpoint |
 |---|---|---|
-| **마이페이지** | `마이페이지.png` | `GET /v2/users/me/dashboard` (기존, 변경 없음) + `GET /v2/users/me` (사용자 카드) |
-| **학습하기** | `학습하기(Home).png` | **`GET /v2/users/me/learning-dashboard` (신규)** |
+| **마이페이지** | `마이페이지.png` | `GET /v2/dashboards/me` (기존, 변경 없음) + `GET /v2/users/me` (사용자 카드) |
+| **학습하기** | `학습하기(Home).png` | **`GET /v2/dashboards/study` (신규)** |
 
 기존 Phase 2.9 폐기 사유 "마이페이지와 통합" 은 잘못된 가정. 두 화면이 비슷한 데이터 (streak + 다마고치 + 주간 통계) 를 다루지만 표시 / UX 가 달라 endpoint 분리가 맞음.
 
@@ -33,50 +33,50 @@
 
 ### 2.1 기존
 ```
-domain/user/dashboard/
-├── controller/UserDashboardApi
-├── controller/UserDashboardController
-├── service/UserDashboardService
-└── dto/UserDashboardDto
+domain/user/dashboard/ (구)
+├── controller/MyDashboardApi
+├── controller/MyDashboardController
+├── service/MyDashboardService
+└── dto/MyDashboardDto
 ```
 
 ### 2.2 변경 후
 ```
 domain/dashboard/
 ├── user/                                       ← 이전 (user/dashboard 에서 이동)
-│   ├── controller/UserDashboardApi
-│   ├── controller/UserDashboardController
-│   ├── service/UserDashboardService
-│   └── dto/UserDashboardDto
+│   ├── controller/MyDashboardApi
+│   ├── controller/MyDashboardController
+│   ├── service/MyDashboardService
+│   └── dto/MyDashboardDto
 └── learning/                                   ← 신규
-    ├── controller/LearningDashboardApi
-    ├── controller/LearningDashboardController
-    ├── service/LearningDashboardService
-    └── dto/LearningDashboardDto
+    ├── controller/StudyDashboardApi
+    ├── controller/StudyDashboardController
+    ├── service/StudyDashboardService
+    └── dto/StudyDashboardDto
 ```
 
 ### 2.3 이유
 
 - 두 화면 모두 dashboard 추상화 (사용자가 자기 학습 상태 종합 보기) → 같은 도메인 분류
 - 기존 `user/dashboard` 가 user 데이터 직접 소유 없이 다른 도메인 (progress, dictionary, wrongAnswerNote 등) 합성하는 **BFF** 였음 → `user/` 안 위치가 부정확했음
-- 신설 LearningDashboard 도 같은 BFF 패턴
+- 신설 StudyDashboard 도 같은 BFF 패턴
 - 둘을 `domain/dashboard/` 아래 모아서 BFF dashboard 도메인 통합
 
 ### 2.4 클래스명 / URL 영향
 
-- **클래스명 그대로** (`UserDashboardService` 등) — 패키지 import 만 변경
-- **URL `/v2/users/me/dashboard` 그대로 유지** — iOS breaking 없음
-- 신규 URL `/v2/users/me/learning-dashboard`
+- **클래스명 그대로** (`MyDashboardService` 등) — 패키지 import 만 변경
+- **URL `/v2/dashboards/me` 그대로 유지** — iOS breaking 없음
+- 신규 URL `/v2/dashboards/study`
 
 ---
 
-## 3. 마이페이지 — `GET /v2/users/me/dashboard` (변경 없음)
+## 3. 마이페이지 — `GET /v2/dashboards/me` (변경 없음)
 
 기존 응답 구조 유지. 본 spec 에 명시하는 이유는 학습 Home 응답과 비교를 위해.
 
 ### 요청
 ```
-GET /v2/users/me/dashboard?startDate=2026-02-22
+GET /v2/dashboards/me?startDate=2026-02-22
 Authorization: Bearer <token>
 ```
 
@@ -118,11 +118,11 @@ SuccessCode 기존 `USER_S020 GET_DASHBOARD` 유지.
 
 ---
 
-## 4. 학습 Home — `GET /v2/users/me/learning-dashboard` (신규)
+## 4. 학습 Home — `GET /v2/dashboards/study` (신규)
 
 ### 4.1 요청
 ```
-GET /v2/users/me/learning-dashboard
+GET /v2/dashboards/study
 Authorization: Bearer <token>
 ```
 
@@ -188,7 +188,7 @@ Authorization: Bearer <token>
 | `frequentlyIncorrectTerm` | "자주 틀린 단어" 카드. 3회+ 오답 풀에서 랜덤 1개. 없으면 null |
 
 ### 4.4 SuccessCode
-- `USER_S023 GET_LEARNING_DASHBOARD` 신규
+- `USER_S023 GET_STUDY_DASHBOARD` 신규
 
 ### 4.5 ErrorCode
 - `USER_E010 ACCOUNT_NOT_FOUND` (인증)
@@ -265,7 +265,7 @@ idempotent 패턴.
 
 ### 6.2 위치
 
-LearningDashboardService 가 `WrongAnswerNoteService` (또는 `WrongAnswerTermRepository`) 의 신규 메서드 호출.
+StudyDashboardService 가 `WrongAnswerNoteService` (또는 `WrongAnswerTermRepository`) 의 신규 메서드 호출.
 
 ```kotlin
 // WrongAnswerNoteService 또는 별도 메서드
@@ -290,11 +290,11 @@ MySQL `ORDER BY RAND()` 는 전체 row 정렬이라 큰 테이블에 비효율�
 
 ## 7. weekStatistics 의 `studied` 필드
 
-LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마이페이지 막대 그래프는 `completedCount` 로 충분).
+StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페이지 막대 그래프는 `completedCount` 로 충분).
 
 `studied = (learnedCount + completedCount) > 0` — 그 날 submit 1회 이상 여부.
 
-캘린더 `CalendarDailyItem` 에 이미 같은 패턴 (`studied = completedCount > 0`) 있음. LearningDashboard 의 days 도 동일 로직.
+캘린더 `CalendarDailyItem` 에 이미 같은 패턴 (`studied = completedCount > 0`) 있음. StudyDashboard 의 days 도 동일 로직.
 
 ---
 
@@ -305,7 +305,7 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 - Phase 2.8 시점 의미 미정으로 배포됨
 
 ### 8.2 폐기 이유
-- 학습 Home 의 주간 캘린더 체크 표시는 `learning-dashboard` 응답의 `weekStatistics.days[].studied` 로 표현 가능
+- 학습 Home 의 주간 캘린더 체크 표시는 `dashboards/study` 응답의 `weekStatistics.days[].studied` 로 표현 가능
 - 별도 transition 이벤트 UX 없으면 의미 모호 + 정보 중복
 - iOS 가 사용하지 않으면 제거 안전
 
@@ -320,7 +320,7 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 
 ## 9. 응답 구조 비교 (요약)
 
-| 필드 | UserDashboard (마이페이지) | LearningDashboard (학습 Home) |
+| 필드 | MyDashboard (마이페이지) | StudyDashboard (학습 Home) |
 |---|---|---|
 | `streak.longestStreak` | ✅ | ❌ |
 | `streak.totalLearningTerms` | ✅ | ❌ |
@@ -340,7 +340,7 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 ### 신규
 | 코드 | 이름 | 메시지 |
 |---|---|---|
-| `USER_S023` | GET_LEARNING_DASHBOARD | 학습 대시보드 조회에 성공했습니다 |
+| `USER_S023` | GET_STUDY_DASHBOARD | 학습 Home 대시보드 조회에 성공했습니다 |
 | `USER_S033` | UPDATE_DEFAULT_CARD_COUNT | 한 세션 학습 카드 수를 변경했습니다 |
 | `USER_E044` | DEFAULT_CARD_COUNT_INVALID | 학습 카드 수는 10/20/30/40/50 중 하나여야 합니다 |
 
@@ -354,13 +354,13 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 ## 11. 도메인 영향 정리
 
 ### 신설
-- `domain/dashboard/learning/` 패키지 (LearningDashboardController/Service/Dto)
+- `domain/dashboard/study/` 패키지 (StudyDashboardController/Service/Dto)
 - `user_preferences.default_card_count` 컬럼 (V44)
 - `UserPreferenceService.updateDefaultCardCount` 메서드
 - `WrongAnswerTermRepository.findRandomFrequentlyIncorrectTerm(userId, minCount)` (또는 service 메서드)
 
 ### 이동
-- `domain/user/dashboard/` → `domain/dashboard/user/` (전체 패키지 이동, import 정정)
+- `domain/user/dashboard/ (구)` → `domain/dashboard/me/` (전체 패키지 이동, import 정정)
 - 클래스명 / URL / 응답 구조 변경 없음
 
 ### 응답 변경
@@ -368,7 +368,7 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 - `SubmitGlossaryTestResponse.todayGoalCompleted` 폐기 (iOS 동의 시)
 
 ### 변경 없음
-- `GET /v2/users/me/dashboard` 응답 (UserDashboard)
+- `GET /v2/dashboards/me` 응답 (MyDashboard)
 - 다른 모든 endpoint
 
 ---
@@ -381,12 +381,12 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 4. UserPreferenceEntity / DTO 확장 (defaultCardCount)
 5. UserPreferenceService — `updateDefaultCardCount` + `getPreferenceResponse` 확장
 6. UserPreferenceApi 에 `PUT /preferences/default-card-count` endpoint 추가
-7. 패키지 이동: `domain/user/dashboard/` → `domain/dashboard/user/` (전체 import 정정)
-8. 신규 패키지 `domain/dashboard/learning/` 생성
-9. `LearningDashboardResponse` + 하위 DTO 작성
-10. `LearningDashboardService` 작성 (BFF — UserStreakService + UserPreferenceService + WrongAnswerNoteService + GlossaryRepository + DailyProgressRepository 호출)
+7. 패키지 이동: `domain/user/dashboard/ (구)` → `domain/dashboard/me/` (전체 import 정정)
+8. 신규 패키지 `domain/dashboard/study/` 생성
+9. `StudyDashboardResponse` + 하위 DTO 작성
+10. `StudyDashboardService` 작성 (BFF — UserStreakService + UserPreferenceService + WrongAnswerNoteService + GlossaryRepository + DailyProgressRepository 호출)
 11. `WrongAnswerTermRepository.findRandomFrequentlyIncorrectTerm` 신규 쿼리
-12. `LearningDashboardController` + Api
+12. `StudyDashboardController` + Api
 13. SuccessCode / ErrorCode enum 추가
 14. (옵션) `SubmitGlossaryTestResponse.todayGoalCompleted` 폐기 + TestService 로직 정리
 15. v2-roadmap.md 결정 누적 갱신
@@ -399,20 +399,20 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 | 항목 | 결정 |
 |---|---|
 | 두 탭 분리 인정 | 마이페이지 (`마이페이지.png`) ≠ 학습 Home (`학습하기(Home).png`). Phase 2.9 폐기 사유 정정 |
-| 학습 Home endpoint | 신규 `GET /v2/users/me/learning-dashboard` |
-| 마이페이지 endpoint | 기존 `GET /v2/users/me/dashboard` 그대로 (URL / 응답 변경 없음) |
+| 학습 Home endpoint | 신규 `GET /v2/dashboards/study` |
+| 마이페이지 endpoint | 기존 `GET /v2/dashboards/me` 그대로 (URL / 응답 변경 없음) |
 | 도메인 패키지 | `domain/dashboard/` 통합 — `user/` (이전) + `learning/` (신규) |
 | URL 컨벤션 | `/v2/users/me/` 유지 (도메인 패키지와 URL 불일치 — BFF 패턴에서 일반적) |
-| LearningDashboard 책임 | BFF — UserStreak + Preference + WrongAnswer + Glossary + Progress 합성 |
-| weekStatistics.days[].studied 위치 | LearningDashboard 응답에만 추가. UserDashboard 응답 변경 없음 |
-| frequentlyIncorrectTerm 위치 | LearningDashboard 응답에 통합 (별도 endpoint 신설 안 함) |
+| StudyDashboard 책임 | BFF — UserStreak + Preference + WrongAnswer + Glossary + Progress 합성 |
+| weekStatistics.days[].studied 위치 | StudyDashboard 응답에만 추가. MyDashboard 응답 변경 없음 |
+| frequentlyIncorrectTerm 위치 | StudyDashboard 응답에 통합 (별도 endpoint 신설 안 함) |
 | 자주 틀린 단어 조건 | `total_incorrect_count >= 3`, `ORDER BY RAND() LIMIT 1` (랜덤) |
 | defaultCardCount 저장 | `user_preferences.default_card_count` (V44), 허용 값 10/20/30/40/50 |
 | defaultCardCount 적용 | 백엔드는 default 자동 적용 안 함. 클라가 cards 호출 시 명시 |
 | todayGoalCompleted | 폐기 (iOS 동의 시). 캘린더 체크는 weekStatistics.days[].studied 로 표현 |
 | 패키지 이동 영향 | 클래스명 / URL / 응답 모두 변경 없음. import 만 정정. iOS breaking 없음 (URL 그대로) |
 | streak 분리 | 안 함 (longestStreak 거의 안 바뀌지만 분리 실익 미미. 마이페이지에서만 사용) |
-| weekStatistics DTO 분리 | UserDashboard / LearningDashboard 각자 별도 DTO (다른 필드) |
+| weekStatistics DTO 분리 | MyDashboard / StudyDashboard 각자 별도 DTO (다른 필드) |
 | weekStatistics 범위 (학습 Home) | 이번 주 자연주 고정 (월요일 ~ 일요일) — 슬라이딩 안 함 |
 | weekStatistics 범위 (마이페이지) | startDate 슬라이딩 (기존) |
 | iOS 사전 동의 | 신규 endpoint 흐름 + todayGoalCompleted 폐기 — 구현 전 받음 |
@@ -422,14 +422,14 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 ## 14. iOS 영향 종합
 
 ### 변경 없음
-- `GET /v2/users/me/dashboard` (마이페이지)
+- `GET /v2/dashboards/me` (마이페이지)
 - `GET /v2/users/me` (프로필)
 - `GET /v2/users/me/preferences` — 응답에 `defaultCardCount` 추가 (additive, breaking 아님)
 - `PUT /v2/users/me/preferences/*` 기존 endpoint들
 - `GET /v1/user/streak`
 
 ### 신규
-- `GET /v2/users/me/learning-dashboard` — 학습 Home 진입 시 호출
+- `GET /v2/dashboards/study` — 학습 Home 진입 시 호출
 - `PUT /v2/users/me/preferences/default-card-count` — 학습 목표 변경 시 호출
 
 ### Breaking (사전 동의 시)
@@ -441,5 +441,5 @@ LearningDashboard 응답 전용. UserDashboard 응답에는 추가 안 함 (마�
 
 1. 학습 Home 화면 학습하기 버튼 → 클라가 `defaultCardCount` 값으로 cards 호출. 단 사용자가 selector 로 다른 값 선택 가능한 화면이 있는지? 현재는 ✎ 버튼으로 변경 → PUT 호출이 default 변경
 2. defaultCardCount 외 다른 값 (예: 100, 5 등) 추가 단계 가능성
-3. LearningDashboard 응답 캐싱 — iOS stale-while-revalidate 적용 검토 (바텀시트와 동일 패턴)
-4. UserDashboard 도메인 이동 시 다른 사용처 영향 — `domain/user/dashboard/` 를 직접 import 하는 곳 있는지 grep 으로 확인 (가능성 낮지만 명시적 체크)
+3. StudyDashboard 응답 캐싱 — iOS stale-while-revalidate 적용 검토 (바텀시트와 동일 패턴)
+4. MyDashboard 도메인 이동 시 다른 사용처 영향 — `domain/user/dashboard/ (구)` 를 직접 import 하는 곳 있는지 grep 으로 확인 (가능성 낮지만 명시적 체크)

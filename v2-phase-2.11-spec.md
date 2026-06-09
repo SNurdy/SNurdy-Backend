@@ -118,7 +118,7 @@ iOS 가 학습 Home 진입 시 GET preferences 로 받아서 selector 초기값 
 
 ---
 
-## 3. 자주 틀린 단어
+## 3. 자주 틀린 단어 (랜덤 출제)
 
 ### 3.1 조건
 
@@ -126,14 +126,15 @@ iOS 가 학습 Home 진입 시 GET preferences 로 받아서 selector 초기값 
 - `user_id = ?`
 - `deleted_at IS NULL` (활성)
 - `total_incorrect_count >= 3` (3회 이상 오답)
-- `ORDER BY total_incorrect_count DESC, incorrect_at DESC` (가장 많이 틀린 단어, 동률 시 최근 오답)
-- `LIMIT 1`
+- `ORDER BY RAND() LIMIT 1` — **랜덤 출제** (학습 효과)
 
 3회 미만 단어는 "자주 틀린" 으로 인정 안 함. 단어 없으면 응답에 null (클라가 카드 숨김).
 
+**왜 랜덤?** 매번 같은 (가장 많이 틀린) 단어 노출 시 학습 효과 떨어짐. 3회+ 풀에서 랜덤이면 사용자가 매 학습 Home 진입마다 다른 단어와 마주침 → 반복 노출로 자연 학습.
+
 ### 3.2 Endpoint
 
-#### `GET /v2/users/me/most-incorrect-term`
+#### `GET /v2/users/me/frequently-incorrect-term`
 
 **응답 — 단어 있을 때**
 ```json
@@ -154,10 +155,14 @@ iOS 가 학습 Home 진입 시 GET preferences 로 받아서 selector 초기값 
 ```
 
 **SuccessCode**
-- `USER_S034 GET_MOST_INCORRECT_TERM` 신규
+- `USER_S034 GET_FREQUENTLY_INCORRECT_TERM` 신규
 
 **ErrorCode**
 - `USER_E010` (인증)
+
+### 3.3 쿼리 성능 참고
+
+MySQL `ORDER BY RAND()` 는 전체 row 정렬이라 큰 테이블에 비효율적. 단 사용자별 `wrong_answer_terms` row 수는 보통 수십~수백 개라 실효 부담 미미. 향후 row 수가 크게 늘면 OFFSET + COUNT 기반 랜덤 또는 별도 인덱스 전략 검토.
 
 ### 3.3 음성 재생
 
@@ -169,8 +174,8 @@ dashboard endpoint 와 별개로 호출:
 - iOS 가 학습 Home 진입 시:
   - `GET /v2/users/me/dashboard` (streak + selectedGlossary + weekStatistics)
   - `GET /v2/users/me/preferences` (defaultCardCount + defaultTestType + selectedGlossaryId)
-  - `GET /v2/users/me/most-incorrect-term` (자주 틀린 단어)
-- 또는 iOS 가 일부 캐싱 후 stale-while-revalidate (바텀시트 패턴 재사용)
+  - `GET /v2/users/me/frequently-incorrect-term` (자주 틀린 단어, 랜덤)
+- 또는 iOS 가 일부 캐싱 후 stale-while-revalidate (바텀시트 패턴 재사용). 단 자주 틀린 단어는 매번 랜덤이라 캐싱 X (또는 짧은 TTL)
 
 dashboard 응답에 통합하지 않는 이유:
 - 자주 틀린 단어는 dashboard 도메인 아닌 wrongAnswerNote 도메인 데이터
@@ -200,8 +205,8 @@ dashboard 응답에 통합하지 않는 이유:
 
 추천: **A** — `wrong_answer_terms` 데이터 직접 사용이라 도메인 일관 우선.
 
-`WrongAnswerNoteService` 또는 별도 service 에 메서드 추가:
-- `getMostIncorrectTerm(userId): MostIncorrectTermResponse`
+`WrongAnswerNoteService` 에 메서드 추가:
+- `getFrequentlyIncorrectTerm(userId): FrequentlyIncorrectTermResponse`
 - 새 endpoint controller 추가
 
 ---
@@ -212,7 +217,7 @@ dashboard 응답에 통합하지 않는 이유:
 | 코드 | 이름 | 메시지 |
 |---|---|---|
 | `USER_S033` | UPDATE_DEFAULT_CARD_COUNT | 한 세션 학습 카드 수를 변경했습니다 |
-| `USER_S034` | GET_MOST_INCORRECT_TERM | 자주 틀린 단어 조회에 성공했습니다 |
+| `USER_S034` | GET_FREQUENTLY_INCORRECT_TERM | 자주 틀린 단어 조회에 성공했습니다 |
 | `USER_E044` | DEFAULT_CARD_COUNT_INVALID | 학습 카드 수는 10/20/30/40/50 중 하나여야 합니다 |
 
 ---
@@ -224,10 +229,10 @@ dashboard 응답에 통합하지 않는 이유:
 3. UserPreferenceEntity / DTO 확장 (`defaultCardCount` 필드)
 4. UserPreferenceService — `updateDefaultCardCount` + `getPreferenceResponse` 확장
 5. UserPreferenceApi 에 `PUT /preferences/default-card-count` endpoint 추가
-6. `WrongAnswerNoteService` 또는 별도 service 에 `getMostIncorrectTerm` 신규
-7. 신규 endpoint controller (`GET /v2/users/me/most-incorrect-term`)
-8. Repository 쿼리 (`wrong_answer_terms` 3회 이상 + 정렬 + LIMIT 1)
-9. DTO (`MostIncorrectTermResponse`)
+6. `WrongAnswerNoteService` 에 `getFrequentlyIncorrectTerm` 신규
+7. 신규 endpoint controller (`GET /v2/users/me/frequently-incorrect-term`)
+8. Repository 쿼리 (`wrong_answer_terms` 3회 이상 + `ORDER BY RAND() LIMIT 1`)
+9. DTO (`FrequentlyIncorrectTermResponse`)
 10. SuccessCode / ErrorCode enum 추가
 11. v2-roadmap.md 결정 누적 갱신
 12. iOS 전달 메시지
@@ -245,31 +250,29 @@ dashboard 응답에 통합하지 않는 이유:
 | 타입 | Int (enum 안 만듦, service 단 in-list 검증) |
 | 적용 동작 | 백엔드는 default 저장/조회만. 클라가 cards 호출 시 명시 (기존 GlossaryCardsRequest.count 패턴 유지) |
 | GET preferences 응답 확장 | `defaultCardCount` 추가 |
-| 자주 틀린 단어 조건 | `total_incorrect_count >= 3`, 동률 시 `incorrect_at DESC`, LIMIT 1 |
+| 자주 틀린 단어 조건 | `total_incorrect_count >= 3`, `ORDER BY RAND() LIMIT 1` (랜덤 출제 — 학습 효과) |
 | 자주 틀린 단어 없을 때 | `{ "term": null }` 응답 (404 X) |
 | 자주 틀린 단어 도메인 위치 | `user/wrongAnswerNote/` (데이터 도메인 일관) |
 | dashboard 응답 변경 | 없음 — 별도 endpoint 로 분리 |
-| 폐기된 개념 | `todayGoalCompleted` 응답 필드 의미 재정의 없음 (Phase 2.8 의 기존 동작 그대로 — "오늘 첫 활동" 으로 일단 유지하거나, 본 phase 에서 함께 정정 검토) |
+| `todayGoalCompleted` 처리 | **그대로 유지** (Phase 2.8 의 "오늘 첫 테스트 완료" 동작 그대로). 사용자가 default 카드 수만큼 한 세션 학습 = "오늘의 목표 달성" 으로 자연스럽게 해석. 의미 변경 / 응답 변경 없음 |
 
 ---
 
 ## 8. 미확정 / 후속 검토
 
-1. `todayGoalCompleted` 응답 필드 처리
-   - Phase 2.8 의 `SubmitGlossaryTestResponse.todayGoalCompleted` 가 "오늘 첫 활동 여부" 로 동작 중
-   - daily_goal 개념이 없어졌으니 이 필드 의미가 모호
-   - 옵션 a. 필드 제거 (breaking)
-   - 옵션 b. 그대로 두되 의미 보류 (현재 동작 유지)
-   - iOS 가 이 필드 어떻게 쓰는지 확인 후 결정
-
-2. 학습 Home 화면 데이터 통합 endpoint 신설 검토
-   - 현재 3개 호출 (dashboard + preferences + most-incorrect-term)
+1. 학습 Home 화면 데이터 통합 endpoint 신설 검토
+   - 현재 3개 호출 (dashboard + preferences + frequently-incorrect-term)
    - 통합 BFF endpoint (`GET /v2/users/me/learning-home`) 한 번에 받기
    - 단 도메인 책임 분산 vs 호출 통합 trade-off
    - 후속 spec 으로 분리
 
-3. 다른 카드 수 단계 추가 (5, 100 등)
+2. 다른 카드 수 단계 추가 (5, 100 등)
    - 디자인 변경 시 enum 확장
+
+3. 자주 틀린 단어 응답에 발음 / 어근 정보 포함 검토
+   - 현재는 termId + spelling + meaning + abbreviation + totalIncorrectCount 만
+   - 화면에서 단어 탭 시 상세로 이동 흐름이면 termId 만으로 충분
+   - 카드에서 바로 발음 듣기 / 어근 보기 UX 면 morphemes 등 추가 필요
 
 ---
 

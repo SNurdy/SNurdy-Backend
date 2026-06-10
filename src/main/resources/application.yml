@@ -92,6 +92,8 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger
+    tags-sorter: alpha
+    operations-sorter: alpha
   paths-to-exclude:
     - /v1/admin/**
 

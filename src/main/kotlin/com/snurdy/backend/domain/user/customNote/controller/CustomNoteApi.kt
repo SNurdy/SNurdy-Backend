@@ -84,7 +84,7 @@ interface CustomNoteApi {
 
     @Operation(summary = "단어 기준 내 커스텀 단어장 보유 현황 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S017")
-    @GetMapping("/terms/{glossaryId}/{termId}/notes")
+    @GetMapping("/terms/{glossaryId}/{termId}")
     fun listNotesForTerm(
         @CurrentUserId userId: UUID,
         @PathVariable glossaryId: Long,

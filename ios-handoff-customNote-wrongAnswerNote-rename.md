@@ -147,7 +147,7 @@ URL path 문자열 자체는 변경 없음. swagger 명세상 placeholder 이름
 { "addedCustomNoteIds": [1, 12] }
 ```
 
-### 4.4 `GET /v2/custom-notes/terms/{glossaryId}/{termId}/notes` 응답
+### 4.4 `GET /v2/custom-notes/terms/{glossaryId}/{termId}` 응답
 **Before**
 ```json
 {

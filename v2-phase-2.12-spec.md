@@ -107,11 +107,10 @@ Authorization: Bearer <token>
     "startDate": "2026-02-22",
     "endDate": "2026-02-28",
     "days": [
-      { "date": "2026-02-22", "dayOfWeek": "SUNDAY", "learnedCount": 12, "completedCount": 18 },
+      { "date": "2026-02-22", "dayOfWeek": "SUNDAY", "newLearnedCount": 12 },
       ...
     ]
-  },
-  "generatedAt": "2026-02-27T09:00:00Z"
+  }
 }
 ```
 
@@ -135,13 +134,10 @@ Authorization: Bearer <token>
   "currentStreak": 21,
   "selectedGlossary": {
     "glossaryId": 6,
-    "category": "내과",
     "title": "심장내과",
     "learnedCount": 86,
     "totalTermCount": 100,
-    "progressRate": 86.0,
     "level": 5,
-    "lastLearnedAt": "2026-06-08T14:23:00Z",
     "availableCounts": {
       "TERM_TO_MEANING": 100,
       "MEANING_TO_TERM": 100,
@@ -154,8 +150,6 @@ Authorization: Bearer <token>
   },
   "defaultCardCount": 10,
   "weekStatistics": {
-    "startDate": "2026-06-08",
-    "endDate": "2026-06-14",
     "days": [
       { "date": "2026-06-08", "dayOfWeek": "MONDAY",    "studied": true  },
       { "date": "2026-06-09", "dayOfWeek": "TUESDAY",   "studied": false },
@@ -170,10 +164,8 @@ Authorization: Bearer <token>
     "termId": 245,
     "spelling": "Acute sinusitis",
     "meaning": "급성부비동염",
-    "abbreviation": null,
-    "totalIncorrectCount": 5
-  },
-  "generatedAt": "2026-06-08T09:00:00Z"
+    "abbreviation": null
+  }
 }
 ```
 
@@ -282,7 +274,6 @@ fun getRandomFrequentlyIncorrectTerm(userId: UUID, minCount: Int = 3): Frequentl
 | `spelling` | 영문 |
 | `meaning` | 한글 의미 |
 | `abbreviation` | 약어 (nullable) |
-| `totalIncorrectCount` | 누적 오답 횟수 |
 
 ### 6.4 쿼리 성능 참고
 

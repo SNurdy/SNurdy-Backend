@@ -59,27 +59,25 @@ data class DashboardWeekStatistics(
         arraySchema = Schema(
             description = "7일치 일별 통계. 학습 안 한 날도 0 으로 채워 항상 7개 보장",
             example = """[
-                {"date":"2026-05-29","dayOfWeek":"FRIDAY","newLearnedCount":10,"allLearnedCount":12},
-                {"date":"2026-05-30","dayOfWeek":"SATURDAY","newLearnedCount":5,"allLearnedCount":8},
-                {"date":"2026-05-31","dayOfWeek":"SUNDAY","newLearnedCount":0,"allLearnedCount":0},
-                {"date":"2026-06-01","dayOfWeek":"MONDAY","newLearnedCount":15,"allLearnedCount":20},
-                {"date":"2026-06-02","dayOfWeek":"TUESDAY","newLearnedCount":7,"allLearnedCount":7},
-                {"date":"2026-06-03","dayOfWeek":"WEDNESDAY","newLearnedCount":0,"allLearnedCount":0},
-                {"date":"2026-06-04","dayOfWeek":"THURSDAY","newLearnedCount":3,"allLearnedCount":5}
+                {"date":"2026-05-29","dayOfWeek":"FRIDAY","newLearnedCount":10},
+                {"date":"2026-05-30","dayOfWeek":"SATURDAY","newLearnedCount":5},
+                {"date":"2026-05-31","dayOfWeek":"SUNDAY","newLearnedCount":0},
+                {"date":"2026-06-01","dayOfWeek":"MONDAY","newLearnedCount":15},
+                {"date":"2026-06-02","dayOfWeek":"TUESDAY","newLearnedCount":7},
+                {"date":"2026-06-03","dayOfWeek":"WEDNESDAY","newLearnedCount":0},
+                {"date":"2026-06-04","dayOfWeek":"THURSDAY","newLearnedCount":3}
             ]"""
         )
     )
     val days: List<DashboardDailyStatistic>
 )
 
-@Schema(description = "일별 학습 지표")
+@Schema(description = "일별 신규 학습 지표")
 data class DashboardDailyStatistic(
     val date: LocalDate,
     val dayOfWeek: DayOfWeek,
     @field:Schema(description = "그 날 신규로 학습한 단어 수", example = "10")
-    val newLearnedCount: Int,
-    @field:Schema(description = "그 날 전체 학습한 단어 수. 신규 + 복습 합", example = "18")
-    val allLearnedCount: Int
+    val newLearnedCount: Int
 )
 
 @Schema(description = "과 변경 바텀시트 응답")

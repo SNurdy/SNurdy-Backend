@@ -53,8 +53,7 @@ class StudyDashboardService(
                     termId = it.termId,
                     spelling = it.spelling,
                     meaning = it.meaning,
-                    abbreviation = it.abbreviation,
-                    totalIncorrectCount = it.totalIncorrectCount
+                    abbreviation = it.abbreviation
                 )
             }
 
@@ -79,13 +78,10 @@ class StudyDashboardService(
 
         return StudySelectedGlossary(
             glossaryId = meta.glossaryId,
-            category = meta.category,
             title = meta.title,
             learnedCount = learnedCount,
             totalTermCount = meta.termCount,
-            progressRate = progressRate,
             level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            lastLearnedAt = progress?.lastLearnedAt,
             availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
         )
     }
@@ -111,7 +107,7 @@ class StudyDashboardService(
             )
         }
 
-        return StudyWeekStatistics(startDate = monday, endDate = sunday, days = days)
+        return StudyWeekStatistics(days = days)
     }
 
     private fun buildAvailableCounts(counts: GlossaryAvailableCountProjection): Map<TestType, Int> {

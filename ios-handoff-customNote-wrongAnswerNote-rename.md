@@ -207,3 +207,42 @@ URL path 문자열 자체는 변경 없음. swagger 명세상 placeholder 이름
 4. 빌드 - 컴파일 에러 발생한 곳이 영향 받은 호출처 (이름 변경된 필드)
 
 호출 URL / 헤더 / 코드 문자열 분기 로직은 손댈 필요 없습니다.
+
+---
+
+## 7. 추가 변경 - 과 지표 상세 응답 (`USER_S022`)
+
+### 변경 사항
+`GET /v2/dashboards/me/glossaries/statistics` 응답의 `DashboardGlossaryStatisticItem` 에서 **`periodLearnedTermCount` 필드 제거**.
+
+### 변경 이유
+화면 (과 지표 상세보기 - 이번 주 / 전체) 의 "총 학습 단어" 라벨이 게이지의 `learnedCount` 와 동일한 값을 표시하기로 디자인팀과 확정. 별 metric 이 아닌 같은 값이므로 응답 중복 필드 제거. period 영향은 `periodWrongAnswerCount` 만.
+
+### Before
+```json
+{
+  "glossaryId": 1,
+  "title": "정형외과",
+  "learnedCount": 85,
+  "totalTermCount": 100,
+  "level": 5,
+  "periodLearnedTermCount": 49,
+  "periodWrongAnswerCount": 232
+}
+```
+
+### After
+```json
+{
+  "glossaryId": 1,
+  "title": "정형외과",
+  "learnedCount": 85,
+  "totalTermCount": 100,
+  "level": 5,
+  "periodWrongAnswerCount": 232
+}
+```
+
+### iOS 작업
+- "총 학습 단어" 라벨은 응답의 `learnedCount` 를 사용해 표시 (이번 주 / 전체 탭 동일)
+- "오답 노트" 라벨은 `periodWrongAnswerCount` 그대로 (탭에 따라 값 다름)

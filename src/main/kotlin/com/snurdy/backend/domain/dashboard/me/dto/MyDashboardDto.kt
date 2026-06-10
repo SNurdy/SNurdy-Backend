@@ -102,8 +102,6 @@ data class DashboardGlossaryStatisticItem(
     val totalTermCount: Long,
     @field:Schema(description = "누적 다마고치 레벨. period 영향 없음", example = "5")
     val level: Int,
-    @field:Schema(description = "period 기간 동안 학습한 단어 수", example = "49")
-    val periodLearnedTermCount: Long,
     @field:Schema(description = "period 기간 동안 오답이 발생한 단어 종 수", example = "232")
     val periodWrongAnswerCount: Long
 )

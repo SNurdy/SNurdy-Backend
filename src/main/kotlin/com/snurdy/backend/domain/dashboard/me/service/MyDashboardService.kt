@@ -6,7 +6,6 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermCoun
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.progress.repository.TermProgressRepository
 import com.snurdy.backend.domain.dashboard.me.dto.DashboardDailyStatistic
 import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryListItem
 import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryListResponse
@@ -42,7 +41,6 @@ class MyDashboardService(
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val glossaryRepository: GlossaryRepository,
     private val dailyProgressRepository: DailyProgressRepository,
-    private val termProgressRepository: TermProgressRepository,
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
     private val clock: Clock
 ) {
@@ -132,9 +130,6 @@ class MyDashboardService(
             DashboardGlossaryPeriod.ALL -> null
         }
 
-        val learnedCountByGlossaryId = termProgressRepository
-            .countLearnedSinceByGlossaries(userId, glossaryIds, after)
-            .associate { it.glossaryId to it.termCount }
         val wrongCountByGlossaryId = wrongAnswerTermRepository
             .countActiveByGlossaries(userId, glossaryIds, after)
             .associate { it.glossaryId to it.wrongCount }
@@ -155,7 +150,6 @@ class MyDashboardService(
                     learnedCount = progress.learnedCount,
                     totalTermCount = meta.termCount,
                     level = GlossaryProgressCalculator.levelFromRate(progressRate),
-                    periodLearnedTermCount = learnedCountByGlossaryId[glossaryId] ?: 0L,
                     periodWrongAnswerCount = wrongCountByGlossaryId[glossaryId] ?: 0L
                 )
             }

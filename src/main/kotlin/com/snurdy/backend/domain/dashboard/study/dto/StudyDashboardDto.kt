@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.dashboard.study.dto
 
-import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
@@ -28,12 +27,7 @@ data class StudySelectedGlossary(
     @field:Schema(description = "해당 과의 전체 단어 수", example = "100")
     val totalTermCount: Long,
     @field:Schema(description = "1 부터 5 까지 다마고치 레벨", example = "5")
-    val level: Int,
-    @field:Schema(
-        description = "테스트하기 셀렉터 최대치. testType 별 가용 단어 수",
-        example = """{"TERM_TO_MEANING":100,"MEANING_TO_TERM":100,"LISTEN_AND_WRITE":100,"WRITE_ABBREVIATION":42,"MC_PICK_TERM":100,"MC_PICK_MEANING":100,"MC_PICK_ABBR":42}"""
-    )
-    val availableCounts: Map<TestType, Int>
+    val level: Int
 )
 
 @Schema(description = "이번 주 자연주 7일치 학습 여부")

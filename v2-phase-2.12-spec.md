@@ -133,16 +133,7 @@ Authorization: Bearer <token>
     "title": "심장내과",
     "learnedCount": 86,
     "totalTermCount": 100,
-    "level": 5,
-    "availableCounts": {
-      "TERM_TO_MEANING": 100,
-      "MEANING_TO_TERM": 100,
-      "LISTEN_AND_WRITE": 100,
-      "WRITE_ABBREVIATION": 42,
-      "MC_PICK_TERM": 100,
-      "MC_PICK_MEANING": 100,
-      "MC_PICK_ABBR": 42
-    }
+    "level": 5
   },
   "defaultCardCount": 10,
   "weekStatistics": {

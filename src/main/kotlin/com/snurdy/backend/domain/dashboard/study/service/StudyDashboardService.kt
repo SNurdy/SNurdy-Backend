@@ -6,12 +6,9 @@ import com.snurdy.backend.domain.dashboard.study.dto.StudyFrequentlyIncorrectTer
 import com.snurdy.backend.domain.dashboard.study.dto.StudySelectedGlossary
 import com.snurdy.backend.domain.dashboard.study.dto.StudyWeekStatistics
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
-import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryAvailableCountProjection
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
@@ -33,7 +30,6 @@ class StudyDashboardService(
     private val userStreakService: UserStreakService,
     private val userPreferenceService: UserPreferenceService,
     private val glossaryRepository: GlossaryRepository,
-    private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
@@ -81,8 +77,7 @@ class StudyDashboardService(
             title = meta.title,
             learnedCount = learnedCount,
             totalTermCount = meta.termCount,
-            level = GlossaryProgressCalculator.levelFromRate(progressRate),
-            availableCounts = buildAvailableCounts(glossaryTermRepository.countAvailableTerms(meta.glossaryId))
+            level = GlossaryProgressCalculator.levelFromRate(progressRate)
         )
     }
 
@@ -107,17 +102,6 @@ class StudyDashboardService(
         }
 
         return StudyWeekStatistics(days = days)
-    }
-
-    private fun buildAvailableCounts(counts: GlossaryAvailableCountProjection): Map<TestType, Int> {
-        val total = counts.totalCount.toInt()
-        val abbreviation = counts.abbreviationCount.toInt()
-        return TestType.entries.associateWith { type ->
-            when (type) {
-                TestType.WRITE_ABBREVIATION, TestType.MC_PICK_ABBR -> abbreviation
-                else -> total
-            }
-        }
     }
 
     companion object {

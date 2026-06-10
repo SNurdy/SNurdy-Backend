@@ -246,3 +246,23 @@ URL path 문자열 자체는 변경 없음. swagger 명세상 placeholder 이름
 ### iOS 작업
 - "총 학습 단어" 라벨은 응답의 `learnedCount` 를 사용해 표시 (이번 주 / 전체 탭 동일)
 - "오답 노트" 라벨은 `periodWrongAnswerCount` 그대로 (탭에 따라 값 다름)
+
+---
+
+## 8. 추가 변경 - 학습 Home 의 `frequentlyIncorrectTerm` 출처 단어장 기준 변경 (`USER_S023`)
+
+### 변경 사항
+`GET /v2/dashboards/study` 응답의 `frequentlyIncorrectTerm` 추출 기준 단어장이 변경되었다. **응답 모양은 그대로** (`termId`, `spelling`, `meaning`, `abbreviation`) 라서 iOS 파싱 / UI 코드 영향 없음. 단 의미가 달라져 알림 차원.
+
+### Before
+기준 단어장 = `user_preferences.selected_glossary_id` (사용자가 명시 선택한 단어장)
+
+### After
+기준 단어장 = `glossary_progresses.last_learned_at` MAX (사용자가 가장 최근에 학습한 단어장)
+
+### 의미 차이
+사용자가 학습 Home 의 "심장내과 ▼" 드롭다운에서 다른 단어장을 선택만 하고 학습 활동을 시작 안 하면, "자주 틀린 단어" 카드에 표시되는 단어는 마지막에 학습한 단어장 (예: 정형외과) 의 단어가 노출될 수 있다. 학습 흐름 일관성을 위해 변경.
+
+### 노출 조건 (불변)
+- 기준 단어장 안에 `total_incorrect_count >= 3` 인 활성 오답 단어 풀에서 랜덤 1개
+- 학습 이력 없거나 조건 맞는 단어 없으면 응답 필드 null

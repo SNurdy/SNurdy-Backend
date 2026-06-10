@@ -55,6 +55,22 @@ POST /v2/custom-notes/terms
 | 추가 대상 노트 중 termCount + 1 > 250 | 전체 거부 `CUSTOM_NOTE_E004` |
 | 일부 노트에 이미 단어 존재 (race) | silently skip |
 
+## 3.3 기존 단어 추가 API 와의 차이
+
+해당 API 는 기존 구현되어 있는 커스텀 단어장 내 단어 추가 API 와 플로우가 다르다. 둘은 보완 관계로 공존한다.
+
+| 항목 | 기존 `POST /v2/custom-notes/{customNoteId}/terms` | 신규 `POST /v2/custom-notes/terms` |
+|---|---|---|
+| 카디널리티 | 단어장 1 : 단어 N | 단어 1 : 단어장 N |
+| 진입 화면 | 단어장 상세 화면 (단어장 안에서 단어 다중 선택) | 단어 카드 화면 (북마크 뷰) |
+| path | `/{customNoteId}/terms` (특정 단어장 sub-resource) | `/terms` (단어 시점 액션) |
+| 요청 body 핵심 | `items: [{ glossaryId, termId }, ...]` (최대 100개) | `glossaryId, termId, customNoteIds: [...]` (최대 20개) |
+| 응답 핵심 | `added`, `skipped`, `totalTermCount` (단어 수 카운트) | `addedCustomNoteIds` (추가된 단어장 id 목록) |
+| skip 정책 | 이미 단어장에 있는 단어 silently skip + `skipped` 카운트 노출 | 이미 단어 보유한 단어장 silently skip + 응답에서 제외 |
+| 사용 UX | 단어장 편집 모드 같은 흐름에서 다수 단어를 한 단어장에 batch 추가 | 단어 1개를 여러 단어장에 한 번에 담기 |
+
+---
+
 ## 4. 응답 디자인 결정
 
 `addedCustomNoteIds` 만 노출하고 `skippedNoteIds` 는 응답에서 제외. UX 상 보유 단어장은 disabled 라 skip 자체가 race 케이스만 발생 (사실상 항상 빈 배열). 가이드 4.1 "의미 없는 필드 노출 금지" 일관.

@@ -18,14 +18,14 @@ import org.springframework.web.bind.annotation.RequestMapping
 @RequestMapping("/v1/admin/auth")
 interface AdminAuthApi {
 
-    @Operation(summary = "관리자 로그인 (이메일 + 비밀번호)")
+    @Operation(summary = "관리자 로그인")
     @ApiSuccessCode("AUTH_S001")
     @ApiErrorCodes("AUTH_E010", "AUTH_E011")
     @SecurityRequirements
     @PostMapping("/login")
     fun login(@RequestBody @Valid request: AdminLoginRequest): ApiResponse<AdminTokenResponse>
 
-    @Operation(summary = "관리자 로그아웃 (access token 블랙리스트 등록)")
+    @Operation(summary = "관리자 로그아웃")
     @ApiSuccessCode("AUTH_S002")
     @PostMapping("/logout")
     fun logout(@RequestHeader("Authorization") accessToken: String): ApiResponse<Unit>

@@ -46,7 +46,7 @@ interface AdminWorkflowApi {
     @GetMapping("/change-requests/{id}")
     fun get(@PathVariable id: Long): ApiResponse<ChangeRequestDetailResponse>
 
-    @Operation(summary = "변경 요청 수정 (FAILED/REQUESTED 상태만)")
+    @Operation(summary = "변경 요청 수정")
     @ApiSuccessCode("ADMIN_S017")
     @ApiErrorCodes("ADMIN_E015", "ADMIN_E029", "ADMIN_E031")
     @PutMapping("/change-requests/{id}")
@@ -58,7 +58,7 @@ interface AdminWorkflowApi {
     @PostMapping("/change-requests/{id}/validate")
     fun validate(@PathVariable id: Long): ApiResponse<ChangeRequestActionResponse>
 
-    @Operation(summary = "반영 (dev DB)")
+    @Operation(summary = "반영")
     @ApiSuccessCode("ADMIN_S012")
     @ApiErrorCodes(
         "ADMIN_E013",
@@ -78,7 +78,7 @@ interface AdminWorkflowApi {
     @PostMapping("/change-requests/{id}/cancel")
     fun cancel(@PathVariable id: Long): ApiResponse<ChangeRequestActionResponse>
 
-    @Operation(summary = "롤백 (APPLIED 상태만)")
+    @Operation(summary = "롤백")
     @ApiSuccessCode("ADMIN_S014")
     @ApiErrorCodes(
         "ADMIN_E013",

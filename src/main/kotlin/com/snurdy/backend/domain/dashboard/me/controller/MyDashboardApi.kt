@@ -22,7 +22,7 @@ import java.util.UUID
 @RequestMapping("/v2/dashboards/me")
 interface MyDashboardApi {
 
-    @Operation(summary = "마이페이지 메인 대시보드 (streak + 선택된 과 + 7일치 막대 그래프)")
+    @Operation(summary = "마이페이지 메인 대시보드")
     @ApiSuccessCode("USER_S020")
     @ApiErrorCodes("USER_E010")
     @GetMapping
@@ -34,7 +34,7 @@ interface MyDashboardApi {
         startDate: LocalDate?
     ): ApiResponse<MyDashboardResponse>
 
-    @Operation(summary = "과 변경 바텀시트 목록 (전체 27개 과 + 사용자 진척률)")
+    @Operation(summary = "과 변경 바텀시트 목록")
     @ApiSuccessCode("USER_S021")
     @ApiErrorCodes("USER_E010")
     @GetMapping("/glossaries")
@@ -42,7 +42,7 @@ interface MyDashboardApi {
         @CurrentUserId userId: UUID
     ): ApiResponse<DashboardGlossaryListResponse>
 
-    @Operation(summary = "과 지표 리스트 (학습 시작한 과만, period 별 학습 단어 수 + 오답 노트 수)")
+    @Operation(summary = "과 지표 리스트")
     @ApiSuccessCode("USER_S022")
     @ApiErrorCodes("USER_E010")
     @GetMapping("/glossary-statistics")

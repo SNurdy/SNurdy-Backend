@@ -23,7 +23,7 @@ import java.util.UUID
 @RequestMapping("/v2/test/custom-notes/{customNoteId}")
 interface CustomNoteTestApi {
 
-    @Operation(summary = "커스텀노트 학습 카드 조회 (노트 전체 단어 반환)")
+    @Operation(summary = "커스텀노트 학습 카드 조회")
     @ApiSuccessCode("CARD_S001")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "TEST_E001")
     @PostMapping("/cards")
@@ -43,7 +43,7 @@ interface CustomNoteTestApi {
         @RequestBody @Valid request: DistractorsRequest
     ): ApiResponse<DistractorsResponse>
 
-    @Operation(summary = "커스텀노트 테스트 결과 제출 (진도 트래킹 없음)")
+    @Operation(summary = "커스텀노트 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @PostMapping("/submit")

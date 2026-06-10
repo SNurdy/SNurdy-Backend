@@ -33,7 +33,7 @@ interface UserProfileApi {
     @GetMapping
     fun getProfile(@CurrentUserId userId: UUID): ApiResponse<UserProfileResponse>
 
-    @Operation(summary = "본인 프로필 부분 수정 (닉네임, 프로필 이미지)")
+    @Operation(summary = "본인 프로필 부분 수정")
     @ApiSuccessCode("USER_S012")
     @ApiErrorCodes("USER_E010", "USER_E005")
     @PatchMapping
@@ -51,7 +51,7 @@ interface UserProfileApi {
         @RequestBody @Valid request: MarketingConsentRequest
     ): ApiResponse<MarketingConsentResponse>
 
-    @Operation(summary = "프로필 이미지 업로드 (S3, jpg/png 5MB 이하)")
+    @Operation(summary = "프로필 이미지 업로드")
     @ApiSuccessCode("PROFILE_IMAGE_S001")
     @ApiErrorCodes("USER_E010", "USER_E005", "PROFILE_IMAGE_E001", "PROFILE_IMAGE_E002", "PROFILE_IMAGE_E003")
     @PostMapping("/profile-image", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])

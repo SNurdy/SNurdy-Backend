@@ -44,7 +44,7 @@ interface WrongAnswerNoteTestApi {
         @RequestBody @Valid request: DistractorsRequest
     ): ApiResponse<DistractorsResponse>
 
-    @Operation(summary = "오답노트 by-period 테스트 결과 제출 (진도 트래킹 없음)")
+    @Operation(summary = "오답노트 by-period 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("WRONG_ANSWER_NOTE_E002")
     @PostMapping("/by-period/{period}/submit")
@@ -74,7 +74,7 @@ interface WrongAnswerNoteTestApi {
         @RequestBody @Valid request: DistractorsRequest
     ): ApiResponse<DistractorsResponse>
 
-    @Operation(summary = "오답노트 by-glossary 테스트 결과 제출 (진도 트래킹 없음)")
+    @Operation(summary = "오답노트 by-glossary 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("DICTIONARY_E001")
     @PostMapping("/by-glossary/{glossaryId}/submit")

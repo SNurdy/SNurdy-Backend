@@ -28,7 +28,7 @@ import java.util.UUID
 @RequestMapping("/v1/dictionary")
 interface DictionaryApi {
 
-    @Operation(summary = "용어 검색 (keyword + category/glossaryId 필터)")
+    @Operation(summary = "용어 검색")
     @ApiSuccessCode("DICTIONARY_S002")
     @GetMapping("/terms")
     fun searchTerms(
@@ -43,7 +43,7 @@ interface DictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<TermSearchResponse>
 
-    @Operation(summary = "용어 상세 조회 (북마크/메모 포함)")
+    @Operation(summary = "용어 상세 조회")
     @ApiSuccessCode("DICTIONARY_S003")
     @ApiErrorCodes("DICTIONARY_E002")
     @GetMapping("/terms/{termId}")
@@ -63,7 +63,7 @@ interface DictionaryApi {
         ) keyword: String
     ): ApiResponse<MorphemeSearchResponse>
 
-    @Operation(summary = "어근어미 카탈로그 목록 조회 (사전 화면 어근어미 모드)")
+    @Operation(summary = "어근어미 카탈로그 목록 조회")
     @ApiSuccessCode("DICTIONARY_S007")
     @GetMapping("/morphemes")
     fun listMorphemes(
@@ -86,7 +86,7 @@ interface DictionaryApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<TermSearchResponse>
 
-    @Operation(summary = "용어장 목록 조회 (DEFAULT 단어장만)")
+    @Operation(summary = "용어장 목록 조회")
     @ApiSuccessCode("DICTIONARY_S004")
     @GetMapping("/glossaries")
     fun getGlossaries(

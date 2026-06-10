@@ -20,7 +20,7 @@ import java.util.UUID
 @RequestMapping("/v2/terms/{termId}/memo")
 interface TermMemoApi {
 
-    @Operation(summary = "단어 메모 작성 또는 수정 (upsert)")
+    @Operation(summary = "단어 메모 작성 또는 수정")
     @ApiSuccessCode("TERM_MEMO_S001")
     @ApiErrorCodes("USER_E010", "DICTIONARY_E002")
     @PutMapping

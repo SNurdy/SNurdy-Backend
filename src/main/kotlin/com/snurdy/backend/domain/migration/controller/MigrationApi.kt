@@ -16,7 +16,7 @@ import java.util.UUID
 @RequestMapping("/v1/migration")
 interface MigrationApi {
 
-    @Operation(summary = "마이그레이션 시작 — migrationId 발급")
+    @Operation(summary = "마이그레이션 시작")
     @ApiSuccessCode("MIGRATION_S001")
     @ApiErrorCodes(
         "USER_E001",
@@ -35,7 +35,7 @@ interface MigrationApi {
     @PostMapping("/decline")
     fun decline(@CurrentUserId userId: UUID): ApiResponse<MigrationStatusResponse>
 
-    @Operation(summary = "학습 데이터 업로드 — 전체 payload 1회 전송")
+    @Operation(summary = "학습 데이터 업로드")
     @ApiSuccessCode("MIGRATION_S002")
     @ApiErrorCodes(
         "USER_E001",

@@ -46,7 +46,7 @@ interface CustomNoteApi {
         @RequestBody @Valid request: CreateCustomNoteRequest
     ): ApiResponse<CustomNoteResponse>
 
-    @Operation(summary = "내 커스텀 단어장 목록 조회 (최근 생성 순)")
+    @Operation(summary = "내 커스텀 단어장 목록 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S002")
     @GetMapping
     fun listNotes(@CurrentUserId userId: UUID): ApiResponse<CustomNoteListResponse>
@@ -79,7 +79,7 @@ interface CustomNoteApi {
         @PathVariable noteId: Long
     ): ApiResponse<Unit>
 
-    @Operation(summary = "커스텀 단어장에 사전 단어 추가 (배치)")
+    @Operation(summary = "커스텀 단어장에 사전 단어 추가")
     @ApiSuccessCode("CUSTOM_NOTE_S006")
     @ApiErrorCodes(
         "CUSTOM_NOTE_E001",
@@ -94,7 +94,7 @@ interface CustomNoteApi {
         @RequestBody @Valid request: AddTermsToCustomNoteRequest
     ): ApiResponse<AddTermsResponse>
 
-    @Operation(summary = "커스텀 단어장에서 단어 단일 삭제. path 의 (glossaryId, termId) 쌍으로 식별")
+    @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S007")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
     @DeleteMapping("/{noteId}/terms/{glossaryId}/{termId}")
@@ -105,7 +105,7 @@ interface CustomNoteApi {
         @PathVariable termId: Long
     ): ApiResponse<Unit>
 
-    @Operation(summary = "커스텀 단어장 내 단어 목록 조회 (페이징)")
+    @Operation(summary = "커스텀 단어장 내 단어 목록 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S008")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @GetMapping("/{noteId}/terms")
@@ -116,7 +116,7 @@ interface CustomNoteApi {
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<CustomNoteTermsResponse>
 
-    @Operation(summary = "커스텀 단어장에서 단어 다중 삭제. 입력한 단어가 단어장에 모두 있어야 처리")
+    @Operation(summary = "커스텀 단어장에서 단어 다중 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S009")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
     @DeleteMapping("/{noteId}/terms")
@@ -126,7 +126,7 @@ interface CustomNoteApi {
         @RequestBody @Valid request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit>
 
-    @Operation(summary = "커스텀 단어장 다중 삭제. 모두 본인 소유여야 처리")
+    @Operation(summary = "커스텀 단어장 다중 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S010")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @DeleteMapping

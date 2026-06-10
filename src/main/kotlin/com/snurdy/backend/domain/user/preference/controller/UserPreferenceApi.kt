@@ -24,13 +24,13 @@ import java.util.UUID
 @RequestMapping("/v2/users/me/preferences")
 interface UserPreferenceApi {
 
-    @Operation(summary = "사용자 학습 옵션 조회 (defaultTestType, selectedGlossaryId)")
+    @Operation(summary = "사용자 학습 옵션 조회")
     @ApiSuccessCode("USER_S032")
     @ApiErrorCodes("USER_E010")
     @GetMapping
     fun getPreferences(@CurrentUserId userId: UUID): ApiResponse<UserPreferenceResponse>
 
-    @Operation(summary = "기본 테스트 유형 변경 (다음부터 묻지 않기)")
+    @Operation(summary = "기본 테스트 유형 변경")
     @ApiSuccessCode("USER_S030")
     @ApiErrorCodes("USER_E010", "USER_E005")
     @PutMapping("/test-type")
@@ -39,7 +39,7 @@ interface UserPreferenceApi {
         @RequestBody @Valid request: UpdateDefaultTestTypeRequest
     ): ApiResponse<UpdateDefaultTestTypeResponse>
 
-    @Operation(summary = "선택된 단어장 변경 (마이페이지 다마고치 영역 표시 대상)")
+    @Operation(summary = "선택된 단어장 변경")
     @ApiSuccessCode("USER_S031")
     @ApiErrorCodes("USER_E010", "DICTIONARY_E001")
     @PutMapping("/selected-glossary")
@@ -48,7 +48,7 @@ interface UserPreferenceApi {
         @RequestBody @Valid request: UpdateSelectedGlossaryRequest
     ): ApiResponse<UpdateSelectedGlossaryResponse>
 
-    @Operation(summary = "한 세션 학습 카드 수 변경 (학습 Home 의 학습 목표)")
+    @Operation(summary = "한 세션 학습 카드 수 변경")
     @ApiSuccessCode("USER_S033")
     @ApiErrorCodes("USER_E010", "USER_E044")
     @PutMapping("/default-card-count")

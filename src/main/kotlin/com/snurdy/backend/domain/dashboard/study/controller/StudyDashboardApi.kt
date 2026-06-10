@@ -15,7 +15,7 @@ import java.util.UUID
 @RequestMapping("/v2/dashboards/study")
 interface StudyDashboardApi {
 
-    @Operation(summary = "학습하기 탭 메인 대시보드 (연속 학습 일수 + 선택 단어장 다마고치 + 학습 목표 + 주간 캘린더 + 자주 틀린 단어)")
+    @Operation(summary = "학습하기 탭 메인 대시보드")
     @ApiSuccessCode("USER_S023")
     @ApiErrorCodes("USER_E010", "DICTIONARY_E001")
     @GetMapping

@@ -21,7 +21,7 @@ import java.util.UUID
 @RequestMapping("/v2/custom-notes")
 interface CustomNoteShareApi {
 
-    @Operation(summary = "활성 공유 코드 조회. 본인 단어장만")
+    @Operation(summary = "활성 공유 코드 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S015")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E008")
     @GetMapping("/{noteId}/share")
@@ -30,7 +30,7 @@ interface CustomNoteShareApi {
         @PathVariable noteId: Long
     ): ApiResponse<CustomNoteShareIssueResponse>
 
-    @Operation(summary = "공유 코드 발급. 이미 활성 코드 있으면 SHARE_CODE_ALREADY_EXISTS")
+    @Operation(summary = "공유 코드 발급")
     @ApiSuccessCode("CUSTOM_NOTE_S011")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E009", "CUSTOM_NOTE_E010")
     @ResponseStatus(HttpStatus.CREATED)
@@ -40,7 +40,7 @@ interface CustomNoteShareApi {
         @PathVariable noteId: Long
     ): ApiResponse<CustomNoteShareIssueResponse>
 
-    @Operation(summary = "공유 코드로 본인 단어장에 복제. 제목 충돌 시 (2) (3) suffix 자동")
+    @Operation(summary = "공유 코드로 본인 단어장에 복제")
     @ApiSuccessCode("CUSTOM_NOTE_S013")
     @ApiErrorCodes("CUSTOM_NOTE_E003", "CUSTOM_NOTE_E006", "CUSTOM_NOTE_E008")
     @ResponseStatus(HttpStatus.CREATED)
@@ -50,7 +50,7 @@ interface CustomNoteShareApi {
         @PathVariable code: String
     ): ApiResponse<CustomNoteResponse>
 
-    @Operation(summary = "공유 코드 비활성화. 코드 폐기 (감사 추적 없음)")
+    @Operation(summary = "공유 코드 비활성화")
     @ApiSuccessCode("CUSTOM_NOTE_S014")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
     @DeleteMapping("/{noteId}/share")

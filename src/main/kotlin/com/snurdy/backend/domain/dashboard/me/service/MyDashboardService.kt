@@ -179,7 +179,7 @@ class MyDashboardService(
     private fun buildAvailableCounts(counts: GlossaryAvailableCountProjection): Map<TestType, Int> {
         val total = counts.totalCount.toInt()
         val abbreviation = counts.abbreviationCount.toInt()
-        return TestType.values().associateWith { type ->
+        return TestType.entries.associateWith { type ->
             when (type) {
                 TestType.WRITE_ABBREVIATION, TestType.MC_PICK_ABBR -> abbreviation
                 else -> total

@@ -14,15 +14,17 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import java.util.UUID
 
 @Tag(name = "Bookmark", description = "북마크 API")
+@RequestMapping("/v1/bookmarks")
 interface BookmarkApi {
 
     @Operation(summary = "북마크 목록 조회")
     @ApiSuccessCode("BOOKMARK_S001")
-    @GetMapping("/v1/bookmarks")
+    @GetMapping
     fun getBookmarks(
         @CurrentUserId userId: UUID,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
@@ -32,7 +34,7 @@ interface BookmarkApi {
     @Operation(summary = "북마크 추가")
     @ApiSuccessCode("BOOKMARK_S002")
     @ApiErrorCodes("USER_E010", "DICTIONARY_E001", "DICTIONARY_E002", "DICTIONARY_E004")
-    @PutMapping("/v1/bookmarks/{termId}")
+    @PutMapping("/{termId}")
     fun addBookmark(
         @CurrentUserId userId: UUID,
         @PathVariable termId: Long,
@@ -41,7 +43,7 @@ interface BookmarkApi {
 
     @Operation(summary = "북마크 삭제")
     @ApiSuccessCode("BOOKMARK_S003")
-    @DeleteMapping("/v1/bookmarks/{termId}")
+    @DeleteMapping("/{termId}")
     fun removeBookmark(
         @CurrentUserId userId: UUID,
         @PathVariable termId: Long,

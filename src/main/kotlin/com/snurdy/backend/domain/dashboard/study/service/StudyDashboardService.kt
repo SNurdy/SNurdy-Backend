@@ -42,16 +42,23 @@ class StudyDashboardService(
         val preference = userPreferenceService.getPreference(userId)
         val selectedGlossary = buildSelectedGlossary(userId, preference.selectedGlossaryId)
         val weekStatistics = buildWeekStatistics(userId)
-        val frequentlyIncorrectTerm = wrongAnswerTermRepository
-            .findRandomFrequentlyIncorrect(userId, preference.selectedGlossaryId, FREQUENTLY_INCORRECT_MIN_COUNT)
-            ?.let {
-                StudyFrequentlyIncorrectTerm(
-                    termId = it.termId,
-                    spelling = it.spelling,
-                    meaning = it.meaning,
-                    abbreviation = it.abbreviation
-                )
-            }
+        // 자주 틀린 단어는 사용자가 가장 최근 학습한 단어장 기준 (selectedGlossaryId 와 별개)
+        val recentGlossaryId = glossaryProgressRepository.findAllByIdUserId(userId)
+            .filter { it.lastLearnedAt != null }
+            .maxByOrNull { it.lastLearnedAt!! }
+            ?.id?.glossaryId
+        val frequentlyIncorrectTerm = recentGlossaryId?.let { glossaryId ->
+            wrongAnswerTermRepository
+                .findRandomFrequentlyIncorrect(userId, glossaryId, FREQUENTLY_INCORRECT_MIN_COUNT)
+                ?.let {
+                    StudyFrequentlyIncorrectTerm(
+                        termId = it.termId,
+                        spelling = it.spelling,
+                        meaning = it.meaning,
+                        abbreviation = it.abbreviation
+                    )
+                }
+        }
 
         return StudyDashboardResponse(
             currentStreak = streak.currentStreak,

@@ -32,9 +32,9 @@ GET /v2/dashboards/study
 ## 4. 핵심 결정 사항
 
 ### 4.1 자주 틀린 단어 추출 조건
-- `wrong_answer_terms` 중 `glossary_id = selectedGlossaryId` + `deleted_at IS NULL` + `total_incorrect_count >= 3` + `ORDER BY RAND() LIMIT 1`
-- 선택 단어장 외 다른 단어장 오답은 제외 (학습 흐름 일관성)
-- 단어 없으면 응답 필드 null
+- 기준 단어장 = **가장 최근 학습한 단어장** (`glossary_progresses.last_learned_at` MAX). selectedGlossaryId 와 별개
+- `wrong_answer_terms` 중 `glossary_id = 최근 학습 단어장 id` + `deleted_at IS NULL` + `total_incorrect_count >= 3` + `ORDER BY RAND() LIMIT 1`
+- 학습 이력 없음 (모든 lastLearnedAt = null) 또는 조건 맞는 단어 없음 → 응답 필드 null
 
 ### 4.2 주간 학습 여부 판정
 - `studied = (new_learned_count + all_learned_count) > 0` (1건이라도 활동 있으면 true)

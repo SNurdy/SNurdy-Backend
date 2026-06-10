@@ -222,10 +222,7 @@ class CustomNoteService(
 
         val targetNoteIds = distinctNoteIds.filter { it !in existingNoteIds }
         if (targetNoteIds.isEmpty()) {
-            return AddTermToCustomNotesResponse(
-                addedNoteIds = emptyList(),
-                skippedNoteIds = distinctNoteIds
-            )
+            return AddTermToCustomNotesResponse(addedNoteIds = emptyList())
         }
 
         // 추가 대상 노트의 현재 termCount 확인 (단어장당 최대 250)
@@ -250,10 +247,7 @@ class CustomNoteService(
         }
         customNoteTermRepository.saveAll(newEntities)
 
-        return AddTermToCustomNotesResponse(
-            addedNoteIds = targetNoteIds,
-            skippedNoteIds = distinctNoteIds.filter { it in existingNoteIds }
-        )
+        return AddTermToCustomNotesResponse(addedNoteIds = targetNoteIds)
     }
 
     @Transactional(readOnly = true)

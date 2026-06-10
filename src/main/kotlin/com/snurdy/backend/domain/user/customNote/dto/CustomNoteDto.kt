@@ -95,9 +95,7 @@ data class AddTermToCustomNotesRequest(
 @Schema(description = "단어를 N개 단어장에 추가한 결과")
 data class AddTermToCustomNotesResponse(
     @field:Schema(description = "새로 추가된 단어장 ID 목록", example = "[1, 12]")
-    val addedNoteIds: List<Long>,
-    @field:Schema(description = "이미 단어가 있어 건너뛴 단어장 ID 목록", example = "[5]")
-    val skippedNoteIds: List<Long>
+    val addedNoteIds: List<Long>
 )
 
 @Schema(description = "단어장에서 단어 다중 삭제 요청. 입력한 (glossaryId, termId) 쌍이 모두 단어장에 있어야 처리")

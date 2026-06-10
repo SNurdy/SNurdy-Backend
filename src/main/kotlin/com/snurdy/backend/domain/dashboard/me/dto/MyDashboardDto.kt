@@ -1,6 +1,5 @@
 package com.snurdy.backend.domain.dashboard.me.dto
 
-import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.DayOfWeek
@@ -28,24 +27,13 @@ data class DashboardStreak(
 @Schema(description = "메인 다마고치 영역에 표시할 선택된 과")
 data class DashboardSelectedGlossary(
     val glossaryId: Long,
-    val category: String,
     val title: String,
     @field:Schema(description = "사용자가 학습 완료한 단어 수", example = "85")
     val learnedCount: Int,
     @field:Schema(description = "해당 과의 전체 단어 수", example = "100")
     val totalTermCount: Long,
-    @field:Schema(description = "진척률 소수점 1자리", example = "85.0")
-    val progressRate: Double,
     @field:Schema(description = "1 부터 5 까지 다마고치 레벨", example = "5")
-    val level: Int,
-    @field:Schema(description = "마지막 학습 시각. 학습 이력 없으면 null")
-    val lastLearnedAt: Instant?,
-    @field:Schema(
-        description = "테스트하기 단어 수 selector 의 최대치로 사용. testType 별 가용 단어 수. " +
-            "WRITE_ABBREVIATION / MC_PICK_ABBR 은 abbreviation 보유 단어 수, 나머지는 전체 단어 수",
-        example = """{"TERM_TO_MEANING":100,"MEANING_TO_TERM":100,"LISTEN_AND_WRITE":100,"WRITE_ABBREVIATION":42,"MC_PICK_TERM":100,"MC_PICK_MEANING":100,"MC_PICK_ABBR":42}"""
-    )
-    val availableCounts: Map<TestType, Int>
+    val level: Int
 )
 
 @Schema(description = "7일치 막대 그래프 데이터")

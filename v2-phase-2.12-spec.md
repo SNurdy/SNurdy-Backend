@@ -94,14 +94,10 @@ Authorization: Bearer <token>
   },
   "selectedGlossary": {
     "glossaryId": 6,
-    "category": "내과",
     "title": "심장내과",
     "learnedCount": 85,
     "totalTermCount": 100,
-    "progressRate": 85.0,
-    "level": 1,
-    "lastLearnedAt": "2026-02-27T08:15:00Z",
-    "availableCounts": { "MEANING_TO_TERM": 100, ... }
+    "level": 1
   },
   "weekStatistics": {
     "startDate": "2026-02-22",
@@ -151,13 +147,13 @@ Authorization: Bearer <token>
   "defaultCardCount": 10,
   "weekStatistics": {
     "days": [
-      { "date": "2026-06-08", "dayOfWeek": "MONDAY",    "studied": true  },
-      { "date": "2026-06-09", "dayOfWeek": "TUESDAY",   "studied": false },
-      { "date": "2026-06-10", "dayOfWeek": "WEDNESDAY", "studied": false },
-      { "date": "2026-06-11", "dayOfWeek": "THURSDAY",  "studied": false },
-      { "date": "2026-06-12", "dayOfWeek": "FRIDAY",    "studied": false },
-      { "date": "2026-06-13", "dayOfWeek": "SATURDAY",  "studied": false },
-      { "date": "2026-06-14", "dayOfWeek": "SUNDAY",    "studied": false }
+      { "date": "2026-06-08", "studied": true  },
+      { "date": "2026-06-09", "studied": false },
+      { "date": "2026-06-10", "studied": false },
+      { "date": "2026-06-11", "studied": false },
+      { "date": "2026-06-12", "studied": false },
+      { "date": "2026-06-13", "studied": false },
+      { "date": "2026-06-14", "studied": false }
     ]
   },
   "frequentlyIncorrectTerm": {

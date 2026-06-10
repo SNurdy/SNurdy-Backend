@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.dashboard.study.dto
 import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
-import java.time.DayOfWeek
 import java.time.LocalDate
 
 @Schema(description = "학습하기 탭 대시보드 응답")
@@ -44,13 +43,13 @@ data class StudyWeekStatistics(
         arraySchema = Schema(
             description = "월요일부터 일요일까지 7일치. 항상 7개 보장",
             example = """[
-                {"date":"2026-06-08","dayOfWeek":"MONDAY","studied":true},
-                {"date":"2026-06-09","dayOfWeek":"TUESDAY","studied":false},
-                {"date":"2026-06-10","dayOfWeek":"WEDNESDAY","studied":false},
-                {"date":"2026-06-11","dayOfWeek":"THURSDAY","studied":false},
-                {"date":"2026-06-12","dayOfWeek":"FRIDAY","studied":false},
-                {"date":"2026-06-13","dayOfWeek":"SATURDAY","studied":false},
-                {"date":"2026-06-14","dayOfWeek":"SUNDAY","studied":false}
+                {"date":"2026-06-08","studied":true},
+                {"date":"2026-06-09","studied":false},
+                {"date":"2026-06-10","studied":false},
+                {"date":"2026-06-11","studied":false},
+                {"date":"2026-06-12","studied":false},
+                {"date":"2026-06-13","studied":false},
+                {"date":"2026-06-14","studied":false}
             ]"""
         )
     )
@@ -60,7 +59,6 @@ data class StudyWeekStatistics(
 @Schema(description = "일별 학습 여부")
 data class StudyDailyStatistic(
     val date: LocalDate,
-    val dayOfWeek: DayOfWeek,
     @field:Schema(description = "그 날 테스트 submit 1회 이상이면 true", example = "true")
     val studied: Boolean
 )

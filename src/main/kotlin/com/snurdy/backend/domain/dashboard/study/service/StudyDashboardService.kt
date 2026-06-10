@@ -102,7 +102,6 @@ class StudyDashboardService(
             val active = row != null && (row.newLearnedCount + row.allLearnedCount) > 0
             StudyDailyStatistic(
                 date = date,
-                dayOfWeek = date.dayOfWeek,
                 studied = active
             )
         }

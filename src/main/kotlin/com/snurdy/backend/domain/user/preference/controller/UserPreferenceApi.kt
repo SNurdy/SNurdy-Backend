@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.preference.controller
 
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountRequest
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
@@ -45,4 +47,13 @@ interface UserPreferenceApi {
         @CurrentUserId userId: UUID,
         @RequestBody @Valid request: UpdateSelectedGlossaryRequest
     ): ApiResponse<UpdateSelectedGlossaryResponse>
+
+    @Operation(summary = "한 세션 학습 카드 수 변경 (학습 Home 의 학습 목표)")
+    @ApiSuccessCode("USER_S033")
+    @ApiErrorCodes("USER_E010", "USER_E044")
+    @PutMapping("/default-card-count")
+    fun updateDefaultCardCount(
+        @CurrentUserId userId: UUID,
+        @RequestBody @Valid request: UpdateDefaultCardCountRequest
+    ): ApiResponse<UpdateDefaultCardCountResponse>
 }

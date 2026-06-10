@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.preference.controller
 
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountRequest
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
@@ -35,5 +37,14 @@ class UserPreferenceController(
         ApiResponse.success(
             UserSuccess.UPDATE_SELECTED_GLOSSARY,
             userPreferenceService.updateSelectedGlossary(userId, request.glossaryId!!)
+        )
+
+    override fun updateDefaultCardCount(
+        userId: UUID,
+        request: UpdateDefaultCardCountRequest
+    ): ApiResponse<UpdateDefaultCardCountResponse> =
+        ApiResponse.success(
+            UserSuccess.UPDATE_DEFAULT_CARD_COUNT,
+            userPreferenceService.updateDefaultCardCount(userId, request.count!!)
         )
 }

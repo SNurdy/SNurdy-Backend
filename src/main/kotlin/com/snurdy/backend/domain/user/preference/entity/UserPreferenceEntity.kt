@@ -25,7 +25,10 @@ class UserPreferenceEntity(
     var defaultTestType: TestType? = null,
 
     @Column(name = "selected_glossary_id", nullable = false)
-    var selectedGlossaryId: Long = DEFAULT_SELECTED_GLOSSARY_ID
+    var selectedGlossaryId: Long = DEFAULT_SELECTED_GLOSSARY_ID,
+
+    @Column(name = "default_card_count", nullable = false)
+    var defaultCardCount: Int = DEFAULT_CARD_COUNT
 ) : BaseTimeEntity() {
 
     fun updateDefaultTestType(testType: TestType?) {
@@ -36,8 +39,18 @@ class UserPreferenceEntity(
         this.selectedGlossaryId = glossaryId
     }
 
+    fun updateDefaultCardCount(count: Int) {
+        this.defaultCardCount = count
+    }
+
     companion object {
         // 신규 유저 기본 선택 단어장 (심장내과). V6 seed data 기준 glossaryId = 6
         const val DEFAULT_SELECTED_GLOSSARY_ID: Long = 6L
+
+        // 한 세션 학습 카드 수 기본값
+        const val DEFAULT_CARD_COUNT: Int = 10
+
+        // 허용 카드 수 단계
+        val ALLOWED_CARD_COUNTS: Set<Int> = setOf(10, 20, 30, 40, 50)
     }
 }

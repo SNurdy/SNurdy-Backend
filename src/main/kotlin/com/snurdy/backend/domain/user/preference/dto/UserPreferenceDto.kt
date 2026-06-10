@@ -10,12 +10,15 @@ data class UserPreferenceResponse(
     @field:Schema(description = "사용자 기본 테스트 유형. null 이면 다음 테스트 진입 시 모달 강제", example = "MEANING_TO_TERM")
     val defaultTestType: TestType?,
     @field:Schema(description = "마이페이지 다마고치 영역에 표시할 선택 단어장 id", example = "6")
-    val selectedGlossaryId: Long
+    val selectedGlossaryId: Long,
+    @field:Schema(description = "한 세션 학습 카드 수 기본값 (10/20/30/40/50)", example = "10")
+    val defaultCardCount: Int
 )
 
 fun UserPreferenceEntity.toResponse() = UserPreferenceResponse(
     defaultTestType = defaultTestType,
-    selectedGlossaryId = selectedGlossaryId
+    selectedGlossaryId = selectedGlossaryId,
+    defaultCardCount = defaultCardCount
 )
 
 @Schema(description = "기본 테스트 유형 변경 요청, null 전달 시 다음 진입에서 선택 모달 강제")
@@ -43,10 +46,27 @@ data class UpdateSelectedGlossaryResponse(
     val selectedGlossaryId: Long
 )
 
+@Schema(description = "한 세션 학습 카드 수 변경 요청")
+data class UpdateDefaultCardCountRequest(
+    @field:NotNull
+    @field:Schema(description = "10/20/30/40/50 중 하나", example = "30")
+    val count: Int?
+)
+
+@Schema(description = "한 세션 학습 카드 수 변경 응답")
+data class UpdateDefaultCardCountResponse(
+    @field:Schema(description = "저장된 카드 수", example = "30")
+    val defaultCardCount: Int
+)
+
 fun UserPreferenceEntity.toDefaultTestTypeResponse() = UpdateDefaultTestTypeResponse(
     defaultTestType = defaultTestType
 )
 
 fun UserPreferenceEntity.toSelectedGlossaryResponse() = UpdateSelectedGlossaryResponse(
     selectedGlossaryId = selectedGlossaryId
+)
+
+fun UserPreferenceEntity.toDefaultCardCountResponse() = UpdateDefaultCardCountResponse(
+    defaultCardCount = defaultCardCount
 )

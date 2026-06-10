@@ -2,9 +2,11 @@ package com.snurdy.backend.domain.user.preference.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
+import com.snurdy.backend.domain.user.preference.dto.toDefaultCardCountResponse
 import com.snurdy.backend.domain.user.preference.dto.toDefaultTestTypeResponse
 import com.snurdy.backend.domain.user.preference.dto.toResponse
 import com.snurdy.backend.domain.user.preference.dto.toSelectedGlossaryResponse
@@ -48,5 +50,15 @@ class UserPreferenceService(
         val preference = getPreference(userId)
         preference.updateSelectedGlossaryId(glossaryId)
         return preference.toSelectedGlossaryResponse()
+    }
+
+    @Transactional
+    fun updateDefaultCardCount(userId: UUID, count: Int): UpdateDefaultCardCountResponse {
+        if (count !in UserPreferenceEntity.ALLOWED_CARD_COUNTS) {
+            throw ApiException(UserError.DEFAULT_CARD_COUNT_INVALID)
+        }
+        val preference = getPreference(userId)
+        preference.updateDefaultCardCount(count)
+        return preference.toDefaultCardCountResponse()
     }
 }

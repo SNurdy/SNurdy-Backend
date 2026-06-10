@@ -92,6 +92,23 @@ data class AddTermToCustomNotesRequest(
     val noteIds: List<@Positive Long>
 )
 
+@Schema(description = "단어 기준 커스텀 단어장 보유 현황 응답. 북마크 뷰 진입 시 사용")
+data class NotesForTermResponse(
+    val notes: List<NoteForTermItem>
+)
+
+@Schema(description = "단어 보유 여부 포함 단어장 항목")
+data class NoteForTermItem(
+    @field:Schema(description = "단어장 id", example = "3")
+    val id: Long,
+    @field:Schema(description = "단어장 제목", example = "외과 단어장")
+    val title: String,
+    @field:Schema(description = "단어장의 현재 단어 수. 250 도달 시 클라가 추가 버튼 disabled", example = "50")
+    val termCount: Long,
+    @field:Schema(description = "이 단어가 단어장에 이미 들어 있는지 여부", example = "false")
+    val hasTerm: Boolean
+)
+
 @Schema(description = "단어를 N개 단어장에 추가한 결과")
 data class AddTermToCustomNotesResponse(
     @field:Schema(description = "새로 추가된 단어장 ID 목록", example = "[1, 12]")

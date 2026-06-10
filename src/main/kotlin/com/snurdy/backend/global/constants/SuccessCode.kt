@@ -161,7 +161,8 @@ enum class CustomNoteSuccess(
     IMPORT_SHARED_NOTE(HttpStatus.CREATED, "CUSTOM_NOTE_S013", "공유 단어장을 불러왔습니다"),
     REVOKE_SHARE_CODE(HttpStatus.OK, "CUSTOM_NOTE_S014", "공유 코드를 비활성화했습니다"),
     GET_SHARE_CODE(HttpStatus.OK, "CUSTOM_NOTE_S015", "공유 코드 조회에 성공했습니다"),
-    ADD_TERM_TO_NOTES(HttpStatus.OK, "CUSTOM_NOTE_S016", "선택한 단어장들에 단어를 추가했습니다")
+    ADD_TERM_TO_NOTES(HttpStatus.OK, "CUSTOM_NOTE_S016", "선택한 단어장들에 단어를 추가했습니다"),
+    LIST_NOTES_FOR_TERM(HttpStatus.OK, "CUSTOM_NOTE_S017", "단어 기준 커스텀 단어장 보유 현황 조회에 성공했습니다")
 }
 
 enum class AdminSuccess(

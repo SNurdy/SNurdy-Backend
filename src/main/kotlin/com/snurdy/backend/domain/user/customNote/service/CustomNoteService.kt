@@ -10,6 +10,8 @@ import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.NoteForTermItem
+import com.snurdy.backend.domain.user.customNote.dto.NotesForTermResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.toResponse
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
@@ -182,6 +184,30 @@ class CustomNoteService(
             skipped = distinctItems.size - newItems.size,
             totalTermCount = currentTermCount + newItems.size
         )
+    }
+
+    // 북마크 뷰 진입 조회. 사용자의 모든 단어장 + 그 단어 보유 여부
+    @Transactional(readOnly = true)
+    fun listNotesForTerm(userId: UUID, glossaryId: Long, termId: Long): NotesForTermResponse {
+        val notes = customNoteRepository.findAllByOwnerIdOrderByCreatedAtDesc(userId)
+        if (notes.isEmpty()) return NotesForTermResponse(notes = emptyList())
+
+        val noteIds = notes.map { it.id }
+        val termCountByNoteId = customNoteTermRepository.countByNoteIds(noteIds)
+            .associate { it.noteId to it.termCount }
+        val notesHavingTerm = customNoteTermRepository
+            .findAllById(noteIds.map { CustomNoteTermId(noteId = it, glossaryId = glossaryId, termId = termId) })
+            .mapTo(mutableSetOf()) { it.id.noteId }
+
+        val items = notes.map { note ->
+            NoteForTermItem(
+                id = note.id,
+                title = note.title,
+                termCount = termCountByNoteId[note.id] ?: 0L,
+                hasTerm = note.id in notesHavingTerm
+            )
+        }
+        return NotesForTermResponse(notes = items)
     }
 
     // 사전 단어 1개를 N개 커스텀 단어장에 동시 추가

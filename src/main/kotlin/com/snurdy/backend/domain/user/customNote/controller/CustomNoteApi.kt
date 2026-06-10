@@ -10,6 +10,7 @@ import com.snurdy.backend.domain.user.customNote.dto.DeleteTermsFromCustomNoteRe
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.NotesForTermResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
@@ -80,6 +81,15 @@ interface CustomNoteApi {
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long
     ): ApiResponse<Unit>
+
+    @Operation(summary = "단어 기준 내 커스텀 단어장 보유 현황 조회")
+    @ApiSuccessCode("CUSTOM_NOTE_S017")
+    @GetMapping("/terms/{glossaryId}/{termId}/notes")
+    fun listNotesForTerm(
+        @CurrentUserId userId: UUID,
+        @PathVariable glossaryId: Long,
+        @PathVariable termId: Long
+    ): ApiResponse<NotesForTermResponse>
 
     @Operation(summary = "사전 단어 1개를 N개 커스텀 단어장에 동시 추가")
     @ApiSuccessCode("CUSTOM_NOTE_S016")

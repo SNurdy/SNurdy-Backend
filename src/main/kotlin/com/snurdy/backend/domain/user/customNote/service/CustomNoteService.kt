@@ -62,7 +62,7 @@ class CustomNoteService(
     @Transactional(readOnly = true)
     fun list(userId: UUID): CustomNoteListResponse {
         val notes = customNoteRepository.findAllByOwnerIdOrderByCreatedAtDesc(userId)
-        if (notes.isEmpty()) return CustomNoteListResponse(notes = emptyList())
+        if (notes.isEmpty()) return CustomNoteListResponse(customNotes = emptyList())
 
         // batch count 로 N+1 회피
         val countByNoteId = customNoteTermRepository
@@ -72,7 +72,7 @@ class CustomNoteService(
         val responses = notes.map { note ->
             note.toResponse(termCount = countByNoteId[note.id] ?: 0L)
         }
-        return CustomNoteListResponse(notes = responses)
+        return CustomNoteListResponse(customNotes = responses)
     }
 
     @Transactional(readOnly = true)
@@ -190,7 +190,7 @@ class CustomNoteService(
     @Transactional(readOnly = true)
     fun listNotesForTerm(userId: UUID, glossaryId: Long, termId: Long): CustomNotesForTermResponse {
         val notes = customNoteRepository.findAllByOwnerIdOrderByCreatedAtDesc(userId)
-        if (notes.isEmpty()) return CustomNotesForTermResponse(notes = emptyList())
+        if (notes.isEmpty()) return CustomNotesForTermResponse(customNotes = emptyList())
 
         val noteIds = notes.map { it.id }
         val termCountByNoteId = customNoteTermRepository.countByNoteIds(noteIds)
@@ -201,13 +201,13 @@ class CustomNoteService(
 
         val items = notes.map { note ->
             CustomNoteForTermItem(
-                id = note.id,
+                customNoteId = note.id,
                 title = note.title,
                 termCount = termCountByNoteId[note.id] ?: 0L,
                 hasTerm = note.id in notesHavingTerm
             )
         }
-        return CustomNotesForTermResponse(notes = items)
+        return CustomNotesForTermResponse(customNotes = items)
     }
 
     // 사전 단어 1개를 N개 커스텀 단어장에 동시 추가
@@ -248,7 +248,7 @@ class CustomNoteService(
 
         val targetNoteIds = distinctNoteIds.filter { it !in existingNoteIds }
         if (targetNoteIds.isEmpty()) {
-            return AddTermToCustomNotesResponse(addedNoteIds = emptyList())
+            return AddTermToCustomNotesResponse(addedCustomNoteIds =emptyList())
         }
 
         // 추가 대상 노트의 현재 termCount 확인 (단어장당 최대 250)
@@ -273,7 +273,7 @@ class CustomNoteService(
         }
         customNoteTermRepository.saveAll(newEntities)
 
-        return AddTermToCustomNotesResponse(addedNoteIds = targetNoteIds)
+        return AddTermToCustomNotesResponse(addedCustomNoteIds =targetNoteIds)
     }
 
     @Transactional(readOnly = true)
@@ -282,7 +282,7 @@ class CustomNoteService(
         val pageable = PageRequest.of(page, size)
         val result = customNoteTermRepository.findPagedTermsByNoteId(noteId, pageable)
         return CustomNoteTermsResponse(
-            noteId = note.id,
+            customNoteId = note.id,
             title = note.title,
             page = result.number,
             size = result.size,

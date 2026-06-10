@@ -50,7 +50,8 @@ data class CustomNoteTermInput(
 
 @Schema(description = "커스텀 단어장 요약")
 data class CustomNoteResponse(
-    val id: Long,
+    @field:Schema(description = "커스텀 단어장 id", example = "3")
+    val customNoteId: Long,
     val title: String,
     val termCount: Long,
     val createdAt: Instant?
@@ -58,7 +59,7 @@ data class CustomNoteResponse(
 
 @Schema(description = "커스텀 단어장 목록 응답")
 data class CustomNoteListResponse(
-    val notes: List<CustomNoteResponse>
+    val customNotes: List<CustomNoteResponse>
 )
 
 @Schema(description = "단어 추가 결과")
@@ -89,18 +90,18 @@ data class AddTermToCustomNotesRequest(
         description = "단어를 추가할 커스텀 단어장 ID 목록. 모두 본인 소유여야 처리",
         example = "[1, 5, 12]"
     )
-    val noteIds: List<@Positive Long>
+    val customNoteIds: List<@Positive Long>
 )
 
 @Schema(description = "단어 기준 커스텀 단어장 보유 현황 응답. 북마크 뷰 진입 시 사용")
 data class CustomNotesForTermResponse(
-    val notes: List<CustomNoteForTermItem>
+    val customNotes: List<CustomNoteForTermItem>
 )
 
 @Schema(description = "단어 보유 여부 포함 단어장 항목")
 data class CustomNoteForTermItem(
-    @field:Schema(description = "단어장 id", example = "3")
-    val id: Long,
+    @field:Schema(description = "커스텀 단어장 id", example = "3")
+    val customNoteId: Long,
     @field:Schema(description = "단어장 제목", example = "외과 단어장")
     val title: String,
     @field:Schema(description = "단어장의 현재 단어 수. 250 도달 시 클라가 추가 버튼 disabled", example = "50")
@@ -112,7 +113,7 @@ data class CustomNoteForTermItem(
 @Schema(description = "단어를 N개 단어장에 추가한 결과")
 data class AddTermToCustomNotesResponse(
     @field:Schema(description = "새로 추가된 단어장 ID 목록", example = "[1, 12]")
-    val addedNoteIds: List<Long>
+    val addedCustomNoteIds: List<Long>
 )
 
 @Schema(description = "단어장에서 단어 다중 삭제 요청. 입력한 (glossaryId, termId) 쌍이 모두 단어장에 있어야 처리")
@@ -131,12 +132,12 @@ data class DeleteCustomNotesRequest(
         description = "삭제할 단어장 ID 목록 (최대 20개)",
         example = "[7, 12]"
     )
-    val noteIds: List<@Positive Long>
+    val customNoteIds: List<@Positive Long>
 )
 
 @Schema(description = "단어장 내 단어 페이지 응답")
 data class CustomNoteTermsResponse(
-    val noteId: Long,
+    val customNoteId: Long,
     val title: String,
     val page: Int,
     val size: Int,
@@ -149,7 +150,7 @@ data class CustomNoteTermsResponse(
 @Schema(description = "단어장 내 단어 항목")
 data class CustomNoteTermItem(
     @field:Schema(description = "단어 id", example = "101")
-    val id: Long,
+    val termId: Long,
     @field:Schema(description = "단어가 속한 단어장 id", example = "12")
     val glossaryId: Long,
     val spelling: String,
@@ -158,14 +159,14 @@ data class CustomNoteTermItem(
 )
 
 fun CustomNoteEntity.toResponse(termCount: Long) = CustomNoteResponse(
-    id = id,
+    customNoteId = id,
     title = title,
     termCount = termCount,
     createdAt = createdAt
 )
 
 fun CustomNoteTermProjection.toResponse() = CustomNoteTermItem(
-    id = termId,
+    termId = termId,
     glossaryId = glossaryId,
     spelling = spelling,
     meaning = meaning,

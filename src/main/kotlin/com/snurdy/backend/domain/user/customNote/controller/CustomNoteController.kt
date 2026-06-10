@@ -60,7 +60,7 @@ class CustomNoteController(
     ): ApiResponse<AddTermToCustomNotesResponse> =
         ApiResponse.success(
             CustomNoteSuccess.ADD_TERM_TO_NOTES,
-            customNoteService.addTermToNotes(userId, request.glossaryId, request.termId, request.noteIds)
+            customNoteService.addTermToNotes(userId, request.glossaryId, request.termId, request.customNoteIds)
         )
 
     override fun addTerms(
@@ -102,7 +102,7 @@ class CustomNoteController(
         userId: UUID,
         request: DeleteCustomNotesRequest
     ): ApiResponse<Unit> {
-        customNoteService.deleteNotes(userId, request.noteIds)
+        customNoteService.deleteNotes(userId, request.customNoteIds)
         return ApiResponse.success(CustomNoteSuccess.DELETE_NOTES)
     }
 }

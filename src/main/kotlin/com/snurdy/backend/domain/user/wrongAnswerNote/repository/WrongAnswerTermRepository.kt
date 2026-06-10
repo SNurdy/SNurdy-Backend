@@ -214,6 +214,38 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("termIds") termIds: Collection<Long>
     ): List<WrongAnswerTermGlossaryProjection>
 
+    // 자주 틀린 단어 카드용 — minCount 이상 오답 풀에서 랜덤 1개
+    // 학습 Home 진입마다 다른 단어 노출 (학습 효과)
+    @Query(
+        value = """
+        SELECT t.id AS termId,
+               t.spelling AS spelling,
+               t.meaning AS meaning,
+               t.abbreviation AS abbreviation,
+               wat.total_incorrect_count AS totalIncorrectCount
+          FROM wrong_answer_terms wat
+          JOIN terms t ON t.id = wat.term_id AND t.deleted_at IS NULL
+         WHERE wat.user_id = :userId
+           AND wat.deleted_at IS NULL
+           AND wat.total_incorrect_count >= :minCount
+         ORDER BY RAND()
+         LIMIT 1
+        """,
+        nativeQuery = true
+    )
+    fun findRandomFrequentlyIncorrect(
+        @Param("userId") userId: UUID,
+        @Param("minCount") minCount: Int
+    ): FrequentlyIncorrectTermProjection?
+
+}
+
+interface FrequentlyIncorrectTermProjection {
+    val termId: Long
+    val spelling: String
+    val meaning: String
+    val abbreviation: String?
+    val totalIncorrectCount: Int
 }
 
 interface WrongAnswerTermItemProjection {

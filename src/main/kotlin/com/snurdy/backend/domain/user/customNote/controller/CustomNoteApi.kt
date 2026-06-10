@@ -57,29 +57,29 @@ interface CustomNoteApi {
     @Operation(summary = "커스텀 단어장 상세 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S003")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
-    @GetMapping("/{noteId}")
+    @GetMapping("/{customNoteId}")
     fun getNote(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long
+        @PathVariable customNoteId: Long
     ): ApiResponse<CustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장 제목 수정")
     @ApiSuccessCode("CUSTOM_NOTE_S004")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E006")
-    @PatchMapping("/{noteId}")
+    @PatchMapping("/{customNoteId}")
     fun updateNote(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long,
+        @PathVariable customNoteId: Long,
         @RequestBody @Valid request: UpdateCustomNoteRequest
     ): ApiResponse<CustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S005")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
-    @DeleteMapping("/{noteId}")
+    @DeleteMapping("/{customNoteId}")
     fun deleteNote(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long
+        @PathVariable customNoteId: Long
     ): ApiResponse<Unit>
 
     @Operation(summary = "단어 기준 내 커스텀 단어장 보유 현황 조회")
@@ -114,20 +114,20 @@ interface CustomNoteApi {
         "CUSTOM_NOTE_E004",
         "DICTIONARY_E002"
     )
-    @PostMapping("/{noteId}/terms")
+    @PostMapping("/{customNoteId}/terms")
     fun addTerms(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long,
+        @PathVariable customNoteId: Long,
         @RequestBody @Valid request: AddTermsToCustomNoteRequest
     ): ApiResponse<AddTermsToCustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S007")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
-    @DeleteMapping("/{noteId}/terms/{glossaryId}/{termId}")
+    @DeleteMapping("/{customNoteId}/terms/{glossaryId}/{termId}")
     fun deleteTerm(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long,
+        @PathVariable customNoteId: Long,
         @PathVariable glossaryId: Long,
         @PathVariable termId: Long
     ): ApiResponse<Unit>
@@ -135,10 +135,10 @@ interface CustomNoteApi {
     @Operation(summary = "커스텀 단어장 내 단어 목록 조회")
     @ApiSuccessCode("CUSTOM_NOTE_S008")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002")
-    @GetMapping("/{noteId}/terms")
+    @GetMapping("/{customNoteId}/terms")
     fun listTerms(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long,
+        @PathVariable customNoteId: Long,
         @RequestParam(defaultValue = "0") @Min(0) page: Int,
         @RequestParam(defaultValue = "20") @Min(1) @Max(100) size: Int
     ): ApiResponse<CustomNoteTermsResponse>
@@ -146,10 +146,10 @@ interface CustomNoteApi {
     @Operation(summary = "커스텀 단어장에서 단어 다중 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S009")
     @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "CUSTOM_NOTE_E007")
-    @DeleteMapping("/{noteId}/terms")
+    @DeleteMapping("/{customNoteId}/terms")
     fun deleteTerms(
         @CurrentUserId userId: UUID,
-        @PathVariable noteId: Long,
+        @PathVariable customNoteId: Long,
         @RequestBody @Valid request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit>
 

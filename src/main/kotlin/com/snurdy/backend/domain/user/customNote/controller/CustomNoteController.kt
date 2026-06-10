@@ -29,18 +29,18 @@ class CustomNoteController(
     override fun listNotes(userId: UUID): ApiResponse<CustomNoteListResponse> =
         ApiResponse.success(CustomNoteSuccess.LIST_NOTES, customNoteService.list(userId))
 
-    override fun getNote(userId: UUID, noteId: Long): ApiResponse<CustomNoteResponse> =
-        ApiResponse.success(CustomNoteSuccess.GET_NOTE, customNoteService.get(userId, noteId))
+    override fun getNote(userId: UUID, customNoteId: Long): ApiResponse<CustomNoteResponse> =
+        ApiResponse.success(CustomNoteSuccess.GET_NOTE, customNoteService.get(userId, customNoteId))
 
     override fun updateNote(
         userId: UUID,
-        noteId: Long,
+        customNoteId: Long,
         request: UpdateCustomNoteRequest
     ): ApiResponse<CustomNoteResponse> =
-        ApiResponse.success(CustomNoteSuccess.UPDATE_NOTE, customNoteService.update(userId, noteId, request))
+        ApiResponse.success(CustomNoteSuccess.UPDATE_NOTE, customNoteService.update(userId, customNoteId, request))
 
-    override fun deleteNote(userId: UUID, noteId: Long): ApiResponse<Unit> {
-        customNoteService.deleteNote(userId, noteId)
+    override fun deleteNote(userId: UUID, customNoteId: Long): ApiResponse<Unit> {
+        customNoteService.deleteNote(userId, customNoteId)
         return ApiResponse.success(CustomNoteSuccess.DELETE_NOTE)
     }
 
@@ -65,36 +65,36 @@ class CustomNoteController(
 
     override fun addTerms(
         userId: UUID,
-        noteId: Long,
+        customNoteId: Long,
         request: AddTermsToCustomNoteRequest
     ): ApiResponse<AddTermsToCustomNoteResponse> =
         ApiResponse.success(
             CustomNoteSuccess.ADD_TERMS,
-            customNoteService.addTerms(userId, noteId, request.items)
+            customNoteService.addTerms(userId, customNoteId, request.items)
         )
 
-    override fun deleteTerm(userId: UUID, noteId: Long, glossaryId: Long, termId: Long): ApiResponse<Unit> {
-        customNoteService.deleteTerm(userId, noteId, glossaryId, termId)
+    override fun deleteTerm(userId: UUID, customNoteId: Long, glossaryId: Long, termId: Long): ApiResponse<Unit> {
+        customNoteService.deleteTerm(userId, customNoteId, glossaryId, termId)
         return ApiResponse.success(CustomNoteSuccess.DELETE_TERM)
     }
 
     override fun listTerms(
         userId: UUID,
-        noteId: Long,
+        customNoteId: Long,
         page: Int,
         size: Int
     ): ApiResponse<CustomNoteTermsResponse> =
         ApiResponse.success(
             CustomNoteSuccess.LIST_TERMS,
-            customNoteService.listTerms(userId, noteId, page, size)
+            customNoteService.listTerms(userId, customNoteId, page, size)
         )
 
     override fun deleteTerms(
         userId: UUID,
-        noteId: Long,
+        customNoteId: Long,
         request: DeleteTermsFromCustomNoteRequest
     ): ApiResponse<Unit> {
-        customNoteService.deleteTerms(userId, noteId, request.items)
+        customNoteService.deleteTerms(userId, customNoteId, request.items)
         return ApiResponse.success(CustomNoteSuccess.DELETE_TERMS)
     }
 

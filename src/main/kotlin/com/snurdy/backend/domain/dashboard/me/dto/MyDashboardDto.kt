@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.dashboard.me.dto
 import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
 
 @Schema(description = "마이페이지 탭 메인 대시보드 응답")
@@ -77,13 +76,13 @@ data class DashboardGlossaryListResponse(
 @Schema(description = "과 변경 바텀시트 항목")
 data class DashboardGlossaryListItem(
     val glossaryId: Long,
+    @field:Schema(description = "카테고리 탭 그룹화 키", example = "외과")
     val category: String,
     val title: String,
+    @field:Schema(description = "사용자가 학습 완료한 단어 수", example = "85")
     val learnedCount: Int,
-    val totalTermCount: Long,
-    val progressRate: Double,
-    val level: Int,
-    val lastLearnedAt: Instant?
+    @field:Schema(description = "해당 과의 전체 단어 수", example = "100")
+    val totalTermCount: Long
 )
 
 @Schema(description = "과 지표 리스트 응답 (학습 시작한 과만, lastLearnedAt 최근순)")
@@ -96,14 +95,12 @@ data class DashboardGlossaryStatisticsResponse(
 @Schema(description = "과 지표 리스트 항목")
 data class DashboardGlossaryStatisticItem(
     val glossaryId: Long,
-    val category: String,
     val title: String,
-    @field:Schema(description = "누적 학습 완료 단어 수 (period 영향 없음)")
+    @field:Schema(description = "누적 학습 완료 단어 수. period 영향 없음", example = "85")
     val learnedCount: Int,
+    @field:Schema(description = "해당 과의 전체 단어 수", example = "100")
     val totalTermCount: Long,
-    @field:Schema(description = "누적 진척률 (period 영향 없음)")
-    val progressRate: Double,
-    @field:Schema(description = "누적 다마고치 레벨 (period 영향 없음)")
+    @field:Schema(description = "누적 다마고치 레벨. period 영향 없음", example = "5")
     val level: Int,
     @field:Schema(description = "period 기간 동안 학습한 단어 수", example = "49")
     val periodLearnedTermCount: Long,

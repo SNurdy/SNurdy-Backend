@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.dashboard.me.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermCountProjection
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressEntity
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
@@ -88,25 +89,24 @@ class MyDashboardService(
         val progressByGlossaryId = glossaryProgressRepository.findAllByIdUserId(userId)
             .associateBy { it.id.glossaryId }
 
-        val items = catalog.map { meta ->
-            val progress = progressByGlossaryId[meta.glossaryId]
-            val learnedCount = progress?.learnedCount ?: 0
-            val progressRate = GlossaryProgressCalculator.progressRate(learnedCount, meta.termCount)
-            DashboardGlossaryListItem(
-                glossaryId = meta.glossaryId,
-                category = meta.category,
-                title = meta.title,
-                learnedCount = learnedCount,
-                totalTermCount = meta.termCount,
-                progressRate = progressRate,
-                level = GlossaryProgressCalculator.levelFromRate(progressRate),
-                lastLearnedAt = progress?.lastLearnedAt
+        // lastLearnedAt 최근순으로 정렬한 뒤 응답 DTO 로 변환. 정렬 키는 응답에 노출하지 않음
+        val items = catalog
+            .sortedWith(
+                compareByDescending<GlossaryTermCountProjection> {
+                    progressByGlossaryId[it.glossaryId]?.lastLearnedAt != null
+                }
+                    .thenByDescending { progressByGlossaryId[it.glossaryId]?.lastLearnedAt }
+                    .thenBy { it.glossaryId }
             )
-        }.sortedWith(
-            compareByDescending<DashboardGlossaryListItem> { it.lastLearnedAt != null }
-                .thenByDescending { it.lastLearnedAt }
-                .thenBy { it.glossaryId }
-        )
+            .map { meta ->
+                DashboardGlossaryListItem(
+                    glossaryId = meta.glossaryId,
+                    category = meta.category,
+                    title = meta.title,
+                    learnedCount = progressByGlossaryId[meta.glossaryId]?.learnedCount ?: 0,
+                    totalTermCount = meta.termCount
+                )
+            }
 
         return DashboardGlossaryListResponse(glossaries = items)
     }
@@ -151,11 +151,9 @@ class MyDashboardService(
                 val progressRate = GlossaryProgressCalculator.progressRate(progress.learnedCount, meta.termCount)
                 DashboardGlossaryStatisticItem(
                     glossaryId = glossaryId,
-                    category = meta.category,
                     title = meta.title,
                     learnedCount = progress.learnedCount,
                     totalTermCount = meta.termCount,
-                    progressRate = progressRate,
                     level = GlossaryProgressCalculator.levelFromRate(progressRate),
                     periodLearnedTermCount = learnedCountByGlossaryId[glossaryId] ?: 0L,
                     periodWrongAnswerCount = wrongCountByGlossaryId[glossaryId] ?: 0L

@@ -9,24 +9,26 @@ data class CalendarResponse(
     val year: Int,
     val month: Int,
     val days: List<CalendarDailyItem>,
-    val totalLearnedCount: Int,
-    val totalCompletedCount: Int
+    @field:Schema(description = "이달 신규 학습 단어 합")
+    val totalNewLearnedCount: Int,
+    @field:Schema(description = "이달 전체 학습 단어 합")
+    val totalAllLearnedCount: Int
 )
 
 @Schema(description = "캘린더 일자별 학습 항목")
 data class CalendarDailyItem(
     val date: LocalDate,
-    @field:Schema(description = "그 날 처음 학습된 단어 수 (NEW -> LEARNING 전환)")
-    val learnedCount: Int,
-    @field:Schema(description = "그 날 처리된 학습 이벤트 총 개수 (신규 + 복습)")
-    val completedCount: Int,
+    @field:Schema(description = "그 날 신규로 학습한 단어 수. NEW 에서 LEARNING 으로 전환")
+    val newLearnedCount: Int,
+    @field:Schema(description = "그 날 전체 학습한 단어 수. 신규 + 복습 합")
+    val allLearnedCount: Int,
     @field:Schema(description = "그 날 학습 이벤트가 1건이라도 있었는지 여부")
     val studied: Boolean
 )
 
 fun DailyProgressEntity.toResponse() = CalendarDailyItem(
     date = id.date,
-    learnedCount = learnedCount,
-    completedCount = completedCount,
-    studied = completedCount > 0
+    newLearnedCount = newLearnedCount,
+    allLearnedCount = allLearnedCount,
+    studied = allLearnedCount > 0
 )

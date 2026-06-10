@@ -241,8 +241,8 @@ class MigrationUploadService(
             DailyProgressEntity(
                 id = DailyProgressId(userId = user.id, date = payload.date),
                 user = user,
-                learnedCount = payload.learnedCount.coerceAtLeast(0),
-                completedCount = payload.reviewedCount.coerceAtLeast(0)
+                newLearnedCount = payload.learnedCount.coerceAtLeast(0),
+                allLearnedCount = payload.reviewedCount.coerceAtLeast(0)
             )
         }
         dailyProgressRepository.saveAll(entities)

@@ -202,8 +202,8 @@ class MyDashboardService(
             DashboardDailyStatistic(
                 date = date,
                 dayOfWeek = date.dayOfWeek,
-                learnedCount = row?.learnedCount ?: 0,
-                completedCount = row?.completedCount ?: 0
+                newLearnedCount = row?.newLearnedCount ?: 0,
+                allLearnedCount = row?.allLearnedCount ?: 0
             )
         }
 

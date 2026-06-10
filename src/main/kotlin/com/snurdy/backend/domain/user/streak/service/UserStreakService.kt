@@ -46,7 +46,7 @@ class UserStreakService(
         val yesterday = today.minusDays(1)
         val recent = dailyProgressRepository
             .findAllByIdUserIdAndIdDateIn(userId, listOf(today, yesterday))
-        return recent.any { (it.learnedCount + it.completedCount) > 0 }
+        return recent.any { (it.newLearnedCount + it.allLearnedCount) > 0 }
     }
 
     private fun today(): LocalDate = LocalDate.now(clock.withZone(APP_ZONE_ID))

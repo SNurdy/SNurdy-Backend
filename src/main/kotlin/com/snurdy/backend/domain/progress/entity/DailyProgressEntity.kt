@@ -22,9 +22,9 @@ class DailyProgressEntity(
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
 
-    @Column(name = "learned_count", nullable = false)
-    var learnedCount: Int = 0,
+    @Column(name = "new_learned_count", nullable = false)
+    var newLearnedCount: Int = 0,
 
-    @Column(name = "completed_count", nullable = false)
-    var completedCount: Int = 0
+    @Column(name = "all_learned_count", nullable = false)
+    var allLearnedCount: Int = 0
 ) : BaseTimeEntity()

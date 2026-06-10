@@ -218,7 +218,7 @@ class TestService(
 
         val today = clock.instant().atZone(APP_ZONE_ID).toLocalDate()
         val todayBefore = dailyProgressRepository.findByIdOrNull(DailyProgressId(userId, today))
-        val todayWasActiveBefore = todayBefore?.let { (it.learnedCount + it.completedCount) > 0 } ?: false
+        val todayWasActiveBefore = todayBefore?.let { (it.newLearnedCount + it.allLearnedCount) > 0 } ?: false
 
         val events = request.results.map { result ->
             ProgressEvent(

@@ -103,7 +103,7 @@ class StudyDashboardService(
         val days = (0L..6L).map { offset ->
             val date = monday.plusDays(offset)
             val row = rows[date]
-            val active = row != null && (row.learnedCount + row.completedCount) > 0
+            val active = row != null && (row.newLearnedCount + row.allLearnedCount) > 0
             StudyDailyStatistic(
                 date = date,
                 dayOfWeek = date.dayOfWeek,

@@ -26,8 +26,8 @@ class CalendarService(
             year = year,
             month = month,
             days = days,
-            totalLearnedCount = days.sumOf { it.learnedCount },
-            totalCompletedCount = days.sumOf { it.completedCount }
+            totalNewLearnedCount = days.sumOf { it.newLearnedCount },
+            totalAllLearnedCount = days.sumOf { it.allLearnedCount }
         )
     }
 }

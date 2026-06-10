@@ -120,15 +120,15 @@ class ProgressUpdateService(
 
         val todayBefore = existing[today]
         val todayWasActiveBefore = todayBefore != null &&
-            (todayBefore.learnedCount + todayBefore.completedCount) > 0
+            (todayBefore.newLearnedCount + todayBefore.allLearnedCount) > 0
 
         val toSave = byDate.map { (date, delta) ->
             val progress = existing[date] ?: DailyProgressEntity(
                 id = DailyProgressId(user.id, date),
                 user = user
             )
-            progress.learnedCount += delta.learned
-            progress.completedCount += delta.completed
+            progress.newLearnedCount += delta.newLearned
+            progress.allLearnedCount += delta.allLearned
             progress
         }
         dailyProgressRepository.saveAll(toSave)
@@ -148,7 +148,7 @@ class ProgressUpdateService(
                 val yesterday = today.minusDays(1)
                 val yesterdayActive = dailyProgressRepository
                     .findByIdOrNull(DailyProgressId(user.id, yesterday))
-                    ?.let { (it.learnedCount + it.completedCount) > 0 }
+                    ?.let { (it.newLearnedCount + it.allLearnedCount) > 0 }
                     ?: false
                 when {
                     !yesterdayActive -> 1
@@ -168,7 +168,7 @@ class ProgressUpdateService(
             pageable = PageRequest.of(0, MAX_STREAK_LOOKBACK)
         )
         val activeDates = rows.asSequence()
-            .filter { (it.learnedCount + it.completedCount) > 0 }
+            .filter { (it.newLearnedCount + it.allLearnedCount) > 0 }
             .map { it.id.date }
             .toHashSet()
 
@@ -199,8 +199,8 @@ class ProgressUpdateService(
         private const val MAX_STREAK_LOOKBACK: Int = 365
     }
 
-    private data class DailyDelta(val learned: Int, val completed: Int) {
-        operator fun plus(other: DailyDelta) = DailyDelta(learned + other.learned, completed + other.completed)
+    private data class DailyDelta(val newLearned: Int, val allLearned: Int) {
+        operator fun plus(other: DailyDelta) = DailyDelta(newLearned + other.newLearned, allLearned + other.allLearned)
 
         companion object {
             val EMPTY = DailyDelta(0, 0)

@@ -57,17 +57,13 @@ POST /v2/custom-notes/terms
 
 ## 3.3 기존 단어 추가 API 와의 차이
 
-해당 API 는 기존 구현되어 있는 커스텀 단어장 내 단어 추가 API 와 플로우가 다르다. 둘은 보완 관계로 공존한다.
+해당 API 는 기존 구현되어 있는 커스텀 단어장 내 단어 추가 API 와 플로우가 다르다. 두 API 는 폐기되거나 대체 관계가 아니라 서로 다른 UX 흐름을 지원하기 위해 공존한다.
 
-| 항목 | 기존 `POST /v2/custom-notes/{customNoteId}/terms` | 신규 `POST /v2/custom-notes/terms` |
-|---|---|---|
-| 카디널리티 | 단어장 1 : 단어 N | 단어 1 : 단어장 N |
-| 진입 화면 | 단어장 상세 화면 (단어장 안에서 단어 다중 선택) | 단어 카드 화면 (북마크 뷰) |
-| path | `/{customNoteId}/terms` (특정 단어장 sub-resource) | `/terms` (단어 시점 액션) |
-| 요청 body 핵심 | `items: [{ glossaryId, termId }, ...]` (최대 100개) | `glossaryId, termId, customNoteIds: [...]` (최대 20개) |
-| 응답 핵심 | `added`, `skipped`, `totalTermCount` (단어 수 카운트) | `addedCustomNoteIds` (추가된 단어장 id 목록) |
-| skip 정책 | 이미 단어장에 있는 단어 silently skip + `skipped` 카운트 노출 | 이미 단어 보유한 단어장 silently skip + 응답에서 제외 |
-| 사용 UX | 단어장 편집 모드 같은 흐름에서 다수 단어를 한 단어장에 batch 추가 | 단어 1개를 여러 단어장에 한 번에 담기 |
+기존 API `POST /v2/custom-notes/{customNoteId}/terms` 는 **단어장 1개에 단어 여러 개를 batch 로 담는** 흐름을 지원한다. path 자체가 특정 단어장의 sub-resource 라 단어장이 호출 주체로 자리잡고, 요청 body 에는 `items` 배열로 추가할 단어 (glossaryId + termId 쌍) 를 최대 100개까지 넣는다. 응답은 새로 추가된 단어 수 / 이미 있어 skip 된 단어 수 / 갱신된 단어장 총 단어 수를 돌려주는 단어 수 카운트 중심이다. 이 흐름은 단어장 상세 / 편집 화면에서 사용자가 여러 단어를 골라 한 단어장에 모으는 시나리오에 맞춰져 있다.
+
+신규 API `POST /v2/custom-notes/terms` 는 정반대로 **단어 1개를 여러 단어장에 동시에 담는** 흐름을 지원한다. path 에 customNoteId 가 없고 단어 (glossaryId + termId) 와 추가 대상 단어장 id 목록 (`customNoteIds`, 최대 20개) 을 한 body 에 함께 보낸다. 응답은 실제로 새로 추가된 단어장 id 목록 (`addedCustomNoteIds`) 만 노출하고 race 로 이미 보유한 단어장은 silently skip 한다 (UX 상 disabled 라 통상 빈 배열). 이 흐름은 사전 / 단어 카드의 북마크 뷰에서 사용자가 현재 보고 있는 단어 하나를 본인의 여러 단어장에 한 번에 등록하는 시나리오에 맞춰져 있다.
+
+요약하면 기존은 단어장 시점 (단어장 1 : 단어 N), 신규는 단어 시점 (단어 1 : 단어장 N) 이고, 각각의 진입 화면 / path 형태 / 요청 body 구조 / 응답 카운트 의미 / 최대 개수 제한 (100개 vs 20개) 이 모두 그 시점에 맞춰 다르게 설계되었다.
 
 ---
 

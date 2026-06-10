@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.user.dashboard.dto
+package com.snurdy.backend.domain.dashboard.me.dto
 
 import com.snurdy.backend.domain.test.entity.TestType
 import io.swagger.v3.oas.annotations.media.Schema
@@ -6,8 +6,8 @@ import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 
-@Schema(description = "마이페이지 메인 대시보드 응답")
-data class UserDashboardResponse(
+@Schema(description = "마이페이지 탭 메인 대시보드 응답")
+data class MyDashboardResponse(
     @field:Schema(description = "사용자 streak 요약")
     val streak: DashboardStreak,
     @field:Schema(description = "다마고치 영역에 표시할 선택된 과. 사용자가 명시 선택한 값 (신규 유저는 가입 시점에 심장내과 자동 세팅)")

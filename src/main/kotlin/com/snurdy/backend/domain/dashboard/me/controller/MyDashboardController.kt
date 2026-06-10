@@ -1,10 +1,10 @@
-package com.snurdy.backend.domain.user.dashboard.controller
+package com.snurdy.backend.domain.dashboard.me.controller
 
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticsResponse
-import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
-import com.snurdy.backend.domain.user.dashboard.service.UserDashboardService
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryListResponse
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryStatisticsResponse
+import com.snurdy.backend.domain.dashboard.me.dto.MyDashboardResponse
+import com.snurdy.backend.domain.dashboard.me.service.MyDashboardService
 import com.snurdy.backend.global.constants.UserSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
@@ -12,17 +12,17 @@ import java.time.LocalDate
 import java.util.UUID
 
 @RestController
-class UserDashboardController(
-    private val userDashboardService: UserDashboardService
-) : UserDashboardApi {
+class MyDashboardController(
+    private val myDashboardService: MyDashboardService
+) : MyDashboardApi {
 
     override fun getDashboard(
         userId: UUID,
         startDate: LocalDate?
-    ): ApiResponse<UserDashboardResponse> =
+    ): ApiResponse<MyDashboardResponse> =
         ApiResponse.success(
             UserSuccess.GET_DASHBOARD,
-            userDashboardService.getDashboard(userId, startDate)
+            myDashboardService.getDashboard(userId, startDate)
         )
 
     override fun listDashboardGlossaries(
@@ -30,7 +30,7 @@ class UserDashboardController(
     ): ApiResponse<DashboardGlossaryListResponse> =
         ApiResponse.success(
             UserSuccess.LIST_DASHBOARD_GLOSSARIES,
-            userDashboardService.listGlossaries(userId)
+            myDashboardService.listGlossaries(userId)
         )
 
     override fun listDashboardGlossaryStatistics(
@@ -39,6 +39,6 @@ class UserDashboardController(
     ): ApiResponse<DashboardGlossaryStatisticsResponse> =
         ApiResponse.success(
             UserSuccess.LIST_DASHBOARD_GLOSSARY_STATISTICS,
-            userDashboardService.listGlossaryStatistics(userId, period)
+            myDashboardService.listGlossaryStatistics(userId, period)
         )
 }

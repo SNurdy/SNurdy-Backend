@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.user.dashboard.service
+package com.snurdy.backend.domain.dashboard.me.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryAvailableCountProjection
@@ -9,16 +9,16 @@ import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.repository.TermProgressRepository
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardDailyStatistic
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListItem
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryListResponse
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryPeriod
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticItem
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardGlossaryStatisticsResponse
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardSelectedGlossary
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardStreak
-import com.snurdy.backend.domain.user.dashboard.dto.DashboardWeekStatistics
-import com.snurdy.backend.domain.user.dashboard.dto.UserDashboardResponse
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardDailyStatistic
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryListItem
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryListResponse
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryPeriod
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryStatisticItem
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardGlossaryStatisticsResponse
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardSelectedGlossary
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardStreak
+import com.snurdy.backend.domain.dashboard.me.dto.DashboardWeekStatistics
+import com.snurdy.backend.domain.dashboard.me.dto.MyDashboardResponse
 import com.snurdy.backend.domain.user.preference.service.UserPreferenceService
 import com.snurdy.backend.domain.user.streak.service.UserStreakService
 import com.snurdy.backend.global.constants.DictionaryError
@@ -35,10 +35,10 @@ import com.snurdy.backend.global.constants.APP_ZONE_ID
 import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
-// 마이페이지 대시보드 BFF
+// 마이페이지 탭 대시보드 BFF
 // 메인 화면 + 과 변경 바텀시트 + 과 지표 상세 3개 endpoint 의 응답을 책임진다
 @Service
-class UserDashboardService(
+class MyDashboardService(
     private val userStreakService: UserStreakService,
     private val userPreferenceService: UserPreferenceService,
     private val glossaryProgressRepository: GlossaryProgressRepository,
@@ -51,7 +51,7 @@ class UserDashboardService(
 ) {
 
     @Transactional(readOnly = true)
-    fun getDashboard(userId: UUID, startDate: LocalDate?): UserDashboardResponse {
+    fun getDashboard(userId: UUID, startDate: LocalDate?): MyDashboardResponse {
         val today = LocalDate.now(clock.withZone(APP_ZONE_ID))
         // 미지정 시 오늘 포함 직전 7일 (today 가 끝), 지정 시 startDate ~ startDate+6
         val resolvedStart = startDate ?: today.minusDays(DEFAULT_PERIOD_DAYS - 1)
@@ -80,7 +80,7 @@ class UserDashboardService(
             } ?: throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         val weekStatistics = buildWeekStatistics(userId, resolvedStart, resolvedEnd)
 
-        return UserDashboardResponse(
+        return MyDashboardResponse(
             streak = DashboardStreak(
                 longestStreak = streakResponse.longestStreak,
                 totalLearningTerms = streakResponse.totalLearningTerms

@@ -86,8 +86,7 @@ class MyDashboardService(
                 totalLearningTerms = streakResponse.totalLearningTerms
             ),
             selectedGlossary = selectedGlossary,
-            weekStatistics = weekStatistics,
-            generatedAt = clock.instant()
+            weekStatistics = weekStatistics
         )
     }
 

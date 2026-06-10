@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dashboard.study.dto
 
 import com.snurdy.backend.domain.test.entity.TestType
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.DayOfWeek
 import java.time.Instant
@@ -17,9 +18,7 @@ data class StudyDashboardResponse(
     @field:Schema(description = "이번 주 자연주 7일치 학습 여부")
     val weekStatistics: StudyWeekStatistics,
     @field:Schema(description = "[nullable] 자주 틀린 단어 카드. 3회 이상 오답 풀에서 랜덤 1개. 없으면 null")
-    val frequentlyIncorrectTerm: StudyFrequentlyIncorrectTerm?,
-    @field:Schema(description = "응답 생성 시각")
-    val generatedAt: Instant
+    val frequentlyIncorrectTerm: StudyFrequentlyIncorrectTerm?
 )
 
 @Schema(description = "학습 Home 의 선택된 과")
@@ -46,8 +45,25 @@ data class StudySelectedGlossary(
 
 @Schema(description = "이번 주 자연주 7일치 학습 여부")
 data class StudyWeekStatistics(
+    @field:Schema(description = "이번 주 월요일", example = "2026-06-08")
     val startDate: LocalDate,
+    @field:Schema(description = "이번 주 일요일", example = "2026-06-14")
     val endDate: LocalDate,
+    @field:ArraySchema(
+        schema = Schema(implementation = StudyDailyStatistic::class),
+        arraySchema = Schema(
+            description = "월요일부터 일요일까지 7일치. 항상 7개 보장",
+            example = """[
+                {"date":"2026-06-08","dayOfWeek":"MONDAY","studied":true},
+                {"date":"2026-06-09","dayOfWeek":"TUESDAY","studied":false},
+                {"date":"2026-06-10","dayOfWeek":"WEDNESDAY","studied":false},
+                {"date":"2026-06-11","dayOfWeek":"THURSDAY","studied":false},
+                {"date":"2026-06-12","dayOfWeek":"FRIDAY","studied":false},
+                {"date":"2026-06-13","dayOfWeek":"SATURDAY","studied":false},
+                {"date":"2026-06-14","dayOfWeek":"SUNDAY","studied":false}
+            ]"""
+        )
+    )
     val days: List<StudyDailyStatistic>
 )
 

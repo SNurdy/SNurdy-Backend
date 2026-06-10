@@ -63,8 +63,7 @@ class StudyDashboardService(
             selectedGlossary = selectedGlossary,
             defaultCardCount = preference.defaultCardCount,
             weekStatistics = weekStatistics,
-            frequentlyIncorrectTerm = frequentlyIncorrectTerm,
-            generatedAt = clock.instant()
+            frequentlyIncorrectTerm = frequentlyIncorrectTerm
         )
     }
 

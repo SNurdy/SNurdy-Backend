@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.dashboard.me.dto
 
 import com.snurdy.backend.domain.test.entity.TestType
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.DayOfWeek
 import java.time.Instant
@@ -13,9 +14,7 @@ data class MyDashboardResponse(
     @field:Schema(description = "다마고치 영역에 표시할 선택된 과. 사용자가 명시 선택한 값 (신규 유저는 가입 시점에 심장내과 자동 세팅)")
     val selectedGlossary: DashboardSelectedGlossary,
     @field:Schema(description = "7일치 학습 막대 그래프 데이터")
-    val weekStatistics: DashboardWeekStatistics,
-    @field:Schema(description = "응답 생성 시각")
-    val generatedAt: Instant
+    val weekStatistics: DashboardWeekStatistics
 )
 
 @Schema(description = "사용자 학습 streak 요약")
@@ -55,7 +54,21 @@ data class DashboardWeekStatistics(
     val startDate: LocalDate,
     @field:Schema(description = "조회 종료일 (startDate + 6)", example = "2026-06-04")
     val endDate: LocalDate,
-    @field:Schema(description = "7일치 일별 통계. 학습 안 한 날도 0 으로 채워 항상 7개 보장")
+    @field:ArraySchema(
+        schema = Schema(implementation = DashboardDailyStatistic::class),
+        arraySchema = Schema(
+            description = "7일치 일별 통계. 학습 안 한 날도 0 으로 채워 항상 7개 보장",
+            example = """[
+                {"date":"2026-05-29","dayOfWeek":"FRIDAY","learnedCount":10,"completedCount":12},
+                {"date":"2026-05-30","dayOfWeek":"SATURDAY","learnedCount":5,"completedCount":8},
+                {"date":"2026-05-31","dayOfWeek":"SUNDAY","learnedCount":0,"completedCount":0},
+                {"date":"2026-06-01","dayOfWeek":"MONDAY","learnedCount":15,"completedCount":20},
+                {"date":"2026-06-02","dayOfWeek":"TUESDAY","learnedCount":7,"completedCount":7},
+                {"date":"2026-06-03","dayOfWeek":"WEDNESDAY","learnedCount":0,"completedCount":0},
+                {"date":"2026-06-04","dayOfWeek":"THURSDAY","learnedCount":3,"completedCount":5}
+            ]"""
+        )
+    )
     val days: List<DashboardDailyStatistic>
 )
 

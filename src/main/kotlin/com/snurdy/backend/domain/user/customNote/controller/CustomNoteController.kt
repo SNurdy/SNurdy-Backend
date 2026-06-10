@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.customNote.controller
 
+import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesRequest
+import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
@@ -40,6 +42,15 @@ class CustomNoteController(
         customNoteService.deleteNote(userId, noteId)
         return ApiResponse.success(CustomNoteSuccess.DELETE_NOTE)
     }
+
+    override fun addTermToNotes(
+        userId: UUID,
+        request: AddTermToCustomNotesRequest
+    ): ApiResponse<AddTermToCustomNotesResponse> =
+        ApiResponse.success(
+            CustomNoteSuccess.ADD_TERM_TO_NOTES,
+            customNoteService.addTermToNotes(userId, request.glossaryId, request.termId, request.noteIds)
+        )
 
     override fun addTerms(
         userId: UUID,

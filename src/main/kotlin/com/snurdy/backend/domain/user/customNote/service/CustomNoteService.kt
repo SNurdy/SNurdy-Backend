@@ -4,6 +4,7 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryReposito
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.user.customNote.dto.AddTermItem
+import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
@@ -180,6 +181,78 @@ class CustomNoteService(
             added = newItems.size,
             skipped = distinctItems.size - newItems.size,
             totalTermCount = currentTermCount + newItems.size
+        )
+    }
+
+    // 사전 단어 1개를 N개 커스텀 단어장에 동시 추가
+    // 이미 단어가 있는 노트는 skip, 새로 추가될 노트가 termLimit 초과면 전체 거부
+    @Transactional
+    fun addTermToNotes(
+        userId: UUID,
+        glossaryId: Long,
+        termId: Long,
+        noteIds: List<Long>
+    ): AddTermToCustomNotesResponse {
+        val distinctNoteIds = noteIds.distinct()
+
+        val notes = customNoteRepository.findAllById(distinctNoteIds)
+        if (notes.size != distinctNoteIds.size) {
+            throw ApiException(CustomNoteError.NOT_FOUND)
+        }
+        notes.forEach { note ->
+            if (note.ownerId != userId) throw ApiException(CustomNoteError.FORBIDDEN)
+        }
+
+        val term = termRepository.findByIdInAndDeletedAtIsNull(listOf(termId)).firstOrNull()
+            ?: throw ApiException(DictionaryError.TERM_NOT_FOUND)
+        val glossary = glossaryRepository.findById(glossaryId).orElseThrow {
+            ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
+        }
+        val validPair = glossaryTermRepository
+            .findAllByIdGlossaryIdInAndIdTermIdIn(listOf(glossaryId), listOf(termId))
+            .any { it.id.glossaryId == glossaryId && it.id.termId == termId }
+        if (!validPair) {
+            throw ApiException(DictionaryError.TERM_NOT_FOUND)
+        }
+
+        // PK 직접 조회로 어느 노트에 이미 있는지 가려냄
+        val existingNoteIds = customNoteTermRepository
+            .findAllById(distinctNoteIds.map { CustomNoteTermId(noteId = it, glossaryId = glossaryId, termId = termId) })
+            .mapTo(mutableSetOf()) { it.id.noteId }
+
+        val targetNoteIds = distinctNoteIds.filter { it !in existingNoteIds }
+        if (targetNoteIds.isEmpty()) {
+            return AddTermToCustomNotesResponse(
+                addedNoteIds = emptyList(),
+                skippedNoteIds = distinctNoteIds
+            )
+        }
+
+        // 추가 대상 노트의 현재 termCount 확인 (단어장당 최대 250)
+        val termCountByNoteId = customNoteTermRepository
+            .countByNoteIds(targetNoteIds)
+            .associate { it.noteId to it.termCount }
+        val notesById = notes.associateBy { it.id }
+        targetNoteIds.forEach { noteId ->
+            val current = termCountByNoteId[noteId] ?: 0L
+            if (current + 1 > MAX_TERMS_PER_NOTE) {
+                throw ApiException(CustomNoteError.TERM_LIMIT_EXCEEDED)
+            }
+        }
+
+        val newEntities = targetNoteIds.map { noteId ->
+            CustomNoteTermEntity(
+                id = CustomNoteTermId(noteId = noteId, glossaryId = glossaryId, termId = termId),
+                note = notesById[noteId]!!,
+                glossary = glossary,
+                term = term
+            )
+        }
+        customNoteTermRepository.saveAll(newEntities)
+
+        return AddTermToCustomNotesResponse(
+            addedNoteIds = targetNoteIds,
+            skippedNoteIds = distinctNoteIds.filter { it in existingNoteIds }
         )
     }
 

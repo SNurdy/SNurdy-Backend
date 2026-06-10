@@ -1,5 +1,7 @@
 package com.snurdy.backend.domain.user.customNote.controller
 
+import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesRequest
+import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
@@ -78,6 +80,21 @@ interface CustomNoteApi {
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long
     ): ApiResponse<Unit>
+
+    @Operation(summary = "사전 단어 1개를 N개 커스텀 단어장에 동시 추가")
+    @ApiSuccessCode("CUSTOM_NOTE_S016")
+    @ApiErrorCodes(
+        "CUSTOM_NOTE_E001",
+        "CUSTOM_NOTE_E002",
+        "CUSTOM_NOTE_E004",
+        "DICTIONARY_E001",
+        "DICTIONARY_E002"
+    )
+    @PostMapping("/terms")
+    fun addTermToNotes(
+        @CurrentUserId userId: UUID,
+        @RequestBody @Valid request: AddTermToCustomNotesRequest
+    ): ApiResponse<AddTermToCustomNotesResponse>
 
     @Operation(summary = "커스텀 단어장에 사전 단어 추가")
     @ApiSuccessCode("CUSTOM_NOTE_S006")

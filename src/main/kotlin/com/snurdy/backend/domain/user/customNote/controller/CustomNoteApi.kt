@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.user.customNote.controller
 
 import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesRequest
 import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
-import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.DeleteCustomNotesRequest
@@ -10,7 +10,7 @@ import com.snurdy.backend.domain.user.customNote.dto.DeleteTermsFromCustomNoteRe
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
-import com.snurdy.backend.domain.user.customNote.dto.NotesForTermResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNotesForTermResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
@@ -89,7 +89,7 @@ interface CustomNoteApi {
         @CurrentUserId userId: UUID,
         @PathVariable glossaryId: Long,
         @PathVariable termId: Long
-    ): ApiResponse<NotesForTermResponse>
+    ): ApiResponse<CustomNotesForTermResponse>
 
     @Operation(summary = "사전 단어 1개를 N개 커스텀 단어장에 동시 추가")
     @ApiSuccessCode("CUSTOM_NOTE_S016")
@@ -119,7 +119,7 @@ interface CustomNoteApi {
         @CurrentUserId userId: UUID,
         @PathVariable noteId: Long,
         @RequestBody @Valid request: AddTermsToCustomNoteRequest
-    ): ApiResponse<AddTermsResponse>
+    ): ApiResponse<AddTermsToCustomNoteResponse>
 
     @Operation(summary = "커스텀 단어장에서 단어 단일 삭제")
     @ApiSuccessCode("CUSTOM_NOTE_S007")

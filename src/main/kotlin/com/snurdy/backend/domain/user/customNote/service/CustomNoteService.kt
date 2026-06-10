@@ -3,15 +3,15 @@ package com.snurdy.backend.domain.user.customNote.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.user.customNote.dto.AddTermItem
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermInput
 import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
-import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
-import com.snurdy.backend.domain.user.customNote.dto.NoteForTermItem
-import com.snurdy.backend.domain.user.customNote.dto.NotesForTermResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNoteForTermItem
+import com.snurdy.backend.domain.user.customNote.dto.CustomNotesForTermResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.toResponse
 import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
@@ -125,7 +125,7 @@ class CustomNoteService(
     }
 
     @Transactional
-    fun addTerms(userId: UUID, noteId: Long, items: List<AddTermItem>): AddTermsResponse {
+    fun addTerms(userId: UUID, noteId: Long, items: List<CustomNoteTermInput>): AddTermsToCustomNoteResponse {
         val note = findOwned(userId, noteId)
 
         val currentTermCount = customNoteTermRepository.countByIdNoteId(noteId)
@@ -162,7 +162,7 @@ class CustomNoteService(
 
         val newItems = distinctItems.filter { (it.glossaryId to it.termId) !in existingPairs }
         if (newItems.isEmpty()) {
-            return AddTermsResponse(
+            return AddTermsToCustomNoteResponse(
                 added = 0,
                 skipped = distinctItems.size,
                 totalTermCount = currentTermCount
@@ -179,7 +179,7 @@ class CustomNoteService(
         }
         customNoteTermRepository.saveAll(newEntities)
 
-        return AddTermsResponse(
+        return AddTermsToCustomNoteResponse(
             added = newItems.size,
             skipped = distinctItems.size - newItems.size,
             totalTermCount = currentTermCount + newItems.size
@@ -188,9 +188,9 @@ class CustomNoteService(
 
     // 북마크 뷰 진입 조회. 사용자의 모든 단어장 + 그 단어 보유 여부
     @Transactional(readOnly = true)
-    fun listNotesForTerm(userId: UUID, glossaryId: Long, termId: Long): NotesForTermResponse {
+    fun listNotesForTerm(userId: UUID, glossaryId: Long, termId: Long): CustomNotesForTermResponse {
         val notes = customNoteRepository.findAllByOwnerIdOrderByCreatedAtDesc(userId)
-        if (notes.isEmpty()) return NotesForTermResponse(notes = emptyList())
+        if (notes.isEmpty()) return CustomNotesForTermResponse(notes = emptyList())
 
         val noteIds = notes.map { it.id }
         val termCountByNoteId = customNoteTermRepository.countByNoteIds(noteIds)
@@ -200,14 +200,14 @@ class CustomNoteService(
             .mapTo(mutableSetOf()) { it.id.noteId }
 
         val items = notes.map { note ->
-            NoteForTermItem(
+            CustomNoteForTermItem(
                 id = note.id,
                 title = note.title,
                 termCount = termCountByNoteId[note.id] ?: 0L,
                 hasTerm = note.id in notesHavingTerm
             )
         }
-        return NotesForTermResponse(notes = items)
+        return CustomNotesForTermResponse(notes = items)
     }
 
     // 사전 단어 1개를 N개 커스텀 단어장에 동시 추가
@@ -294,7 +294,7 @@ class CustomNoteService(
     }
 
     @Transactional
-    fun deleteTerms(userId: UUID, noteId: Long, items: List<AddTermItem>) {
+    fun deleteTerms(userId: UUID, noteId: Long, items: List<CustomNoteTermInput>) {
         findOwned(userId, noteId)
         val distinctItems = items.distinctBy { it.glossaryId to it.termId }
 

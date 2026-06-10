@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.user.customNote.controller
 
 import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesRequest
 import com.snurdy.backend.domain.user.customNote.dto.AddTermToCustomNotesResponse
-import com.snurdy.backend.domain.user.customNote.dto.AddTermsResponse
+import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.AddTermsToCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.CreateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.dto.DeleteCustomNotesRequest
@@ -10,7 +10,7 @@ import com.snurdy.backend.domain.user.customNote.dto.DeleteTermsFromCustomNoteRe
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteListResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteResponse
 import com.snurdy.backend.domain.user.customNote.dto.CustomNoteTermsResponse
-import com.snurdy.backend.domain.user.customNote.dto.NotesForTermResponse
+import com.snurdy.backend.domain.user.customNote.dto.CustomNotesForTermResponse
 import com.snurdy.backend.domain.user.customNote.dto.UpdateCustomNoteRequest
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteService
 import com.snurdy.backend.global.constants.CustomNoteSuccess
@@ -48,7 +48,7 @@ class CustomNoteController(
         userId: UUID,
         glossaryId: Long,
         termId: Long
-    ): ApiResponse<NotesForTermResponse> =
+    ): ApiResponse<CustomNotesForTermResponse> =
         ApiResponse.success(
             CustomNoteSuccess.LIST_NOTES_FOR_TERM,
             customNoteService.listNotesForTerm(userId, glossaryId, termId)
@@ -67,7 +67,7 @@ class CustomNoteController(
         userId: UUID,
         noteId: Long,
         request: AddTermsToCustomNoteRequest
-    ): ApiResponse<AddTermsResponse> =
+    ): ApiResponse<AddTermsToCustomNoteResponse> =
         ApiResponse.success(
             CustomNoteSuccess.ADD_TERMS,
             customNoteService.addTerms(userId, noteId, request.items)

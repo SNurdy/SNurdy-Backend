@@ -32,11 +32,11 @@ data class AddTermsToCustomNoteRequest(
     @field:NotEmpty(message = "추가할 단어 항목이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 추가할 수 있습니다")
     @field:Valid
-    val items: List<AddTermItem>
+    val items: List<CustomNoteTermInput>
 )
 
 @Schema(description = "추가할 단어 항목 (단어가 속한 단어장 id + 단어 id)")
-data class AddTermItem(
+data class CustomNoteTermInput(
     @field:NotNull
     @field:Positive
     @field:Schema(description = "단어가 선택된 단어장 id", example = "12")
@@ -62,7 +62,7 @@ data class CustomNoteListResponse(
 )
 
 @Schema(description = "단어 추가 결과")
-data class AddTermsResponse(
+data class AddTermsToCustomNoteResponse(
     @field:Schema(description = "실제로 새로 추가된 단어 수")
     val added: Int,
     @field:Schema(description = "이미 단어장에 있어 건너뛴 단어 수")
@@ -93,12 +93,12 @@ data class AddTermToCustomNotesRequest(
 )
 
 @Schema(description = "단어 기준 커스텀 단어장 보유 현황 응답. 북마크 뷰 진입 시 사용")
-data class NotesForTermResponse(
-    val notes: List<NoteForTermItem>
+data class CustomNotesForTermResponse(
+    val notes: List<CustomNoteForTermItem>
 )
 
 @Schema(description = "단어 보유 여부 포함 단어장 항목")
-data class NoteForTermItem(
+data class CustomNoteForTermItem(
     @field:Schema(description = "단어장 id", example = "3")
     val id: Long,
     @field:Schema(description = "단어장 제목", example = "외과 단어장")
@@ -120,7 +120,7 @@ data class DeleteTermsFromCustomNoteRequest(
     @field:NotEmpty(message = "삭제할 단어 항목이 비어 있을 수 없습니다")
     @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
     @field:Valid
-    val items: List<AddTermItem>
+    val items: List<CustomNoteTermInput>
 )
 
 @Schema(description = "단어장 다중 삭제 요청. 모두 본인 소유여야 처리")

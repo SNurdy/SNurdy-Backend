@@ -1,6 +1,6 @@
 ## Phase 2.12 — 학습 Home 대시보드 신설 + dashboard 도메인 재구조
 
-학습하기 탭과 마이페이지 탭의 데이터 구조 차이를 명확히 분리. 학습 Home 전용 BFF endpoint 신설 + 기존 user/dashboard 도메인 패키지 재배치.
+학습하기 탭과 마이페이지 탭의 데이터 구조 차이를 명확히 분리. 학습 Home 전용 BFF endpoint 신설 + 기존 `domain/user/dashboard` 패키지를 `domain/dashboard/me` 로 이전 + rename.
 
 이 spec 은 Phase 2.2 / 2.9 / 2.11 의 일부 결정사항을 정정/통합한다 (기존 spec 본문은 유지하되 정정 의도를 본 문서에서 명시).
 
@@ -33,22 +33,22 @@
 
 ### 2.1 기존
 ```
-domain/user/dashboard/ (구)
-├── controller/MyDashboardApi
-├── controller/MyDashboardController
-├── service/MyDashboardService
-└── dto/MyDashboardDto
+domain/user/dashboard/
+├── controller/UserDashboardApi
+├── controller/UserDashboardController
+├── service/UserDashboardService
+└── dto/UserDashboardDto
 ```
 
 ### 2.2 변경 후
 ```
 domain/dashboard/
-├── user/                                       ← 이전 (user/dashboard 에서 이동)
+├── me/                                         ← 이전 + rename
 │   ├── controller/MyDashboardApi
 │   ├── controller/MyDashboardController
 │   ├── service/MyDashboardService
 │   └── dto/MyDashboardDto
-└── learning/                                   ← 신규
+└── study/                                      ← 신규
     ├── controller/StudyDashboardApi
     ├── controller/StudyDashboardController
     ├── service/StudyDashboardService
@@ -57,10 +57,11 @@ domain/dashboard/
 
 ### 2.3 이유
 
-- 두 화면 모두 dashboard 추상화 (사용자가 자기 학습 상태 종합 보기) → 같은 도메인 분류
-- 기존 `user/dashboard` 가 user 데이터 직접 소유 없이 다른 도메인 (progress, dictionary, wrongAnswerNote 등) 합성하는 **BFF** 였음 → `user/` 안 위치가 부정확했음
+- 두 화면 모두 dashboard 추상화 → 같은 도메인 분류
+- 기존 `domain/user/dashboard` 가 user 데이터 직접 소유 없이 다른 도메인 합성하는 BFF → user 하위 위치가 부정확했음
 - 신설 StudyDashboard 도 같은 BFF 패턴
 - 둘을 `domain/dashboard/` 아래 모아서 BFF dashboard 도메인 통합
+- 클래스 / 폴더 prefix 는 UI 명칭 따라 `My` / `Study` (me / study URL 과 일관)
 
 ### 2.4 클래스명 / URL 영향
 
@@ -359,9 +360,11 @@ StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페
 - `UserPreferenceService.updateDefaultCardCount` 메서드
 - `WrongAnswerTermRepository.findRandomFrequentlyIncorrectTerm(userId, minCount)` (또는 service 메서드)
 
-### 이동
-- `domain/user/dashboard/ (구)` → `domain/dashboard/me/` (전체 패키지 이동, import 정정)
-- 클래스명 / URL / 응답 구조 변경 없음
+### 이동 + rename
+- `domain/user/dashboard/` → `domain/dashboard/me/` (전체 패키지 이동 + import 정정)
+- 클래스 rename: `UserDashboard*` → `MyDashboard*`
+- URL 변경: `/v2/users/me/dashboard*` → `/v2/dashboards/me*`
+- 응답 구조 변경 없음
 
 ### 응답 변경
 - `GET /v2/users/me/preferences` 응답에 `defaultCardCount` 필드 추가
@@ -381,7 +384,7 @@ StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페
 4. UserPreferenceEntity / DTO 확장 (defaultCardCount)
 5. UserPreferenceService — `updateDefaultCardCount` + `getPreferenceResponse` 확장
 6. UserPreferenceApi 에 `PUT /preferences/default-card-count` endpoint 추가
-7. 패키지 이동: `domain/user/dashboard/ (구)` → `domain/dashboard/me/` (전체 import 정정)
+7. 패키지 이동 + rename: `domain/user/dashboard/` → `domain/dashboard/me/`, 클래스 `UserDashboard*` → `MyDashboard*`, URL `/v2/users/me/dashboard*` → `/v2/dashboards/me*` (전체 import 정정)
 8. 신규 패키지 `domain/dashboard/study/` 생성
 9. `StudyDashboardResponse` + 하위 DTO 작성
 10. `StudyDashboardService` 작성 (BFF — UserStreakService + UserPreferenceService + WrongAnswerNoteService + GlossaryRepository + DailyProgressRepository 호출)
@@ -401,8 +404,8 @@ StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페
 | 두 탭 분리 인정 | 마이페이지 (`마이페이지.png`) ≠ 학습 Home (`학습하기(Home).png`). Phase 2.9 폐기 사유 정정 |
 | 학습 Home endpoint | 신규 `GET /v2/dashboards/study` |
 | 마이페이지 endpoint | 기존 `GET /v2/dashboards/me` 그대로 (URL / 응답 변경 없음) |
-| 도메인 패키지 | `domain/dashboard/` 통합 — `user/` (이전) + `learning/` (신규) |
-| URL 컨벤션 | `/v2/users/me/` 유지 (도메인 패키지와 URL 불일치 — BFF 패턴에서 일반적) |
+| 도메인 패키지 | `domain/dashboard/` 통합 — `me/` (이전 + rename) + `study/` (신규) |
+| URL 컨벤션 | `/v2/dashboards/me` + `/v2/dashboards/study` (도메인 패키지와 URL prefix 일치) |
 | StudyDashboard 책임 | BFF — UserStreak + Preference + WrongAnswer + Glossary + Progress 합성 |
 | weekStatistics.days[].studied 위치 | StudyDashboard 응답에만 추가. MyDashboard 응답 변경 없음 |
 | frequentlyIncorrectTerm 위치 | StudyDashboard 응답에 통합 (별도 endpoint 신설 안 함) |
@@ -410,7 +413,7 @@ StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페
 | defaultCardCount 저장 | `user_preferences.default_card_count` (V44), 허용 값 10/20/30/40/50 |
 | defaultCardCount 적용 | 백엔드는 default 자동 적용 안 함. 클라가 cards 호출 시 명시 |
 | todayGoalCompleted | 폐기 (iOS 동의 시). 캘린더 체크는 weekStatistics.days[].studied 로 표현 |
-| 패키지 이동 영향 | 클래스명 / URL / 응답 모두 변경 없음. import 만 정정. iOS breaking 없음 (URL 그대로) |
+| 패키지 이동 영향 | 클래스 rename + URL 변경. 응답 구조는 그대로. iOS 마이페이지 URL 3개 변경 필요 (breaking) |
 | streak 분리 | 안 함 (longestStreak 거의 안 바뀌지만 분리 실익 미미. 마이페이지에서만 사용) |
 | weekStatistics DTO 분리 | MyDashboard / StudyDashboard 각자 별도 DTO (다른 필드) |
 | weekStatistics 범위 (학습 Home) | 이번 주 자연주 고정 (월요일 ~ 일요일) — 슬라이딩 안 함 |
@@ -442,4 +445,4 @@ StudyDashboard 응답 전용. MyDashboard 응답에는 추가 안 함 (마이페
 1. 학습 Home 화면 학습하기 버튼 → 클라가 `defaultCardCount` 값으로 cards 호출. 단 사용자가 selector 로 다른 값 선택 가능한 화면이 있는지? 현재는 ✎ 버튼으로 변경 → PUT 호출이 default 변경
 2. defaultCardCount 외 다른 값 (예: 100, 5 등) 추가 단계 가능성
 3. StudyDashboard 응답 캐싱 — iOS stale-while-revalidate 적용 검토 (바텀시트와 동일 패턴)
-4. MyDashboard 도메인 이동 시 다른 사용처 영향 — `domain/user/dashboard/ (구)` 를 직접 import 하는 곳 있는지 grep 으로 확인 (가능성 낮지만 명시적 체크)
+4. MyDashboard 도메인 이동 시 다른 사용처 영향 — `domain/user/dashboard/` 를 직접 import 하는 곳 있는지 grep 으로 확인 (가능성 낮지만 명시적 체크)

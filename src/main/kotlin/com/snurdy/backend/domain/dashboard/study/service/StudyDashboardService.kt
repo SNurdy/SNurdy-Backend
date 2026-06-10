@@ -47,7 +47,7 @@ class StudyDashboardService(
         val selectedGlossary = buildSelectedGlossary(userId, preference.selectedGlossaryId)
         val weekStatistics = buildWeekStatistics(userId)
         val frequentlyIncorrectTerm = wrongAnswerTermRepository
-            .findRandomFrequentlyIncorrect(userId, FREQUENTLY_INCORRECT_MIN_COUNT)
+            .findRandomFrequentlyIncorrect(userId, preference.selectedGlossaryId, FREQUENTLY_INCORRECT_MIN_COUNT)
             ?.let {
                 StudyFrequentlyIncorrectTerm(
                     termId = it.termId,

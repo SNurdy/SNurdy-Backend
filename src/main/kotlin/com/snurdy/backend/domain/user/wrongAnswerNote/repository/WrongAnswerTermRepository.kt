@@ -214,7 +214,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         @Param("termIds") termIds: Collection<Long>
     ): List<WrongAnswerTermGlossaryProjection>
 
-    // 자주 틀린 단어 카드용 — minCount 이상 오답 풀에서 랜덤 1개
+    // 자주 틀린 단어 카드용 — 선택 단어장 내에서 minCount 이상 오답 풀에서 랜덤 1개
     // 학습 Home 진입마다 다른 단어 노출 (학습 효과)
     @Query(
         value = """
@@ -226,6 +226,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
           FROM wrong_answer_terms wat
           JOIN terms t ON t.id = wat.term_id AND t.deleted_at IS NULL
          WHERE wat.user_id = :userId
+           AND wat.glossary_id = :glossaryId
            AND wat.deleted_at IS NULL
            AND wat.total_incorrect_count >= :minCount
          ORDER BY RAND()
@@ -235,6 +236,7 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
     )
     fun findRandomFrequentlyIncorrect(
         @Param("userId") userId: UUID,
+        @Param("glossaryId") glossaryId: Long,
         @Param("minCount") minCount: Int
     ): FrequentlyIncorrectTermProjection?
 

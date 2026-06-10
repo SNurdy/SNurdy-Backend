@@ -258,11 +258,12 @@ idempotent 패턴.
 
 `wrong_answer_terms` 중:
 - `user_id = ?`
+- `glossary_id = selectedGlossaryId` (현재 선택한 단어장 내에서만)
 - `deleted_at IS NULL` (활성)
 - `total_incorrect_count >= 3` (3회 이상 오답)
 - `ORDER BY RAND() LIMIT 1` — **랜덤** (학습 효과)
 
-3회 미만은 자주 틀린 으로 인정 안 함. 단어 없으면 응답 필드 null.
+선택 단어장 외 다른 단어장의 오답은 제외. 3회 미만은 자주 틀린 으로 인정 안 함. 단어 없으면 응답 필드 null.
 
 ### 6.2 위치
 

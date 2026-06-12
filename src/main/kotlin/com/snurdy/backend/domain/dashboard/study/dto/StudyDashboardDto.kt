@@ -14,7 +14,7 @@ data class StudyDashboardResponse(
     val defaultCardCount: Int,
     @field:Schema(description = "이번 주 자연주 7일치 학습 여부")
     val weekStatistics: StudyWeekStatistics,
-    @field:Schema(description = "[nullable] 자주 틀린 단어 카드. 3회 이상 오답 풀에서 랜덤 1개. 없으면 null")
+    @field:Schema(description = "자주 틀린 단어 카드. 최근 학습한 단어장의 3회 이상 오답 풀에서 랜덤 1개. 없으면 null")
     val frequentlyIncorrectTerm: StudyFrequentlyIncorrectTerm?
 )
 
@@ -62,6 +62,6 @@ data class StudyFrequentlyIncorrectTerm(
     val termId: Long,
     val spelling: String,
     val meaning: String,
-    @field:Schema(description = "[nullable] 약어")
+    @field:Schema(description = "약어. 없으면 null")
     val abbreviation: String?
 )

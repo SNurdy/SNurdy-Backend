@@ -45,7 +45,7 @@ interface MyDashboardApi {
     @Operation(summary = "과 지표 리스트")
     @ApiSuccessCode("USER_S022")
     @ApiErrorCodes("USER_E010")
-    @GetMapping("/glossary-statistics")
+    @GetMapping("/glossaries/statistics")
     fun listDashboardGlossaryStatistics(
         @CurrentUserId userId: UUID,
         @Parameter(description = "조회 기간 (WEEK 이번 주 자연주, ALL 전체)")

@@ -3,8 +3,6 @@ package com.snurdy.backend.domain.test.controller
 import com.snurdy.backend.domain.card.dto.GlossaryCardsRequest
 import com.snurdy.backend.domain.card.dto.GlossaryCardsResponse
 import com.snurdy.backend.domain.card.service.CardService
-import com.snurdy.backend.domain.test.dto.DistractorsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitGlossaryTestResponse
 import com.snurdy.backend.domain.test.dto.SubmitRequest
 import com.snurdy.backend.domain.test.service.TestService
@@ -28,16 +26,6 @@ class GlossaryTestController(
         ApiResponse.success(
             CardSuccess.LIST_CARDS,
             cardService.listGlossaryCards(userId, glossaryId, request)
-        )
-
-    override fun listDistractors(
-        userId: UUID,
-        glossaryId: Long,
-        request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse> =
-        ApiResponse.success(
-            TestSuccess.LIST_DISTRACTORS,
-            testService.listGlossaryDistractors(userId, glossaryId, request)
         )
 
     override fun submit(

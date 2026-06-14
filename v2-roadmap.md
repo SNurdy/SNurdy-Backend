@@ -33,6 +33,7 @@ v2 기능 구현 단계별 진행 상황과 의존 관계를 추적한다.
 | 2.9 | ~~홈화면 대시보드~~ | - | - | **폐기** (2.2 마이페이지로 통합) |
 | 2.10 | 학습/테스트 기능 확장 | 커스텀노트/오답노트로 cards/distractors/submit 확장. 정통 REST sub-resource | 2.4, 2.5, 2.8 | done |
 | 2.11 | Daily goal | 사용자별 일일 학습 목표 단어 수 (10/20/30/40/50). todayGoalCompleted 로직 정정 | 2.10 | todo |
+| 2.13 | 학습/테스트 다중 유형 + 정답/문제 derive | testTypes 다중 선택 지원, TestType enum 7종 재정의, cards 응답에 testType/question/answer/distractors 통합, distractors endpoint 폐기 | 2.10 | done |
 
 ---
 
@@ -197,6 +198,37 @@ SuccessCode/ErrorCode:
 
 ---
 
+### 2.13 학습/테스트 다중 유형 + 정답/문제 derive — done
+
+상세 명세: `v2-phase-2.13-spec.md`
+
+Phase 2.10 의 단일 testType 가정을 정정. 한 테스트에 여러 testType 카드가 섞이도록 확장하고, 카드 응답에 `question` / `answer` / `distractors` 를 서버가 derive 해서 동봉. distractors endpoint 4종 폐기 (cards 응답에 통합).
+
+**enum 7종** (화면 5선택지 + 다지선다 3변형):
+- `WRITE_MEANING_FROM_TERM` (용어 → 의미)
+- `WRITE_TERM_FROM_MEANING` (의미 → 용어)
+- `LISTEN_AND_WRITE` (듣고 쓰기)
+- `WRITE_ABBREVIATION_FROM_TERM` (약어 쓰기)
+- `MC_MEANING_FROM_TERM` / `MC_TERM_FROM_ABBREVIATION` / `MC_TERM_FROM_MEANING` (다지선다 3변형)
+
+핵심 변경:
+- cards request — `testTypes: List<TestType>` 다중 + `count` (기본 단어장만). 노트는 count 없음
+- 분배 — 슬롯 균등 (`count / S`), 다지선다 3종은 1 슬롯으로 묶고 내부 3변형 균등 재분배
+- 노트 분배 — 전체 단어 균등 + abbreviation 자격 조건 우선 점유 (`NoteTermDistributor`)
+- cards response — 카드별 `testType` + `question` + `answer` + `distractors` 4 신규 필드
+- submit — `testType` 단수 제거, `results[].testType` 항목별
+- distractors endpoint 4종 폐기. cards 응답에 `MC_*_FROM_*` 카드만 `distractors: List<String>` 채움
+- helper 분리 — `CardCountDistributor` / `NoteTermDistributor` / `DistractorSelector` / `MorphemeHighlightAssembler`
+
+iOS breaking:
+- `TestType` enum value 문자열 변경 — 모델 재생성 필요
+- `GlossaryCardsRequest` / `NoteCardsRequest` / `SubmitRequest` body 구조 변경
+- distractors endpoint 4종 폐기 — cards 응답의 카드별 distractors 사용
+- cards 응답 카드에 신규 필드 (`testType`, `question`, `answer`, `distractors`) 추가
+- `UserPreference.defaultTestType` example 도 새 enum value 로 갱신 (의미 변경 없음)
+
+---
+
 ### 2.10 학습/테스트 기능 확장 — spec 완료, 구현 대기
 
 상세 명세: `v2-phase-2.10-spec.md`
@@ -329,3 +361,10 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | Spring graceful shutdown | `server.shutdown: graceful` + 30s timeout. blue-green 배포 시 이전 슬롯 stop 시점 in-flight 요청 보호 |
 | prod blue-green 진단 | nginx + blue/green 컨테이너 (8080/8081) 구조 정상. deploy.sh 헬스체크 버그 (`24` vs `12`) 운영 단에서 fix 완료 |
 | DB destructive 마이그레이션 정책 | 누적 시 blue 슬롯 다운타임 가능 (V31/V32 등 drop/rename). expand-contract 패턴은 향후 도입 (현재는 짧은 다운타임 수용) |
+| Phase 2.13 TestType enum 재정의 | 7종 (`WRITE_MEANING_FROM_TERM`, `WRITE_TERM_FROM_MEANING`, `LISTEN_AND_WRITE`, `WRITE_ABBREVIATION_FROM_TERM`, `MC_MEANING_FROM_TERM`, `MC_TERM_FROM_ABBREVIATION`, `MC_TERM_FROM_MEANING`). 화면 5선택지 + 다지선다 3변형. enum 이름에 정답 + 입력 모두 포함 (`WRITE_{정답}_FROM_{입력}`) |
+| Phase 2.13 다중 testType | testTypes 다중 선택. count 를 슬롯 균등 분배 (다지선다는 1 슬롯으로 묶음 + 내부 3변형 균등 재분배). 같은 testType 중복 허용 (분배 비중 두 배) |
+| Phase 2.13 노트 cards 분배 | 노트 전체 단어 N 을 슬롯 균등 분배 (각 단어 1 testType). abbreviation 보유 단어가 abbreviation 요구 변형에 우선 점유. 풀 부족 시 가능한 만큼만 출제 (전체 거부 X) |
+| Phase 2.13 cards 응답 신규 필드 | `testType` + `question` + `answer` + `distractors`. question/answer 는 서버가 testType 으로 derive. `LISTEN_AND_WRITE` 의 question 은 spelling (클라가 TTS 재생, 화면 노출 X) |
+| Phase 2.13 distractors endpoint | **폐기**. cards 응답 카드별 `distractors: List<String>?` 필드로 통합. `TEST_S001 LIST_DISTRACTORS` enum value 는 보존 (미사용) |
+| Phase 2.13 submit | `SubmitRequest.testType` 단수 제거. `TestResultItem.testType` 항목별 추가. 진도/오답 갱신은 testType 무관 |
+| Phase 2.13 helper 분리 | CardService 비대화 방지로 `CardCountDistributor` / `NoteTermDistributor` / `DistractorSelector` / `MorphemeHighlightAssembler` 4개로 분리 |

@@ -77,7 +77,7 @@ interface CustomNoteTermRepository : JpaRepository<CustomNoteTermEntity, CustomN
     ): Int
 
     // 노트의 카드용 단어 전체 조회. createdAt ASC 정렬 (학습 순서)
-    // requireAbbreviation = true 면 abbreviation 보유 단어만 (WRITE_ABBREVIATION / MC_PICK_ABBR)
+    // requireAbbreviation = true 면 abbreviation 보유 단어만 (WRITE_ABBREVIATION_FROM_TERM / MC_TERM_FROM_ABBREVIATION)
     @Query(
         value = """
         SELECT t.id AS termId,

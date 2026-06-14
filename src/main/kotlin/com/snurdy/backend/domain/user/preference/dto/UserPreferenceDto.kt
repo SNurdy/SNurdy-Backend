@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull
 
 @Schema(description = "사용자 학습 옵션 조회 응답")
 data class UserPreferenceResponse(
-    @field:Schema(description = "사용자 기본 테스트 유형. null 이면 다음 테스트 진입 시 모달 강제", example = "MEANING_TO_TERM")
+    @field:Schema(description = "사용자 기본 테스트 유형. null 이면 다음 테스트 진입 시 모달 강제", example = "WRITE_TERM_FROM_MEANING")
     val defaultTestType: TestType?,
     @field:Schema(description = "마이페이지 다마고치 영역에 표시할 선택 단어장 id", example = "6")
     val selectedGlossaryId: Long,
@@ -23,13 +23,13 @@ fun UserPreferenceEntity.toResponse() = UserPreferenceResponse(
 
 @Schema(description = "기본 테스트 유형 변경 요청, null 전달 시 다음 진입에서 선택 모달 강제")
 data class UpdateDefaultTestTypeRequest(
-    @field:Schema(description = "사용자 기본 테스트 유형", example = "MEANING_TO_TERM")
+    @field:Schema(description = "사용자 기본 테스트 유형", example = "WRITE_TERM_FROM_MEANING")
     val defaultTestType: TestType?
 )
 
 @Schema(description = "기본 테스트 유형 변경 응답")
 data class UpdateDefaultTestTypeResponse(
-    @field:Schema(description = "변경된 기본 테스트 유형. null 이면 다음 진입 시 모달 강제", example = "MEANING_TO_TERM")
+    @field:Schema(description = "변경된 기본 테스트 유형. null 이면 다음 진입 시 모달 강제", example = "WRITE_TERM_FROM_MEANING")
     val defaultTestType: TestType?
 )
 

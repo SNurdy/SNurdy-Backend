@@ -368,3 +368,4 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | Phase 2.13 distractors endpoint | **폐기**. cards 응답 카드별 `distractors: List<String>?` 필드로 통합. `TEST_S001 LIST_DISTRACTORS` enum value 는 보존 (미사용) |
 | Phase 2.13 submit | `SubmitRequest.testType` 단수 제거. `TestResultItem.testType` 항목별 추가. 진도/오답 갱신은 testType 무관 |
 | Phase 2.13 helper 분리 | CardService 비대화 방지로 `CardCountDistributor` / `NoteTermDistributor` / `DistractorSelector` / `MorphemeHighlightAssembler` 4개로 분리 |
+| Phase 2.13 defaultTestType 다중화 | `user_preferences.default_test_type` (VARCHAR) → `default_test_types` (JSON List). 다중 선택 정책과 일관성 확보. 빈 리스트 = 다음 진입 시 모달 강제 (기존 null 의미 흡수). URL `/test-type` → `/test-types`, SuccessCode value name `UPDATE_DEFAULT_TEST_TYPE` → `UPDATE_DEFAULT_TEST_TYPES` (코드 문자열 `USER_S030` 유지). V46 마이그레이션 신설 |

@@ -2,8 +2,8 @@ package com.snurdy.backend.domain.user.preference.controller
 
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
-import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeRequest
-import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesRequest
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "User Preference", description = "v2 사용자 학습 옵션 API (기본 테스트 유형, 선택된 단어장)")
+@Tag(name = "User Preference", description = "v2 사용자 학습 옵션 API (기본 테스트 유형 리스트, 선택된 단어장)")
 @RequestMapping("/v2/users/me/preferences")
 interface UserPreferenceApi {
 
@@ -30,14 +30,14 @@ interface UserPreferenceApi {
     @GetMapping
     fun getPreferences(@CurrentUserId userId: UUID): ApiResponse<UserPreferenceResponse>
 
-    @Operation(summary = "기본 테스트 유형 변경")
+    @Operation(summary = "기본 테스트 유형 리스트 변경")
     @ApiSuccessCode("USER_S030")
     @ApiErrorCodes("USER_E010", "USER_E005")
-    @PutMapping("/test-type")
-    fun updateDefaultTestType(
+    @PutMapping("/test-types")
+    fun updateDefaultTestTypes(
         @CurrentUserId userId: UUID,
-        @RequestBody @Valid request: UpdateDefaultTestTypeRequest
-    ): ApiResponse<UpdateDefaultTestTypeResponse>
+        @RequestBody @Valid request: UpdateDefaultTestTypesRequest
+    ): ApiResponse<UpdateDefaultTestTypesResponse>
 
     @Operation(summary = "선택된 단어장 변경")
     @ApiSuccessCode("USER_S031")

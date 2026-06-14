@@ -3,11 +3,11 @@ package com.snurdy.backend.domain.user.preference.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
-import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
 import com.snurdy.backend.domain.user.preference.dto.toDefaultCardCountResponse
-import com.snurdy.backend.domain.user.preference.dto.toDefaultTestTypeResponse
+import com.snurdy.backend.domain.user.preference.dto.toDefaultTestTypesResponse
 import com.snurdy.backend.domain.user.preference.dto.toResponse
 import com.snurdy.backend.domain.user.preference.dto.toSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
@@ -36,10 +36,10 @@ class UserPreferenceService(
         getPreference(userId).toResponse()
 
     @Transactional
-    fun updateDefaultTestType(userId: UUID, testType: TestType?): UpdateDefaultTestTypeResponse {
+    fun updateDefaultTestTypes(userId: UUID, testTypes: List<TestType>): UpdateDefaultTestTypesResponse {
         val preference = getPreference(userId)
-        preference.updateDefaultTestType(testType)
-        return preference.toDefaultTestTypeResponse()
+        preference.updateDefaultTestTypes(testTypes)
+        return preference.toDefaultTestTypesResponse()
     }
 
     @Transactional

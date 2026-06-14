@@ -369,3 +369,4 @@ forced update 가능한 환경이라 v2 안정화 후 v1 endpoint 들은 한 차
 | Phase 2.13 submit | `SubmitRequest.testType` 단수 제거. `TestResultItem.testType` 항목별 추가. 진도/오답 갱신은 testType 무관 |
 | Phase 2.13 helper 분리 | CardService 비대화 방지로 `CardCountDistributor` / `NoteTermDistributor` / `DistractorSelector` / `MorphemeHighlightAssembler` 4개로 분리 |
 | Phase 2.13 defaultTestType 다중화 | `user_preferences.default_test_type` (VARCHAR) → `default_test_types` (JSON List). 다중 선택 정책과 일관성 확보. 빈 리스트 = 다음 진입 시 모달 강제 (기존 null 의미 흡수). URL `/test-type` → `/test-types`, SuccessCode value name `UPDATE_DEFAULT_TEST_TYPE` → `UPDATE_DEFAULT_TEST_TYPES` (코드 문자열 `USER_S030` 유지). V46 마이그레이션 신설 |
+| learnedCount 카운팅 정책 (iOS 합의) | 단어가 처음 출제됐을 때만 `learnedCount += 1`, 정답/오답 무관. 두 번째 이후 재출제는 변동 없음. `SrsCalculator.applyAnswer` 의 `firstAppearance` 판정은 `lastReviewedAt == null` 기준. 정정 사유 — 기존 정책 (첫 정답에만 +1) 은 오답 시 학습 카운트 누락 + 오답 후 정답 시 중복 카운트 버그. iOS Q1/Q2 합의로 단순화 |

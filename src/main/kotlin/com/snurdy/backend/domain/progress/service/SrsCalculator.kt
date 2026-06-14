@@ -16,7 +16,11 @@ object SrsCalculator {
     val MIN_EASE_FACTOR: BigDecimal = BigDecimal("1.30")
     private val EASE_DECREASE: BigDecimal = BigDecimal("0.20")
 
+    // return = 단어가 이번 호출로 처음 출제됐는지 (정답/오답 무관)
+    // iOS 합의 — 출제만 됐으면 learnedCount += 1. 같은 단어가 두 번째 이후 재출제될 땐 카운트 안 함
     fun applyAnswer(progress: TermProgressEntity, event: ProgressEvent, now: Instant): Boolean {
+        val firstAppearance = progress.lastReviewedAt == null
+
         if (event.correct) {
             val previousReviewCount = progress.reviewCount
             val nextReviewCount = previousReviewCount + 1
@@ -27,8 +31,7 @@ object SrsCalculator {
             progress.status = if (nextReviewCount >= 3) TermProgressStatus.REVIEW else TermProgressStatus.LEARNING
             progress.lastReviewedAt = now
             progress.nextReviewAt = now.plus(nextInterval.toLong(), ChronoUnit.DAYS)
-
-            return previousReviewCount == 0
+            return firstAppearance
         }
 
         progress.easeFactor = progress.easeFactor
@@ -41,7 +44,7 @@ object SrsCalculator {
         progress.status = TermProgressStatus.LEARNING
         progress.lastReviewedAt = now
         progress.nextReviewAt = now.plus(1, ChronoUnit.DAYS)
-        return false
+        return firstAppearance
     }
 
     private fun calculateInterval(currentInterval: Int, easeFactor: BigDecimal, reviewCount: Int): Int =

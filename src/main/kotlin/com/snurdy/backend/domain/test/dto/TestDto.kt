@@ -7,35 +7,8 @@ import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
-@Schema(description = "다지선다 오답 생성 요청")
-data class DistractorsRequest(
-    @field:NotNull
-    @field:Schema(description = "테스트 유형, MC_PICK_TERM / MC_PICK_MEANING / MC_PICK_ABBR 만 허용", example = "MC_PICK_TERM")
-    val testType: TestType,
-
-    @field:NotEmpty
-    @field:Schema(
-        description = "보기를 만들 단어 id 목록, cards 응답의 termId 를 그대로 전달",
-        example = "[101, 183, 302]"
-    )
-    val termIds: List<Long>
-)
-
-@Schema(description = "다지선다 오답 생성 응답")
-data class DistractorsResponse(
-    @field:Schema(
-        description = "termId 별 오답 보기 3개. 정답은 클라이언트가 cards 응답에서 derive 해 추가하고 shuffle",
-        example = """{"101":["Hemoglobin","Hematocrit","Erythrocyte"],"302":["Heart Rate","Blood Pressure","Body Temperature"],"183":["Magnetic Resonance Imaging","Computed Tomography","Positron Emission Tomography"]}"""
-    )
-    val distractorsByTermId: Map<Long, List<String>>
-)
-
 @Schema(description = "테스트 결과 일괄 제출 요청. 대상 단어장/노트는 URL path 에서 받음")
 data class SubmitRequest(
-    @field:NotNull
-    @field:Schema(description = "테스트 유형", example = "MEANING_TO_TERM")
-    val testType: TestType,
-
     @field:Valid
     @field:NotEmpty
     @field:Schema(description = "문제별 결과 목록")
@@ -47,6 +20,9 @@ data class TestResultItem(
     @field:Positive
     @field:Schema(description = "출제된 단어 id", example = "101")
     val termId: Long,
+    @field:NotNull
+    @field:Schema(description = "이 문제의 테스트 유형. 한 테스트 안에서도 카드마다 다를 수 있음", example = "WRITE_TERM_FROM_MEANING")
+    val testType: TestType,
     @field:Schema(description = "정답 여부, 클라이언트가 판정한 결과", example = "true")
     val correct: Boolean,
     @field:Schema(description = "사용자가 입력한 답안, 오답노트 표시용", example = "Electrocardiogram")

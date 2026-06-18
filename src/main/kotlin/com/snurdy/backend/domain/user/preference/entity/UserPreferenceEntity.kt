@@ -3,9 +3,8 @@ package com.snurdy.backend.domain.user.preference.entity
 import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.util.UUID
@@ -20,9 +19,9 @@ class UserPreferenceEntity(
     @Column(name = "user_id", columnDefinition = "BINARY(16)")
     val userId: UUID,
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "default_test_type", length = 32)
-    var defaultTestType: TestType? = null,
+    @Convert(converter = TestTypeListJsonConverter::class)
+    @Column(name = "default_test_types", columnDefinition = "JSON")
+    var defaultTestTypes: List<TestType> = emptyList(),
 
     @Column(name = "selected_glossary_id", nullable = false)
     var selectedGlossaryId: Long = DEFAULT_SELECTED_GLOSSARY_ID,
@@ -31,8 +30,8 @@ class UserPreferenceEntity(
     var defaultCardCount: Int = DEFAULT_CARD_COUNT
 ) : BaseTimeEntity() {
 
-    fun updateDefaultTestType(testType: TestType?) {
-        this.defaultTestType = testType
+    fun updateDefaultTestTypes(testTypes: List<TestType>) {
+        this.defaultTestTypes = testTypes
     }
 
     fun updateSelectedGlossaryId(glossaryId: Long) {

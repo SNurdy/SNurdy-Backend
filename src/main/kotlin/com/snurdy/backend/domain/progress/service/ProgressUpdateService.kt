@@ -69,8 +69,8 @@ class ProgressUpdateService(
 
         events.forEach { event ->
             val progress = context.getOrCreateProgress(user, event, newProgresses)
-            val wasFirstLearned = SrsCalculator.applyAnswer(progress, event, now)
-            aggregation.accumulate(event.glossaryId, dailyDate, wasFirstLearned)
+            val firstAppearance = SrsCalculator.applyAnswer(progress, event, now)
+            aggregation.accumulate(event.glossaryId, dailyDate, firstAppearance)
         }
 
         events.filter { !it.correct }
@@ -213,15 +213,15 @@ class ProgressUpdateService(
         val learnedByGlossary: MutableMap<Long, Int> = mutableMapOf()
         val byDate: MutableMap<LocalDate, DailyDelta> = mutableMapOf()
 
-        fun accumulate(glossaryId: Long, dailyDate: LocalDate, wasFirstLearned: Boolean) {
+        fun accumulate(glossaryId: Long, dailyDate: LocalDate, firstAppearance: Boolean) {
             completedTotal += 1
-            if (wasFirstLearned) {
+            if (firstAppearance) {
                 learnedTotal += 1
                 learnedByGlossary[glossaryId] = (learnedByGlossary[glossaryId] ?: 0) + 1
             }
 
             val previous = byDate[dailyDate] ?: DailyDelta.EMPTY
-            byDate[dailyDate] = previous + DailyDelta(if (wasFirstLearned) 1 else 0, 1)
+            byDate[dailyDate] = previous + DailyDelta(if (firstAppearance) 1 else 0, 1)
         }
     }
 }

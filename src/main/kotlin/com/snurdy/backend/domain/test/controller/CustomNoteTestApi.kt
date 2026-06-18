@@ -2,8 +2,6 @@ package com.snurdy.backend.domain.test.controller
 
 import com.snurdy.backend.domain.card.dto.CustomNoteCardsResponse
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
 import com.snurdy.backend.domain.test.dto.SubmitRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
@@ -32,16 +30,6 @@ interface CustomNoteTestApi {
         @PathVariable customNoteId: Long,
         @RequestBody @Valid request: NoteCardsRequest
     ): ApiResponse<CustomNoteCardsResponse>
-
-    @Operation(summary = "커스텀노트 다지선다 오답 보기 생성")
-    @ApiSuccessCode("TEST_S001")
-    @ApiErrorCodes("CUSTOM_NOTE_E001", "CUSTOM_NOTE_E002", "TEST_E001")
-    @PostMapping("/distractors")
-    fun listDistractors(
-        @CurrentUserId userId: UUID,
-        @PathVariable customNoteId: Long,
-        @RequestBody @Valid request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse>
 
     @Operation(summary = "커스텀노트 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")

@@ -2,8 +2,8 @@ package com.snurdy.backend.domain.user.preference.controller
 
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
-import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeRequest
-import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypeResponse
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesRequest
+import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryRequest
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse
 import com.snurdy.backend.domain.user.preference.dto.UserPreferenceResponse
@@ -21,13 +21,13 @@ class UserPreferenceController(
     override fun getPreferences(userId: UUID): ApiResponse<UserPreferenceResponse> =
         ApiResponse.success(UserSuccess.GET_PREFERENCES, userPreferenceService.getPreferenceResponse(userId))
 
-    override fun updateDefaultTestType(
+    override fun updateDefaultTestTypes(
         userId: UUID,
-        request: UpdateDefaultTestTypeRequest
-    ): ApiResponse<UpdateDefaultTestTypeResponse> =
+        request: UpdateDefaultTestTypesRequest
+    ): ApiResponse<UpdateDefaultTestTypesResponse> =
         ApiResponse.success(
-            UserSuccess.UPDATE_DEFAULT_TEST_TYPE,
-            userPreferenceService.updateDefaultTestType(userId, request.defaultTestType)
+            UserSuccess.UPDATE_DEFAULT_TEST_TYPES,
+            userPreferenceService.updateDefaultTestTypes(userId, request.defaultTestTypes ?: emptyList())
         )
 
     override fun updateSelectedGlossary(

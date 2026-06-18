@@ -3,8 +3,6 @@ package com.snurdy.backend.domain.test.controller
 import com.snurdy.backend.domain.card.dto.CustomNoteCardsResponse
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
 import com.snurdy.backend.domain.card.service.CardService
-import com.snurdy.backend.domain.test.dto.DistractorsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
 import com.snurdy.backend.domain.test.dto.SubmitRequest
 import com.snurdy.backend.domain.test.service.TestService
@@ -28,16 +26,6 @@ class CustomNoteTestController(
         ApiResponse.success(
             CardSuccess.LIST_CARDS,
             cardService.listCustomNoteCards(userId, customNoteId, request)
-        )
-
-    override fun listDistractors(
-        userId: UUID,
-        customNoteId: Long,
-        request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse> =
-        ApiResponse.success(
-            TestSuccess.LIST_DISTRACTORS,
-            testService.listCustomNoteDistractors(userId, customNoteId, request)
         )
 
     override fun submit(

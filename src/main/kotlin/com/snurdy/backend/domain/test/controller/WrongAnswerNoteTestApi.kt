@@ -2,8 +2,6 @@ package com.snurdy.backend.domain.test.controller
 
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
 import com.snurdy.backend.domain.card.dto.WrongAnswerCardsResponse
-import com.snurdy.backend.domain.test.dto.DistractorsRequest
-import com.snurdy.backend.domain.test.dto.DistractorsResponse
 import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
 import com.snurdy.backend.domain.test.dto.SubmitRequest
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriod
@@ -34,16 +32,6 @@ interface WrongAnswerNoteTestApi {
         @RequestBody @Valid request: NoteCardsRequest
     ): ApiResponse<WrongAnswerCardsResponse>
 
-    @Operation(summary = "오답노트 by-period 다지선다 오답 보기 생성")
-    @ApiSuccessCode("TEST_S001")
-    @ApiErrorCodes("WRONG_ANSWER_NOTE_E002", "TEST_E001", "TEST_E002")
-    @PostMapping("/by-period/{period}/distractors")
-    fun listDistractorsByPeriod(
-        @CurrentUserId userId: UUID,
-        @PathVariable period: WrongAnswerPeriod,
-        @RequestBody @Valid request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse>
-
     @Operation(summary = "오답노트 by-period 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("WRONG_ANSWER_NOTE_E002")
@@ -63,16 +51,6 @@ interface WrongAnswerNoteTestApi {
         @PathVariable glossaryId: Long,
         @RequestBody @Valid request: NoteCardsRequest
     ): ApiResponse<WrongAnswerCardsResponse>
-
-    @Operation(summary = "오답노트 by-glossary 다지선다 오답 보기 생성")
-    @ApiSuccessCode("TEST_S001")
-    @ApiErrorCodes("DICTIONARY_E001", "TEST_E001", "TEST_E002")
-    @PostMapping("/by-glossary/{glossaryId}/distractors")
-    fun listDistractorsByGlossary(
-        @CurrentUserId userId: UUID,
-        @PathVariable glossaryId: Long,
-        @RequestBody @Valid request: DistractorsRequest
-    ): ApiResponse<DistractorsResponse>
 
     @Operation(summary = "오답노트 by-glossary 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")

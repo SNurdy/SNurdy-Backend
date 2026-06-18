@@ -1,25 +1,24 @@
 package com.snurdy.backend.domain.card.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.card.dto.CustomNoteCard
 import com.snurdy.backend.domain.card.dto.CustomNoteCardsResponse
-import com.snurdy.backend.domain.card.dto.GlossaryCard
 import com.snurdy.backend.domain.card.dto.GlossaryCardsRequest
 import com.snurdy.backend.domain.card.dto.GlossaryCardsResponse
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
 import com.snurdy.backend.domain.card.dto.WrongAnswerCard
 import com.snurdy.backend.domain.card.dto.WrongAnswerCardsResponse
-import com.snurdy.backend.domain.dictionary.dto.MorphemeHighlight
-import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
+import com.snurdy.backend.domain.card.dto.toCustomNoteCard
+import com.snurdy.backend.domain.card.dto.toGlossaryCard
+import com.snurdy.backend.domain.card.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantProjection
-import com.snurdy.backend.domain.dictionary.morpheme.repository.MorphemeVariantRepository
-import com.snurdy.backend.domain.dictionary.morpheme.service.HighlightCalculator
-import com.snurdy.backend.domain.dictionary.term.repository.BulkOrderedMorphemeProjection
-import com.snurdy.backend.domain.dictionary.term.repository.TermMorphemeRepository
+import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
 import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.entity.deriveAnswer
+import com.snurdy.backend.domain.test.entity.deriveQuestion
+import com.snurdy.backend.domain.test.entity.isMultipleChoice
+import com.snurdy.backend.domain.test.entity.requiresAbbreviation
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
 import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteService
@@ -38,13 +37,14 @@ import java.util.UUID
 class CardService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
-    private val termMorphemeRepository: TermMorphemeRepository,
-    private val morphemeVariantRepository: MorphemeVariantRepository,
-    private val highlightCalculator: HighlightCalculator,
-    private val bookmarkRepository: BookmarkRepository,
     private val customNoteService: CustomNoteService,
     private val customNoteTermRepository: CustomNoteTermRepository,
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
+    private val bookmarkRepository: BookmarkRepository,
+    private val cardCountDistributor: CardCountDistributor,
+    private val noteTermDistributor: NoteTermDistributor,
+    private val distractorSelector: DistractorSelector,
+    private val morphemeHighlightAssembler: MorphemeHighlightAssembler,
     private val clock: Clock
 ) {
 
@@ -54,29 +54,51 @@ class CardService(
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
 
-        val picked = glossaryTermRepository.pickCardTermsForTest(
-            userId = userId,
-            glossaryId = glossaryId,
-            requireAbbreviation = request.testType.requiresAbbreviation(),
-            count = request.count
-        )
-        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+        val slots = cardCountDistributor.groupIntoSlots(request.testTypes)
+        val slotCounts = cardCountDistributor.distributeCounts(request.count, slots.size)
+        val variants = cardCountDistributor.flattenSlotVariants(slots, slotCounts)
+        val perTypeTotals = cardCountDistributor.aggregateCountsByType(variants)
 
-        val termIds = picked.map { it.termId }
+        val pickedByType = perTypeTotals.mapValues { (testType, total) ->
+            if (total == 0) emptyList() else glossaryTermRepository.pickCardTermsForTest(
+                userId = userId,
+                glossaryId = glossaryId,
+                requireAbbreviation = testType.requiresAbbreviation(),
+                count = total
+            ).also { picked ->
+                if (picked.size < total) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+            }
+        }
+
+        val cardOrder = orderGlossaryTermsAcrossVariants(variants, pickedByType)
+        if (cardOrder.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+
+        val distractorPool = if (variants.any { it.testType.isMultipleChoice() && it.count > 0 }) {
+            glossaryTermRepository.findAllSimpleTermsByGlossaryId(glossaryId)
+        } else {
+            emptyList()
+        }
+
+        val termIds = cardOrder.map { it.first.termId }.distinct()
         val bookmarkedTermIds = bookmarkRepository
             .findBookmarkedTermIds(userId, glossaryId, termIds)
             .toSet()
-        val morphemesByTermId = fetchMorphemesByTermId(termIds)
-        val variantsByMorphemeId = fetchVariantsByMorphemeId(morphemesByTermId.values.flatten())
-        val cards = picked.map { term ->
-            GlossaryCard(
-                termId = term.termId,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation,
+        val morphemesByTermId = morphemeHighlightAssembler.buildByTermIds(
+            termIds = termIds,
+            spellingByTermId = cardOrder.associate { it.first.termId to it.first.spelling }
+        )
+
+        val cards = cardOrder.map { (term, testType) ->
+            val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
+            term.toGlossaryCard(
+                testType = testType,
+                question = testType.deriveQuestion(term.spelling, term.meaning, term.abbreviation),
+                answer = answer,
+                distractors = if (testType.isMultipleChoice()) {
+                    distractorSelector.select(term.termId, answer, testType, distractorPool)
+                } else null,
                 bookmarked = term.termId in bookmarkedTermIds,
-                morphemes = buildOrderedMorphemes(term.spelling, morphemesByTermId[term.termId].orEmpty(), variantsByMorphemeId)
+                morphemes = morphemesByTermId[term.termId].orEmpty()
             )
         }
         return GlossaryCardsResponse(cards = cards)
@@ -89,36 +111,26 @@ class CardService(
         request: NoteCardsRequest
     ): CustomNoteCardsResponse {
         customNoteService.requireNoteOwnership(userId, customNoteId)
+        val terms = customNoteTermRepository.findCardTermsByNoteId(noteId = customNoteId, requireAbbreviation = false)
+        if (terms.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        val picked = customNoteTermRepository.findCardTermsByNoteId(
-            noteId = customNoteId,
-            requireAbbreviation = request.testType.requiresAbbreviation()
-        )
-        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+        val slots = cardCountDistributor.groupIntoSlots(request.testTypes)
+        val assignments = noteTermDistributor.distribute(terms, slots)
+        if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        val termIds = picked.map { it.termId }
-        val glossaryIds = picked.mapNotNull { it.glossaryId.takeIf { id -> id > 0 } }.toSet()
+        val context = buildNoteCardContext(userId, assignments)
 
-        val bookmarkedPairs = if (glossaryIds.isEmpty()) {
-            emptySet()
-        } else {
-            bookmarkRepository
-                .findBookmarkedPairs(userId, glossaryIds, termIds)
-                .mapTo(mutableSetOf()) { it.glossaryId to it.termId }
-        }
-
-        val morphemesByTermId = fetchMorphemesByTermId(termIds)
-        val variantsByMorphemeId = fetchVariantsByMorphemeId(morphemesByTermId.values.flatten())
-        val cards = picked.map { term ->
-            CustomNoteCard(
-                termId = term.termId,
-                glossaryId = term.glossaryId,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation,
-                bookmarked = (term.glossaryId to term.termId) in bookmarkedPairs,
-                morphemes = buildOrderedMorphemes(term.spelling, morphemesByTermId[term.termId].orEmpty(), variantsByMorphemeId)
+        val cards = assignments.map { (term, testType) ->
+            val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
+            term.toCustomNoteCard(
+                testType = testType,
+                question = testType.deriveQuestion(term.spelling, term.meaning, term.abbreviation),
+                answer = answer,
+                distractors = if (testType.isMultipleChoice()) {
+                    distractorSelector.select(term.termId, answer, testType, terms)
+                } else null,
+                bookmarked = (term.glossaryId to term.termId) in context.bookmarkedPairs,
+                morphemes = context.morphemesByTermId[term.termId].orEmpty()
             )
         }
         return CustomNoteCardsResponse(cards = cards)
@@ -131,14 +143,14 @@ class CardService(
         request: NoteCardsRequest
     ): WrongAnswerCardsResponse {
         val after = period.thresholdAfter(clock.instant())
-        val picked = wrongAnswerTermRepository.findCardTermsByPeriod(
+        val terms = wrongAnswerTermRepository.findCardTermsByPeriod(
             userId = userId,
             after = after,
-            requireAbbreviation = request.testType.requiresAbbreviation()
+            requireAbbreviation = false
         )
-        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+        if (terms.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        return WrongAnswerCardsResponse(cards = buildWrongAnswerCards(userId, picked))
+        return WrongAnswerCardsResponse(cards = buildWrongAnswerCards(userId, terms, request.testTypes))
     }
 
     @Transactional(readOnly = true)
@@ -150,85 +162,80 @@ class CardService(
         if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
-        val picked = wrongAnswerTermRepository.findCardTermsByGlossary(
+        val terms = wrongAnswerTermRepository.findCardTermsByGlossary(
             userId = userId,
             glossaryId = glossaryId,
-            requireAbbreviation = request.testType.requiresAbbreviation()
+            requireAbbreviation = false
         )
-        if (picked.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
+        if (terms.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        return WrongAnswerCardsResponse(cards = buildWrongAnswerCards(userId, picked))
+        return WrongAnswerCardsResponse(cards = buildWrongAnswerCards(userId, terms, request.testTypes))
     }
 
-    // 오답노트 카드 빌드 — 단어별 glossaryId + bookmark batch pair (by-period, by-glossary 공용)
+    // 오답노트 카드 빌드 — by-period / by-glossary 공용
     private fun buildWrongAnswerCards(
         userId: UUID,
-        terms: List<NoteCardTermProjection>
+        terms: List<NoteCardTermProjection>,
+        testTypes: List<TestType>
     ): List<WrongAnswerCard> {
-        val termIds = terms.map { it.termId }
-        val glossaryIds = terms.mapNotNull { it.glossaryId.takeIf { id -> id > 0 } }.toSet()
+        val slots = cardCountDistributor.groupIntoSlots(testTypes)
+        val assignments = noteTermDistributor.distribute(terms, slots)
+        if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        val bookmarkedPairs = if (glossaryIds.isEmpty()) {
-            emptySet()
-        } else {
-            bookmarkRepository
-                .findBookmarkedPairs(userId, glossaryIds, termIds)
-                .mapTo(mutableSetOf()) { it.glossaryId to it.termId }
-        }
+        val context = buildNoteCardContext(userId, assignments)
 
-        val morphemesByTermId = fetchMorphemesByTermId(termIds)
-        val variantsByMorphemeId = fetchVariantsByMorphemeId(morphemesByTermId.values.flatten())
-
-        return terms.map { term ->
-            WrongAnswerCard(
-                termId = term.termId,
-                glossaryId = term.glossaryId,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation,
-                bookmarked = (term.glossaryId to term.termId) in bookmarkedPairs,
-                morphemes = buildOrderedMorphemes(term.spelling, morphemesByTermId[term.termId].orEmpty(), variantsByMorphemeId)
+        return assignments.map { (term, testType) ->
+            val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
+            term.toWrongAnswerCard(
+                testType = testType,
+                question = testType.deriveQuestion(term.spelling, term.meaning, term.abbreviation),
+                answer = answer,
+                distractors = if (testType.isMultipleChoice()) {
+                    distractorSelector.select(term.termId, answer, testType, terms)
+                } else null,
+                bookmarked = (term.glossaryId to term.termId) in context.bookmarkedPairs,
+                morphemes = context.morphemesByTermId[term.termId].orEmpty()
             )
         }
     }
 
-    private fun fetchMorphemesByTermId(termIds: List<Long>): Map<Long, List<BulkOrderedMorphemeProjection>> {
-        if (termIds.isEmpty()) return emptyMap()
-        return termMorphemeRepository
-            .findOrderedMorphemesByTermIds(termIds)
-            .groupBy { it.termId }
-    }
+    private data class NoteCardContext(
+        val bookmarkedPairs: Set<Pair<Long, Long>>,
+        val morphemesByTermId: Map<Long, List<com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme>>
+    )
 
-    private fun fetchVariantsByMorphemeId(
-        morphemes: Collection<BulkOrderedMorphemeProjection>
-    ): Map<Long, List<MorphemeVariantProjection>> {
-        val morphemeIds = morphemes.map { it.morphemeId }.distinct()
-        if (morphemeIds.isEmpty()) return emptyMap()
-        return morphemeVariantRepository
-            .findByMorphemeIds(morphemeIds)
-            .groupBy { it.morphemeId }
-    }
-
-    private fun buildOrderedMorphemes(
-        spelling: String,
-        morphemes: List<BulkOrderedMorphemeProjection>,
-        variantsByMorphemeId: Map<Long, List<MorphemeVariantProjection>>
-    ): List<OrderedMorpheme> = morphemes.map { morpheme ->
-        val variants = variantsByMorphemeId[morpheme.morphemeId].orEmpty()
-        val range = highlightCalculator.calculate(spelling, variants)
-        OrderedMorpheme(
-            id = morpheme.morphemeId,
-            spelling = morpheme.spelling,
-            meaning = morpheme.meaning,
-            order = morpheme.position,
-            highlight = range?.let { MorphemeHighlight(start = it.start, length = it.length) }
+    private fun buildNoteCardContext(
+        userId: UUID,
+        assignments: List<Pair<NoteCardTermProjection, TestType>>
+    ): NoteCardContext {
+        val termIds = assignments.map { it.first.termId }.distinct()
+        val glossaryIds = assignments.mapNotNull { it.first.glossaryId.takeIf { id -> id > 0 } }.toSet()
+        val bookmarkedPairs = if (glossaryIds.isEmpty()) emptySet() else bookmarkRepository
+            .findBookmarkedPairs(userId, glossaryIds, termIds)
+            .mapTo(mutableSetOf()) { it.glossaryId to it.termId }
+        val morphemesByTermId = morphemeHighlightAssembler.buildByTermIds(
+            termIds = termIds,
+            spellingByTermId = assignments.associate { it.first.termId to it.first.spelling }
         )
+        return NoteCardContext(bookmarkedPairs, morphemesByTermId)
     }
 
-}
-
-private fun TestType.requiresAbbreviation(): Boolean = when (this) {
-    TestType.WRITE_ABBREVIATION, TestType.MC_PICK_ABBR -> true
-    else -> false
+    // 기본 단어장 sampling 결과를 입력 변형 순서로 cards 에 배치
+    private fun orderGlossaryTermsAcrossVariants(
+        variants: List<SlotVariant>,
+        pickedByType: Map<TestType, List<SimpleTermProjection>>
+    ): List<Pair<SimpleTermProjection, TestType>> {
+        val cursors = mutableMapOf<TestType, Int>()
+        val result = mutableListOf<Pair<SimpleTermProjection, TestType>>()
+        for (variant in variants) {
+            if (variant.count == 0) continue
+            val source = pickedByType[variant.testType] ?: continue
+            val from = cursors.getOrDefault(variant.testType, 0)
+            for (index in from until from + variant.count) {
+                result += source[index] to variant.testType
+            }
+            cursors[variant.testType] = from + variant.count
+        }
+        return result
+    }
 }

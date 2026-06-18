@@ -1,28 +1,23 @@
 package com.snurdy.backend.domain.version.service
 
+import com.snurdy.backend.domain.version.config.AppVersionProperties
 import com.snurdy.backend.domain.version.dto.UpdateType
 import com.snurdy.backend.domain.version.dto.VersionCheckResponse
 import com.snurdy.backend.domain.version.dto.toResponse
-import com.snurdy.backend.domain.version.entity.Platform
-import com.snurdy.backend.domain.version.repository.AppVersionRepository
 import com.snurdy.backend.global.constants.VersionError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
 
 @Service
 class VersionService(
-    private val appVersionRepository: AppVersionRepository
+    private val appVersionProperties: AppVersionProperties
 ) {
 
     fun checkVersion(clientVersion: String, platform: String): VersionCheckResponse {
-        val parsedPlatform = parsePlatform(platform)
+        validatePlatform(platform)
         val clientSemver = parseVersion(clientVersion)
-
-        val appVersion = appVersionRepository.findByPlatform(parsedPlatform)
-            ?: throw ApiException(VersionError.VERSION_INFO_NOT_FOUND)
-
-        val minimumSemver = parseVersion(appVersion.minimumVersion)
-        val latestSemver = parseVersion(appVersion.latestVersion)
+        val minimumSemver = parseVersion(appVersionProperties.minimum)
+        val latestSemver = parseVersion(appVersionProperties.latest)
 
         val updateType = when {
             clientSemver < minimumSemver -> UpdateType.FORCE_UPDATE
@@ -30,12 +25,14 @@ class VersionService(
             else -> UpdateType.LATEST
         }
 
-        return appVersion.toResponse(updateType)
+        return appVersionProperties.toResponse(updateType)
     }
 
-    private fun parsePlatform(platform: String): Platform =
-        runCatching { Platform.valueOf(platform.trim().uppercase()) }
-            .getOrElse { throw ApiException(VersionError.UNSUPPORTED_PLATFORM) }
+    private fun validatePlatform(platform: String) {
+        if (platform.trim().uppercase() != SUPPORTED_PLATFORM) {
+            throw ApiException(VersionError.UNSUPPORTED_PLATFORM)
+        }
+    }
 
     private fun parseVersion(version: String): SemanticVersion {
         val parts = version.split(".")
@@ -52,5 +49,9 @@ class VersionService(
     ) : Comparable<SemanticVersion> {
         override fun compareTo(other: SemanticVersion): Int =
             compareValuesBy(this, other, { it.major }, { it.minor }, { it.patch })
+    }
+
+    companion object {
+        private const val SUPPORTED_PLATFORM = "IOS"
     }
 }

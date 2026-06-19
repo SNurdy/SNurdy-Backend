@@ -51,7 +51,7 @@ class HighlightCalculator {
 
         // 매칭 실패 — anomaly 로깅
         log.warn(
-            "[Highlight Anomaly] 매칭 실패 — term='{}', variants={}",
+            "[하이라이트 이상] 매칭 실패 — term='{}', variants={}",
             termSpelling,
             variants.map { "${it.variant}/${it.base}" }
         )

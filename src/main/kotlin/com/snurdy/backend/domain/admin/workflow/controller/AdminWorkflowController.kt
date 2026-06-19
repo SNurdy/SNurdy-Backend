@@ -3,7 +3,6 @@ package com.snurdy.backend.domain.admin.workflow.controller
 import com.snurdy.backend.domain.admin.workflow.dto.*
 import com.snurdy.backend.domain.admin.workflow.service.AdminWorkflowService
 import com.snurdy.backend.global.constants.AdminSuccess
-import com.snurdy.backend.global.constants.CommonSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 
@@ -16,13 +15,13 @@ class AdminWorkflowController(
         ApiResponse.success(AdminSuccess.CREATE_CHANGE_REQUEST, adminWorkflowService.create(request))
 
     override fun list(status: String?, page: Int, size: Int): ApiResponse<ChangeRequestPageResponse> =
-        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.list(status, page, size))
+        ApiResponse.success(AdminSuccess.LIST_CHANGE_REQUESTS, adminWorkflowService.list(status, page, size))
 
     override fun get(id: Long): ApiResponse<ChangeRequestDetailResponse> =
-        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.get(id))
+        ApiResponse.success(AdminSuccess.GET_CHANGE_REQUEST, adminWorkflowService.get(id))
 
     override fun update(id: Long, request: UpdateChangeRequest): ApiResponse<ChangeRequestDetailResponse> =
-        ApiResponse.success(CommonSuccess.OK, adminWorkflowService.update(id, request))
+        ApiResponse.success(AdminSuccess.UPDATE_CHANGE_REQUEST, adminWorkflowService.update(id, request))
 
     override fun validate(id: Long): ApiResponse<ChangeRequestActionResponse> =
         ApiResponse.success(AdminSuccess.VALIDATE_CHANGE_REQUEST, adminWorkflowService.validate(id))

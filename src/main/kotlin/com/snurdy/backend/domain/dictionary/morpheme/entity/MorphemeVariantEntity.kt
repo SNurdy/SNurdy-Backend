@@ -2,7 +2,6 @@ package com.snurdy.backend.domain.dictionary.morpheme.entity
 
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.*
-import java.time.LocalDateTime
 
 @Entity
 @Table(
@@ -16,7 +15,7 @@ class MorphemeVariantEntity(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    val id: Long = 0L,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "morpheme_id", nullable = false)

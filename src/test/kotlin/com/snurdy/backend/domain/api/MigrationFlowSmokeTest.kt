@@ -17,7 +17,7 @@ import java.util.UUID
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("local")
-class MigrationFlowSmokeTest : AbstractP0ApiTestSupport() {
+class MigrationFlowSmokeTest : ApiSmokeTestBase() {
 
     @Test
     fun `마이그레이션 정상 흐름 start-upload-finalize-status가 동작한다`() {
@@ -126,6 +126,7 @@ class MigrationFlowSmokeTest : AbstractP0ApiTestSupport() {
 
             registry.add("jwt.secret-key") { "snurdy-test-secret-key-for-jwt-signing-length-at-least-32" }
             registry.add("jwt.access-token-expiration") { 3600000 }
+            registry.add("jwt.admin-access-token-expiration") { 3600000 }
             registry.add("jwt.refresh-token-expiration") { 1209600000 }
 
             registry.add("oauth.kakao.client-id") { "test-kakao-client" }

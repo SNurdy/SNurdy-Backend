@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.auth.dto
 
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.UserEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import java.util.*
@@ -9,26 +9,42 @@ import java.util.*
 @Schema(description = "카카오 로그인 요청")
 data class KakaoLoginRequest(
     @field:NotBlank
+    @field:Schema(
+        description = "카카오 SDK 에서 발급받은 access token",
+        example = "kT8xR2vQ5pL9mN3wZ7fH4gB6yC1dA0eJ"
+    )
     val accessToken: String
 )
 
 @Schema(description = "애플 로그인 요청")
 data class AppleLoginRequest(
     @field:NotBlank
+    @field:Schema(
+        description = "Apple Sign In identityToken (JWT)",
+        example = "eyJraWQiOiJZdXl..."
+    )
     val identityToken: String,
+    @field:Schema(
+        description = "최초 로그인 시 Apple 이 한 번 제공하는 사용자 정보. 재로그인 시 null"
+    )
     val user: AppleUser? = null
 )
 
 @Schema(description = "구글 로그인 요청")
 data class GoogleLoginRequest(
     @field:NotBlank
-    @Schema(description = "Google id_token", required = true)
+    @field:Schema(
+        description = "Google Sign-In 에서 발급받은 id_token (JWT)",
+        example = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..."
+    )
     val idToken: String
 )
 
-@Schema(description = "애플 유저 상세 정보")
+@Schema(description = "애플 유저 상세 정보 (최초 로그인 시에만 전달됨)")
 data class AppleUser(
+    @field:Schema(description = "이메일", example = "user@privaterelay.appleid.com")
     val email: String?,
+    @field:Schema(description = "전체 이름", example = "홍길동")
     val fullName: String?
 )
 
@@ -53,7 +69,7 @@ data class UserInfo(
     val name: String?,
 
     @Schema(description = "닉네임")
-    val nickname: String,
+    val nickname: String?,
 
     @Schema(description = "소셜 로그인 제공자")
     val socialType: SocialType

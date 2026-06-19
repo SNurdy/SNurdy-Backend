@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.migration.entity
 
-import com.snurdy.backend.domain.user.entity.UserEntity
+import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.*
 import java.time.Instant
 import java.util.UUID
@@ -25,37 +26,27 @@ class MigrationSessionEntity(
     var errorMessage: String? = null,
 
     @Column(name = "completed_at")
-    var completedAt: Instant? = null,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: Instant = Instant.now(),
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: Instant = Instant.now()
-) {
+    var completedAt: Instant? = null
+) : BaseTimeEntity() {
     fun complete() {
         this.status = MigrationStatus.COMPLETED
         this.errorMessage = null
         this.completedAt = Instant.now()
-        this.updatedAt = Instant.now()
     }
 
     fun fail(reason: String) {
         this.status = MigrationStatus.FAILED
         this.errorMessage = reason.take(MAX_ERROR_MESSAGE_LENGTH)
-        this.updatedAt = Instant.now()
     }
 
     fun retry() {
         this.status = MigrationStatus.IN_PROGRESS
         this.errorMessage = null
-        this.updatedAt = Instant.now()
     }
 
     fun markUploaded() {
         this.status = MigrationStatus.UPLOADED
         this.errorMessage = null
-        this.updatedAt = Instant.now()
     }
 
     fun isUploaded() = status == MigrationStatus.UPLOADED

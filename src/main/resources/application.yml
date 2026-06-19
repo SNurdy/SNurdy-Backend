@@ -7,7 +7,6 @@ spring:
     allow-bean-definition-overriding: true
   jackson:
     time-zone: UTC
-    default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: false
   datasource:
@@ -26,19 +25,62 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
 
 server:
   port: 8080
+  shutdown: graceful
   servlet:
     context-path: /api
+    encoding:
+      charset: UTF-8
+      force: true
+      force-request: true
+      force-response: true
   tomcat:
     max-http-form-post-size: 10MB
     max-swallow-size: 10MB
+
+spring.lifecycle:
+  timeout-per-shutdown-phase: 30s
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}
   access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
   refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION}
+  # 관리자는 민감한 작업을 수행하므로 더 짧은 TTL 권장(env 미설정 시 access-token-expiration으로 fallback)
+  admin-access-token-expiration: ${JWT_ADMIN_ACCESS_TOKEN_EXPIRATION:${JWT_ACCESS_TOKEN_EXPIRATION}}
+
+sharing:
+  custom-note-url-prefix: ${SHARING_CUSTOM_NOTE_URL_PREFIX:https://snurdy.org/shared/}
+
+app:
+  version:
+    latest: 1.0.2
+    minimum: 1.0.1
+    update-message: "새로운 학습 기능이 추가되었어요!"
+    force-update-message: "이 버전은 더 이상 지원하지 않습니다. 업데이트 후 이용해주세요."
+    store-url: "https://apps.apple.com/kr/app/%EC%8A%A4%EB%84%88%EB%94%94-snurdy-%EC%9D%98%ED%95%99%EC%9A%A9%EC%96%B4-%ED%95%99%EC%8A%B5-%EB%8B%A8%EC%96%B4%EC%9E%A5/id6748668775"
+
+spring.cloud.aws:
+  region:
+    static: ${AWS_REGION:ap-northeast-2}
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:}
+  s3:
+    enabled: true
+
+storage:
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    object-prefix: ${AWS_S3_OBJECT_PREFIX:}
+    profile-image-max-size-bytes: 5242880
 
 oauth:
   kakao:
@@ -58,6 +100,10 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger
+    tags-sorter: alpha
+    operations-sorter: alpha
+  paths-to-exclude:
+    - /v1/admin/**
 
 management:
   endpoints:
@@ -66,7 +112,7 @@ management:
         include: health, prometheus
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: never
   prometheus:
     metrics:
       export:

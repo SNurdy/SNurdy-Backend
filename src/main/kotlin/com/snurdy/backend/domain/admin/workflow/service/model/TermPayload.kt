@@ -6,6 +6,7 @@ data class TermPayload(
     val abbreviation: String?,
     val explanation: String?,
     val morphemes: List<Long>,
-    val glossaryId: Long?,
-    val glossaryIds: List<Long>? = null
+    val glossaryIds: List<Long>?,
+    @Deprecated("Legacy field retained for deserialization of existing DB records. Use glossaryIds.")
+    val glossaryId: Long? = null
 )

@@ -14,9 +14,33 @@ jobs:
           echo "::error::Prod 배포는 main 브랜치에서만 가능합니다. 현재: ${{ github.ref }}"
           exit 1
 
+  pre-deploy-verify:
+    name: 배포 전 통합 검증
+    needs: guard
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JDK 21 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+          cache: gradle
+
+      - name: Docker 사용 가능 여부 확인
+        run: docker info
+
+      - name: Gradle 통합 테스트 실행
+        run: |
+          chmod +x gradlew
+          ./gradlew clean test \
+            --tests "*CoreApiSmokeTest" \
+            --tests "*MigrationFlowSmokeTest"
+
   build-and-push:
     name: 빌드 및 이미지 푸시
-    needs: guard
+    needs: pre-deploy-verify
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4

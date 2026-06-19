@@ -4,6 +4,10 @@ spring:
       on-profile: prod
   jpa:
     show-sql: false
+  datasource:
+    hikari:
+      data-source-properties:
+        rewriteBatchedStatements: true
 
 logging:
   level:
@@ -16,3 +20,6 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS}

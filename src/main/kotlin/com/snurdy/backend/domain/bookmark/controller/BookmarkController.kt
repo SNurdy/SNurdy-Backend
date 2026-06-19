@@ -1,37 +1,29 @@
 package com.snurdy.backend.domain.bookmark.controller
 
-import com.snurdy.backend.domain.bookmark.dto.BookmarkListResponse
 import com.snurdy.backend.domain.bookmark.dto.BookmarkMutationResponse
+import com.snurdy.backend.domain.bookmark.dto.BookmarkPageResponse
 import com.snurdy.backend.domain.bookmark.service.BookmarkService
-import com.snurdy.backend.global.constants.CommonSuccess
+import com.snurdy.backend.global.constants.BookmarkSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
-import com.snurdy.backend.global.extension.currentUserId
 import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 class BookmarkController(
     private val bookmarkService: BookmarkService
 ) : BookmarkApi {
-    override fun getBookmarks(): ApiResponse<BookmarkListResponse> =
-        ApiResponse.success(CommonSuccess.OK, bookmarkService.getBookmarks(currentUserId()))
+    override fun getBookmarks(userId: UUID, page: Int, size: Int): ApiResponse<BookmarkPageResponse> =
+        ApiResponse.success(BookmarkSuccess.LIST, bookmarkService.getBookmarks(userId, page, size))
 
-    override fun addBookmark(termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
+    override fun addBookmark(userId: UUID, termId: Long, glossaryId: Long): ApiResponse<BookmarkMutationResponse> =
         ApiResponse.success(
-            CommonSuccess.OK,
-            bookmarkService.addBookmark(
-                userId = currentUserId(),
-                termId = termId,
-                glossaryId = glossaryId
-            )
+            BookmarkSuccess.ADD,
+            bookmarkService.addBookmark(userId = userId, termId = termId, glossaryId = glossaryId)
         )
 
-    override fun removeBookmark(termId: Long, glossaryId: Long?): ApiResponse<BookmarkMutationResponse> =
+    override fun removeBookmark(userId: UUID, termId: Long, glossaryId: Long): ApiResponse<BookmarkMutationResponse> =
         ApiResponse.success(
-            CommonSuccess.OK,
-            bookmarkService.removeBookmark(
-                userId = currentUserId(),
-                termId = termId,
-                glossaryId = glossaryId
-            )
+            BookmarkSuccess.REMOVE,
+            bookmarkService.removeBookmark(userId = userId, termId = termId, glossaryId = glossaryId)
         )
 }

@@ -8,13 +8,17 @@ import com.snurdy.backend.domain.auth.external.provider.GoogleSocialProvider
 import com.snurdy.backend.domain.auth.external.provider.KakaoSocialProvider
 import com.snurdy.backend.domain.auth.model.RefreshToken
 import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
-import com.snurdy.backend.domain.user.entity.SocialType
-import com.snurdy.backend.domain.user.entity.UserEntity
-import com.snurdy.backend.domain.user.repository.UserRepository
+import com.snurdy.backend.domain.user.account.entity.SocialType
+import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.domain.user.account.repository.UserRepository
+import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
+import com.snurdy.backend.domain.user.preference.repository.UserPreferenceRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
+import com.snurdy.backend.global.jwt.JwtProperties
 import com.snurdy.backend.global.jwt.JwtTokenProvider
+import com.snurdy.backend.global.jwt.TokenPair
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -26,6 +30,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.dao.DataIntegrityViolationException
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 
@@ -35,8 +40,11 @@ class AuthServiceTest {
     private lateinit var appleSocialProvider: AppleSocialProvider
     private lateinit var googleSocialProvider: GoogleSocialProvider
     private lateinit var userRepository: UserRepository
+    private lateinit var userPreferenceRepository: UserPreferenceRepository
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var jwtTokenProvider: JwtTokenProvider
+    private lateinit var accessTokenBlacklistService: AccessTokenBlacklistService
+    private lateinit var jwtProperties: JwtProperties
 
     private lateinit var authService: AuthService
 
@@ -46,16 +54,27 @@ class AuthServiceTest {
         appleSocialProvider = mockk()
         googleSocialProvider = mockk()
         userRepository = mockk()
+        userPreferenceRepository = mockk(relaxed = true)
+        every { userPreferenceRepository.save(any<UserPreferenceEntity>()) } answers { firstArg() }
         refreshTokenRepository = mockk()
         jwtTokenProvider = mockk()
+        accessTokenBlacklistService = mockk(relaxed = true)
+        jwtProperties = JwtProperties(
+            secretKey = "test-secret-test-secret-test-secret-test-secret",
+            accessTokenExpiration = ACCESS_TOKEN_EXPIRATION,
+            refreshTokenExpiration = REFRESH_TOKEN_EXPIRATION
+        )
 
         authService = AuthService(
             kakaoSocialProvider = kakaoSocialProvider,
             appleSocialProvider = appleSocialProvider,
             googleSocialProvider = googleSocialProvider,
             userRepository = userRepository,
+            userPreferenceRepository = userPreferenceRepository,
             refreshTokenRepository = refreshTokenRepository,
-            jwtTokenProvider = jwtTokenProvider
+            jwtTokenProvider = jwtTokenProvider,
+            accessTokenBlacklistService = accessTokenBlacklistService,
+            jwtProperties = jwtProperties
         )
     }
 
@@ -68,8 +87,8 @@ class AuthServiceTest {
         val savedRefreshToken = slot<RefreshToken>()
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
-        every { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) } returns existingUser
-        every { jwtTokenProvider.createToken(existingUser) } returns issuedToken
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returns existingUser
+        every { jwtTokenProvider.createTokenPair(existingUser.id, existingUser.role.name) } returns createTokenPair()
         every { refreshTokenRepository.save(capture(savedRefreshToken)) } just runs
 
         // When
@@ -81,8 +100,9 @@ class AuthServiceTest {
         assertEquals(issuedToken.refreshToken, savedRefreshToken.captured.token)
         assertEquals(THIRTY_DAYS_IN_SECONDS, savedRefreshToken.captured.ttlSeconds)
 
-        verify(exactly = 1) { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) }
-        verify(exactly = 0) { userRepository.save(existingUser) }
+        verify(exactly = 1) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
+        verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
+        verify(exactly = 0) { userRepository.save(any()) }
     }
 
     @Test
@@ -94,9 +114,9 @@ class AuthServiceTest {
         val savedUserCandidate = slot<UserEntity>()
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
-        every { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) } returnsMany listOf(null, reloadedUser)
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returnsMany listOf(null, reloadedUser)
         every { userRepository.save(capture(savedUserCandidate)) } throws DataIntegrityViolationException("duplicated")
-        every { jwtTokenProvider.createToken(reloadedUser) } returns issuedToken
+        every { jwtTokenProvider.createTokenPair(reloadedUser.id, reloadedUser.role.name) } returns createTokenPair()
         every { refreshTokenRepository.save(RefreshToken.create(reloadedUser.id, NEW_REFRESH_TOKEN, REFRESH_TOKEN_VALIDITY_DAYS)) } just runs
 
         // When
@@ -106,8 +126,32 @@ class AuthServiceTest {
         assertEquals(issuedToken, result)
         assertEquals(SOCIAL_ID, savedUserCandidate.captured.socialId)
         assertEquals(SocialType.KAKAO, savedUserCandidate.captured.socialType)
-        verify(exactly = 2) { userRepository.findBySocialTypeAndSocialId(SocialType.KAKAO, SOCIAL_ID) }
-        verify(exactly = 1) { jwtTokenProvider.createToken(reloadedUser) }
+        verify(exactly = 2) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
+        verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
+        verify(exactly = 1) { jwtTokenProvider.createTokenPair(reloadedUser.id, reloadedUser.role.name) }
+    }
+
+    @Test
+    fun `카카오 로그인 시 탈퇴 이력이 있어도 복구 제안 없이 새 계정을 생성한다`() {
+        // Given
+        val socialUserInfo = createSocialUserInfo()
+        val recreatedUser = createUser(id = RECREATED_USER_ID)
+        val issuedToken = createTokenResponse(recreatedUser.id)
+        val savedRefreshToken = slot<RefreshToken>()
+
+        every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
+        every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returns null
+        every { userRepository.save(any()) } returns recreatedUser
+        every { jwtTokenProvider.createTokenPair(recreatedUser.id, recreatedUser.role.name) } returns createTokenPair()
+        every { refreshTokenRepository.save(capture(savedRefreshToken)) } just runs
+
+        // When
+        val result = authService.kakaoLogin(ACCESS_TOKEN)
+
+        // Then
+        assertEquals(issuedToken, result)
+        assertEquals(recreatedUser.id, savedRefreshToken.captured.userId)
+        verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
     }
 
     @Test
@@ -258,7 +302,7 @@ class AuthServiceTest {
         every { jwtTokenProvider.getUserIdFromToken(REFRESH_TOKEN) } returns user.id
         every { refreshTokenRepository.findByUserId(user.id) } returns REFRESH_TOKEN
         every { userRepository.findById(user.id) } returns Optional.of(user)
-        every { jwtTokenProvider.createToken(user) } returns reissuedToken
+        every { jwtTokenProvider.createTokenPair(user.id, user.role.name) } returns createTokenPair()
         every { refreshTokenRepository.save(capture(savedRefreshToken)) } just runs
 
         // When
@@ -278,13 +322,21 @@ class AuthServiceTest {
         nickname = NICKNAME
     )
 
-    private fun createUser(id: UUID = USER_ID): UserEntity = UserEntity(
+    private fun createUser(id: UUID = USER_ID, deletedAt: Instant? = null): UserEntity = UserEntity(
         id = id,
         socialId = SOCIAL_ID,
         socialType = SocialType.KAKAO,
         email = EMAIL,
         name = NAME,
-        nickname = NICKNAME
+        nickname = NICKNAME,
+        deletedAt = deletedAt
+    )
+
+    private fun createTokenPair(): TokenPair = TokenPair(
+        accessToken = NEW_ACCESS_TOKEN,
+        refreshToken = NEW_REFRESH_TOKEN,
+        accessTokenExpiresIn = ACCESS_TOKEN_EXPIRATION,
+        refreshTokenExpiresIn = REFRESH_TOKEN_EXPIRATION
     )
 
     private fun createTokenResponse(userId: UUID): TokenResponse = TokenResponse(
@@ -319,5 +371,6 @@ class AuthServiceTest {
 
         private val USER_ID: UUID = UUID.fromString("00000000-0000-0000-0000-000000000001")
         private val RELOADED_USER_ID: UUID = UUID.fromString("00000000-0000-0000-0000-000000000022")
+        private val RECREATED_USER_ID: UUID = UUID.fromString("00000000-0000-0000-0000-000000000033")
     }
 }

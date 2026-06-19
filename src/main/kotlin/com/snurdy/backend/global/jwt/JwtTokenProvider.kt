@@ -1,8 +1,5 @@
 package com.snurdy.backend.global.jwt
 
-import com.snurdy.backend.domain.auth.dto.TokenResponse
-import com.snurdy.backend.domain.auth.dto.toUserInfo
-import com.snurdy.backend.domain.user.entity.UserEntity
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -18,16 +15,15 @@ class JwtTokenProvider(
         jwtProperties.secretKey.toByteArray(StandardCharsets.UTF_8)
     )
 
-    fun createToken(user: UserEntity) = TokenResponse(
-        accessToken = generateToken(user.id, user.role.name, jwtProperties.accessTokenExpiration, tokenType = "ACCESS"),
-        refreshToken = generateToken(user.id, user.role.name, jwtProperties.refreshTokenExpiration, tokenType = "REFRESH"),
+    fun createTokenPair(userId: UUID, role: String) = TokenPair(
+        accessToken = generateToken(userId, role, jwtProperties.accessTokenExpiration, TokenType.ACCESS),
+        refreshToken = generateToken(userId, role, jwtProperties.refreshTokenExpiration, TokenType.REFRESH),
         accessTokenExpiresIn = jwtProperties.accessTokenExpiration,
-        refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration,
-        user = user.toUserInfo()
+        refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration
     )
 
     fun createAdminAccessToken(adminId: UUID): String =
-        generateToken(adminId, "ADMIN", jwtProperties.accessTokenExpiration, tokenType = "admin")
+        generateToken(adminId, ADMIN_ROLE, jwtProperties.adminAccessTokenExpiration, TokenType.ADMIN)
 
     fun validateToken(token: String): Boolean = runCatching {
         parseClaims(token)
@@ -38,13 +34,12 @@ class JwtTokenProvider(
             .subject
             .let(UUID::fromString)
 
-    fun getTokenType(token: String): String =
-        parseClaims(token)
-            .get("type", String::class.java) ?: "user"
+    fun getTokenType(token: String): TokenType? =
+        TokenType.fromClaim(parseClaims(token).get(CLAIM_TYPE, String::class.java))
 
     fun getRoleFromToken(token: String): String =
         parseClaims(token)
-            .get("role", String::class.java) ?: "USER"
+            .get(CLAIM_ROLE, String::class.java) ?: "USER"
 
     fun parseClaims(token: String): Claims =
         Jwts.parser()
@@ -55,15 +50,23 @@ class JwtTokenProvider(
 
     fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
 
-    private fun generateToken(userId: UUID, role: String, expirationMillis: Long, tokenType: String = "user"): String {
+    fun adminAccessTokenExpiration(): Long = jwtProperties.adminAccessTokenExpiration
+
+    private fun generateToken(userId: UUID, role: String, expirationMillis: Long, tokenType: TokenType): String {
         val now = Date()
         return Jwts.builder()
             .subject(userId.toString())
-            .claim("role", role)
-            .claim("type", tokenType)
+            .claim(CLAIM_ROLE, role)
+            .claim(CLAIM_TYPE, tokenType.claimValue)
             .issuedAt(now)
             .expiration(Date(now.time + expirationMillis))
             .signWith(secretKey)
             .compact()
+    }
+
+    companion object {
+        private const val CLAIM_ROLE = "role"
+        private const val CLAIM_TYPE = "type"
+        private const val ADMIN_ROLE = "ADMIN"
     }
 }

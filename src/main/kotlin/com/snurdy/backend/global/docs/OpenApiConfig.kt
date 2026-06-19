@@ -1,16 +1,23 @@
 package com.snurdy.backend.global.docs
 
+import com.snurdy.backend.global.security.CurrentUserId
 import io.swagger.v3.oas.models.Components
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
+import org.springdoc.core.utils.SpringDocUtils
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 class OpenApiConfig {
+
+    init {
+        // @CurrentUserId 는 토큰에서 자동 주입되므로 Swagger 문서의 파라미터 목록에서 제외한다
+        SpringDocUtils.getConfig().addAnnotationsToIgnore(CurrentUserId::class.java)
+    }
 
     @Bean
     fun openAPI(): OpenAPI =

@@ -1,78 +1,13 @@
 package com.snurdy.backend.domain.dictionary.dto
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.BulkTermGlossaryProjection
+import com.snurdy.backend.domain.dictionary.glossary.repository.ClientGlossaryTermProjection
+import com.snurdy.backend.domain.dictionary.glossary.repository.TermGlossaryProjection
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import io.swagger.v3.oas.annotations.media.Schema
 
-@Schema(description = "용어집 목록 응답")
-data class GlossaryListResponse(
-    @field:Schema(description = "용어집 목록")
-    val glossaries: List<GlossarySummary>
-)
-
-@Schema(description = "용어집 요약")
-data class GlossarySummary(
-    @field:Schema(description = "용어집 ID", example = "4")
-    val id: Long,
-    @field:Schema(description = "카테고리", example = "내과")
-    val category: String,
-    @field:Schema(description = "용어집 제목", example = "소화기내과")
-    val title: String,
-    @field:Schema(description = "매핑된 용어 수", example = "109")
-    val termCount: Long
-)
-
-@Schema(description = "용어집 내 용어 페이지 응답")
-data class GlossaryTermsResponse(
-    @field:Schema(description = "용어집 ID", example = "4")
-    val glossaryId: Long,
-    @field:Schema(description = "용어집 카테고리", example = "내과")
-    val category: String,
-    @field:Schema(description = "용어집 제목", example = "소화기내과")
-    val title: String,
-    @field:Schema(description = "페이지 번호(0-base)", example = "0")
-    val page: Int,
-    @field:Schema(description = "페이지 크기", example = "20")
-    val size: Int,
-    @field:Schema(description = "전체 용어 수", example = "109")
-    val totalElements: Long,
-    @field:Schema(description = "전체 페이지 수", example = "6")
-    val totalPages: Int,
-    @field:Schema(description = "다음 페이지 존재 여부", example = "true")
-    val hasNext: Boolean,
-    @field:Schema(description = "용어 목록")
-    val terms: List<TermSummary>
-)
-
-@Schema(description = "용어 요약")
-data class TermSummary(
-    @field:Schema(description = "용어 ID", example = "586")
-    val id: Long,
-    @field:Schema(description = "철자", example = "vomiting")
-    val spelling: String,
-    @field:Schema(description = "뜻", example = "구토")
-    val meaning: String,
-    @field:Schema(description = "약어", example = "N/V")
-    val abbreviation: String?
-)
-
-@Schema(description = "용어 상세 응답")
-data class TermDetailResponse(
-    @field:Schema(description = "용어 정보")
-    val term: TermDetail,
-    @field:Schema(description = "용어가 포함된 용어집(해시태그 표시용)")
-    val glossaries: List<TermGlossaryTag>,
-    @field:Schema(description = "순서가 보장된 어근어미 목록")
-    val morphemes: List<OrderedMorpheme>
-)
-
-@Schema(description = "용어 상세 내 용어집 태그")
-data class TermGlossaryTag(
-    @field:Schema(description = "용어집 ID", example = "6")
-    val id: Long,
-    @field:Schema(description = "용어집 카테고리", example = "내과")
-    val category: String,
-    @field:Schema(description = "용어집 제목", example = "심장내과")
-    val title: String
-)
+// 단어 자체/단어장 태그/형태소 등 사전 데이터 공용 표현.
+// 단어 상세 응답과 어근/어미 검색 응답 모두 재사용한다.
 
 @Schema(description = "용어 상세")
 data class TermDetail(
@@ -88,6 +23,15 @@ data class TermDetail(
     val explanation: String?
 )
 
+@Schema(description = "용어 상세 내 용어집 태그")
+data class TermGlossaryTag(
+    @field:Schema(description = "용어집 ID", example = "6")
+    val id: Long,
+    @field:Schema(description = "용어집 카테고리", example = "내과")
+    val category: String,
+    @field:Schema(description = "용어집 제목", example = "심장내과")
+    val title: String
+)
 
 @Schema(description = "순서 포함 어근어미")
 data class OrderedMorpheme(
@@ -99,7 +43,7 @@ data class OrderedMorpheme(
     val meaning: String,
     @field:Schema(description = "용어 내 순서", example = "0")
     val order: Int,
-    @field:Schema(description = "하이라이팅 범위 (null이면 매칭 실패)")
+    @field:Schema(description = "하이라이팅 범위. null 이면 매칭 실패")
     val highlight: MorphemeHighlight? = null
 )
 
@@ -109,4 +53,114 @@ data class MorphemeHighlight(
     val start: Int,
     @field:Schema(description = "하이라이팅 길이", example = "6")
     val length: Int
+)
+
+// 사전 검색/조회/단어장 응답. 모두 사용자 컨텍스트 (북마크/메모/진행률) 결합.
+
+@Schema(description = "용어 검색 응답")
+data class TermSearchResponse(
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val hasNext: Boolean,
+    val terms: List<TermSummary>
+)
+
+@Schema(description = "용어 요약 (검색 결과 카드용, 본인 북마크 포함)")
+data class TermSummary(
+    val id: Long,
+    val spelling: String,
+    val meaning: String,
+    val abbreviation: String?,
+    val bookmarked: Boolean
+)
+
+@Schema(description = "용어 상세 응답 (본인 북마크/메모 포함)")
+data class TermDetailResponse(
+    val term: TermDetail,
+    val glossaries: List<TermGlossaryTag>,
+    val morphemes: List<OrderedMorpheme>,
+    val bookmarked: Boolean,
+    val bookmarkedGlossaryIds: List<Long>,
+    @field:Schema(description = "본인이 이 단어에 작성한 메모. 없으면 null", example = "혈전 관련 검사 항목")
+    val memo: String?
+)
+
+@Schema(description = "용어장 목록 응답")
+data class GlossaryListResponse(
+    val glossaries: List<GlossarySummary>
+)
+
+@Schema(description = "용어장 요약 (본인 학습 진행률/레벨 포함)")
+data class GlossarySummary(
+    val id: Long,
+    val category: String,
+    val title: String,
+    val termCount: Long,
+    val learnedCount: Int,
+    val progressRate: Double,
+    val level: Int
+)
+
+@Schema(description = "용어장 내 용어 목록 응답")
+data class GlossaryTermsResponse(
+    val glossaryId: Long,
+    val category: String,
+    val title: String,
+    val filter: String,
+    val page: Int,
+    val size: Int,
+    val totalElements: Long,
+    val totalPages: Int,
+    val hasNext: Boolean,
+    val terms: List<GlossaryTermItem>
+)
+
+@Schema(description = "용어장 내 용어 항목 (본인 학습 상태/북마크 포함)")
+data class GlossaryTermItem(
+    val id: Long,
+    val spelling: String,
+    val meaning: String,
+    val abbreviation: String?,
+    val status: String,
+    val bookmarked: Boolean
+)
+
+// TermEntity 가 두 응답 (TermSummary / TermDetail) 로 변환되어 1:N 케이스 - 의미 키워드로 구분
+fun TermEntity.toSummary(bookmarked: Boolean) = TermSummary(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    bookmarked = bookmarked
+)
+
+fun TermEntity.toDetail() = TermDetail(
+    id = id,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    explanation = explanation
+)
+
+fun TermGlossaryProjection.toResponse() = TermGlossaryTag(
+    id = glossaryId,
+    category = category,
+    title = title
+)
+
+fun BulkTermGlossaryProjection.toResponse() = TermGlossaryTag(
+    id = glossaryId,
+    category = category,
+    title = title
+)
+
+fun ClientGlossaryTermProjection.toResponse() = GlossaryTermItem(
+    id = termId,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    status = status,
+    bookmarked = bookmarked == 1
 )

@@ -1,0 +1,27 @@
+package com.snurdy.backend.domain.admin.dictionary.service
+
+import com.snurdy.backend.domain.admin.dictionary.dto.GlossaryPageResponse
+import com.snurdy.backend.domain.admin.dictionary.dto.toResponse
+import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class AdminGlossaryQueryService(
+    private val glossaryRepository: GlossaryRepository
+) {
+
+    @Transactional(readOnly = true)
+    fun getGlossaries(keyword: String?, page: Int, size: Int): GlossaryPageResponse {
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id"))
+        val data = if (keyword.isNullOrBlank()) {
+            glossaryRepository.findAll(pageable)
+        } else {
+            val q = keyword.trim()
+            glossaryRepository.findByCategoryContainingIgnoreCaseOrTitleContainingIgnoreCase(q, q, pageable)
+        }
+        return data.toResponse()
+    }
+}

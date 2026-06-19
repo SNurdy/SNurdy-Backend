@@ -1,5 +1,6 @@
 package com.snurdy.backend.global.jwt
 
+import com.snurdy.backend.domain.auth.service.AccessTokenBlacklistService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -11,7 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
-    private val jwtTokenProvider: JwtTokenProvider
+    private val jwtTokenProvider: JwtTokenProvider,
+    private val accessTokenBlacklistService: AccessTokenBlacklistService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -20,30 +22,28 @@ class JwtAuthenticationFilter(
         filterChain: FilterChain
     ) {
         val token = extractToken(request)
-
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            val tokenType = jwtTokenProvider.getTokenType(token)
-
-            if (tokenType != "ACCESS" && tokenType != "admin") {
-                filterChain.doFilter(request, response)
-                return
-            }
-
-            val userId = jwtTokenProvider.getUserIdFromToken(token)
-            val role = jwtTokenProvider.getRoleFromToken(token)
-
-            val authority = when (tokenType) {
-                "admin" -> "ROLE_ADMIN"
-                else -> "ROLE_$role"
-            }
-
-            val authentication = UsernamePasswordAuthenticationToken(
-                userId,
-                null,
-                listOf(SimpleGrantedAuthority(authority))
-            )
-            SecurityContextHolder.getContext().authentication = authentication
+        if (token == null || !jwtTokenProvider.validateToken(token)) {
+            filterChain.doFilter(request, response)
+            return
         }
+
+        val tokenType = jwtTokenProvider.getTokenType(token)
+        if (tokenType != TokenType.ACCESS && tokenType != TokenType.ADMIN) {
+            filterChain.doFilter(request, response)
+            return
+        }
+
+        if (accessTokenBlacklistService.isBlacklisted(token)) {
+            SecurityContextHolder.clearContext()
+            filterChain.doFilter(request, response)
+            return
+        }
+
+        val subjectId = jwtTokenProvider.getUserIdFromToken(token)
+        val role = jwtTokenProvider.getRoleFromToken(token)
+
+        SecurityContextHolder.getContext().authentication =
+            UsernamePasswordAuthenticationToken(subjectId, null, listOf(SimpleGrantedAuthority("ROLE_$role")))
 
         filterChain.doFilter(request, response)
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.CommonError
+import com.snurdy.backend.global.constants.ProfileImageError
 import feign.FeignException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
@@ -21,6 +22,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
+import org.springframework.web.multipart.MaxUploadSizeExceededException
 
 fun Throwable.toApiException(): ApiException = when (this) {
     is ApiException -> this
@@ -47,6 +49,11 @@ fun Throwable.toApiException(): ApiException = when (this) {
     // 파라미터 누락 - 어떤 파라미터인지 알려줌
     is MissingServletRequestParameterException ->
         ApiException(CommonError.BAD_REQUEST, "필수 파라미터 누락: ${this.parameterName}")
+
+    // multipart 사이즈 초과 - tomcat / Spring 의 file/part limit 초과
+    // 현재 multipart endpoint 는 프로필 이미지 업로드 1종이라 ProfileImageError 매핑
+    // 추후 다른 도메인 multipart 추가 시 CommonError 로 일반화 검토
+    is MaxUploadSizeExceededException -> ApiException(ProfileImageError.TOO_LARGE, cause = this)
 
     // 그 외 - 기본 메시지 사용
     else -> ApiException(CommonError.INTERNAL_ERROR, cause = this)

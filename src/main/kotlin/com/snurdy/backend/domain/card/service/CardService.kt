@@ -12,13 +12,11 @@ import com.snurdy.backend.domain.card.dto.toGlossaryCard
 import com.snurdy.backend.domain.card.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
 import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.test.entity.deriveAnswer
 import com.snurdy.backend.domain.test.entity.deriveQuestion
 import com.snurdy.backend.domain.test.entity.isMultipleChoice
-import com.snurdy.backend.domain.test.entity.requiresAbbreviation
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
 import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteService
@@ -42,7 +40,7 @@ class CardService(
     private val wrongAnswerTermRepository: WrongAnswerTermRepository,
     private val bookmarkRepository: BookmarkRepository,
     private val cardCountDistributor: CardCountDistributor,
-    private val noteTermDistributor: NoteTermDistributor,
+    private val cardTermDistributor: CardTermDistributor,
     private val distractorSelector: DistractorSelector,
     private val morphemeHighlightAssembler: MorphemeHighlightAssembler,
     private val clock: Clock
@@ -54,41 +52,32 @@ class CardService(
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
 
+        // 학습 세트를 테스트 유형과 무관하게 먼저 뽑고 세트 안에서 유형별 출제 가능 단어만 배정
+        val sampledTerms = glossaryTermRepository.pickCardTermsForTest(
+            userId = userId,
+            glossaryId = glossaryId,
+            count = request.count
+        )
         val slots = cardCountDistributor.groupIntoSlots(request.testTypes)
-        val slotCounts = cardCountDistributor.distributeCounts(request.count, slots.size)
-        val variants = cardCountDistributor.flattenSlotVariants(slots, slotCounts)
-        val perTypeTotals = cardCountDistributor.aggregateCountsByType(variants)
+        val assignments = cardTermDistributor.distribute(sampledTerms, slots)
+        if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
-        val pickedByType = perTypeTotals.mapValues { (testType, total) ->
-            if (total == 0) emptyList() else glossaryTermRepository.pickCardTermsForTest(
-                userId = userId,
-                glossaryId = glossaryId,
-                requireAbbreviation = testType.requiresAbbreviation(),
-                count = total
-            ).also { picked ->
-                if (picked.size < total) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-            }
-        }
-
-        val cardOrder = orderGlossaryTermsAcrossVariants(variants, pickedByType)
-        if (cardOrder.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-
-        val distractorPool = if (variants.any { it.testType.isMultipleChoice() && it.count > 0 }) {
+        val distractorPool = if (assignments.any { it.second.isMultipleChoice() }) {
             glossaryTermRepository.findAllSimpleTermsByGlossaryId(glossaryId)
         } else {
             emptyList()
         }
 
-        val termIds = cardOrder.map { it.first.termId }.distinct()
+        val termIds = assignments.map { it.first.termId }.distinct()
         val bookmarkedTermIds = bookmarkRepository
             .findBookmarkedTermIds(userId, glossaryId, termIds)
             .toSet()
         val morphemesByTermId = morphemeHighlightAssembler.buildByTermIds(
             termIds = termIds,
-            spellingByTermId = cardOrder.associate { it.first.termId to it.first.spelling }
+            spellingByTermId = assignments.associate { it.first.termId to it.first.spelling }
         )
 
-        val cards = cardOrder.map { (term, testType) ->
+        val cards = assignments.map { (term, testType) ->
             val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
             term.toGlossaryCard(
                 testType = testType,
@@ -101,7 +90,11 @@ class CardService(
                 morphemes = morphemesByTermId[term.termId].orEmpty()
             )
         }
-        return GlossaryCardsResponse(cards = cards)
+        return GlossaryCardsResponse(
+            requestedCount = request.count,
+            availableCount = cards.size,
+            cards = cards
+        )
     }
 
     @Transactional(readOnly = true)
@@ -115,7 +108,7 @@ class CardService(
         if (terms.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
         val slots = cardCountDistributor.groupIntoSlots(request.testTypes)
-        val assignments = noteTermDistributor.distribute(terms, slots)
+        val assignments = cardTermDistributor.distribute(terms, slots)
         if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
         val context = buildNoteCardContext(userId, assignments)
@@ -179,7 +172,7 @@ class CardService(
         testTypes: List<TestType>
     ): List<WrongAnswerCard> {
         val slots = cardCountDistributor.groupIntoSlots(testTypes)
-        val assignments = noteTermDistributor.distribute(terms, slots)
+        val assignments = cardTermDistributor.distribute(terms, slots)
         if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
 
         val context = buildNoteCardContext(userId, assignments)
@@ -218,24 +211,5 @@ class CardService(
             spellingByTermId = assignments.associate { it.first.termId to it.first.spelling }
         )
         return NoteCardContext(bookmarkedPairs, morphemesByTermId)
-    }
-
-    // 기본 단어장 sampling 결과를 입력 변형 순서로 cards 에 배치
-    private fun orderGlossaryTermsAcrossVariants(
-        variants: List<SlotVariant>,
-        pickedByType: Map<TestType, List<SimpleTermProjection>>
-    ): List<Pair<SimpleTermProjection, TestType>> {
-        val cursors = mutableMapOf<TestType, Int>()
-        val result = mutableListOf<Pair<SimpleTermProjection, TestType>>()
-        for (variant in variants) {
-            if (variant.count == 0) continue
-            val source = pickedByType[variant.testType] ?: continue
-            val from = cursors.getOrDefault(variant.testType, 0)
-            for (index in from until from + variant.count) {
-                result += source[index] to variant.testType
-            }
-            cursors[variant.testType] = from + variant.count
-        }
-        return result
     }
 }

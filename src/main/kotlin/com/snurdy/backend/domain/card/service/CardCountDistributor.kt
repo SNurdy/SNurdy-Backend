@@ -58,15 +58,6 @@ class CardCountDistributor {
         return variants
     }
 
-    fun aggregateCountsByType(variants: List<SlotVariant>): Map<TestType, Int> {
-        val totals = mutableMapOf<TestType, Int>()
-        for (variant in variants) {
-            if (variant.count == 0) continue
-            totals.merge(variant.testType, variant.count) { existing, addition -> existing + addition }
-        }
-        return totals
-    }
-
     companion object {
         private val MULTIPLE_CHOICE_TYPES = setOf(
             TestType.MC_MEANING_FROM_TERM,

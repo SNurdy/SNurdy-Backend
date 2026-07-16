@@ -67,8 +67,7 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     fun findAllSimpleTermsByGlossaryId(@Param("glossaryId") glossaryId: Long): List<SimpleTermProjection>
 
     // 테스트용 학습 카드 선별 — NEW (미학습 또는 status=NEW) 우선, 같은 그룹 내 random
-    // 전체 단어 중 count 만큼 골라 학습 + 테스트 단어로 사용
-    // requireAbbreviation = true 면 abbreviation 보유 단어만
+    // 테스트 유형과 무관하게 count 만큼 골라 학습 세트로 사용
     @Query(
         value = """
         SELECT t.id AS termId,
@@ -84,8 +83,6 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
               AND tp.term_id = t.id
         WHERE gt.glossary_id = :glossaryId
           AND t.deleted_at IS NULL
-          AND (:requireAbbreviation = FALSE
-               OR (t.abbreviation IS NOT NULL AND t.abbreviation <> ''))
         ORDER BY
           (tp.status IS NULL OR tp.status = 'NEW') DESC,
           RAND()
@@ -96,7 +93,6 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
     fun pickCardTermsForTest(
         @Param("userId") userId: UUID,
         @Param("glossaryId") glossaryId: Long,
-        @Param("requireAbbreviation") requireAbbreviation: Boolean,
         @Param("count") count: Int
     ): List<SimpleTermProjection>
 

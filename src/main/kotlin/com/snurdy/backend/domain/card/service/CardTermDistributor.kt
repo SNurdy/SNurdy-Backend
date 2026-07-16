@@ -1,19 +1,20 @@
 package com.snurdy.backend.domain.card.service
 
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.test.entity.TestType
 import com.snurdy.backend.domain.test.entity.requiresAbbreviation
-import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import org.springframework.stereotype.Component
 
-// 노트 전체 단어를 슬롯/변형에 1:1 매핑
+// 주어진 단어 풀을 슬롯/변형에 1:1 매핑
 // abbreviation 요구 변형부터 풀 우선 점유 — abbreviation 단어가 일반 변형에 흡수되어 약어 변형이 비는 사태 방지
+// 슬롯별 가능 단어가 부족하면 그 변형만 카드 수 감소
 // 카드 응답 순서는 입력 슬롯 순서 유지
 @Component
-class NoteTermDistributor(
+class CardTermDistributor(
     private val cardCountDistributor: CardCountDistributor
 ) {
 
-    fun <T : NoteCardTermProjection> distribute(
+    fun <T : SimpleTermProjection> distribute(
         terms: List<T>,
         slots: List<CardSlot>
     ): List<Pair<T, TestType>> {
@@ -41,5 +42,5 @@ class NoteTermDistributor(
         return resultsByIndex.asSequence().filterNotNull().flatten().toList()
     }
 
-    private fun NoteCardTermProjection.hasAbbreviation(): Boolean = !abbreviation.isNullOrBlank()
+    private fun SimpleTermProjection.hasAbbreviation(): Boolean = !abbreviation.isNullOrBlank()
 }

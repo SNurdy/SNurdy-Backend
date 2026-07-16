@@ -120,6 +120,10 @@ data class NoteCardsRequest(
 
 @Schema(description = "과별 단어장 카드 응답")
 data class GlossaryCardsResponse(
+    @field:Schema(description = "클라이언트가 요청한 카드 수", example = "10")
+    val requestedCount: Int,
+    @field:Schema(description = "선택한 테스트 유형으로 출제 가능해 실제 내려간 카드 수", example = "5")
+    val availableCount: Int,
     val cards: List<GlossaryCard>
 )
 

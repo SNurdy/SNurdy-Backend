@@ -36,6 +36,24 @@ data class GlossaryCard(
     val morphemes: List<OrderedMorpheme>
 )
 
+@Schema(description = "과별 단어장 학습 세트 단어 1개")
+data class GlossaryStudyTerm(
+    @field:Schema(description = "단어 id", example = "101")
+    val termId: Long,
+    @field:Schema(description = "영문 용어", example = "Electrocardiogram")
+    val spelling: String,
+    @field:Schema(description = "한글 의미", example = "심전도")
+    val meaning: String,
+    @field:Schema(description = "약어. 없으면 null", example = "ECG")
+    val abbreviation: String?,
+    @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    val explanation: String?,
+    @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부", example = "false")
+    val bookmarked: Boolean,
+    @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위. 색은 클라이언트가 order 순서대로 매핑")
+    val morphemes: List<OrderedMorpheme>
+)
+
 @Schema(description = "오답노트 학습 카드 1개")
 data class WrongAnswerCard(
     @field:Schema(description = "단어 id", example = "101")
@@ -124,6 +142,9 @@ data class GlossaryCardsResponse(
     val requestedCount: Int,
     @field:Schema(description = "선택한 테스트 유형으로 출제 가능해 실제 내려간 카드 수", example = "5")
     val availableCount: Int,
+    @field:Schema(description = "학습 화면에 노출할 학습 세트 단어 전체. 단어장 잔여 단어가 requestedCount 보다 적으면 그만큼만 내려감")
+    val terms: List<GlossaryStudyTerm>,
+    @field:Schema(description = "terms 중 선택한 테스트 유형으로 출제 가능한 단어로 만든 테스트 카드")
     val cards: List<GlossaryCard>
 )
 
@@ -152,6 +173,19 @@ fun SimpleTermProjection.toGlossaryCard(
     question = question,
     answer = answer,
     distractors = distractors,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    explanation = explanation,
+    bookmarked = bookmarked,
+    morphemes = morphemes
+)
+
+fun SimpleTermProjection.toStudyTerm(
+    bookmarked: Boolean,
+    morphemes: List<OrderedMorpheme>
+): GlossaryStudyTerm = GlossaryStudyTerm(
+    termId = termId,
     spelling = spelling,
     meaning = meaning,
     abbreviation = abbreviation,

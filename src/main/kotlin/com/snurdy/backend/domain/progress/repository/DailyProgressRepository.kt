@@ -3,11 +3,17 @@ package com.snurdy.backend.domain.progress.repository
 import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
 import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import java.time.LocalDate
 import java.util.UUID
 
 interface DailyProgressRepository : JpaRepository<DailyProgressEntity, DailyProgressId> {
     fun existsByIdUserId(userId: UUID): Boolean
+
+    // 전 기간 학습 처리 누적 재학습 포함
+    @Query("SELECT COALESCE(SUM(d.allLearnedCount), 0) FROM DailyProgressEntity d WHERE d.id.userId = :userId")
+    fun sumAllLearnedCountByUserId(@Param("userId") userId: UUID): Long
 
     fun countByIdUserId(userId: UUID): Long
 

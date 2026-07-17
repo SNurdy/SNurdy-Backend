@@ -78,9 +78,13 @@ class TestService(
         val levelAfter = GlossaryProgressCalculator.levelFromRate(progressRateAfter)
 
         val correctCount = request.results.count { it.correct }
+        val studiedCounts = buildStudiedCounts(userId, request)
         return SubmitGlossaryTestResponse(
             correctCount = correctCount,
             incorrectCount = request.results.size - correctCount,
+            sessionStudiedCount = studiedCounts.sessionStudiedCount,
+            todayStudiedCount = studiedCounts.todayStudiedCount,
+            totalStudiedCount = studiedCounts.totalStudiedCount,
             todayGoalCompleted = !todayWasActiveBefore,
             glossary = TestGlossarySnapshot(
                 glossaryId = glossaryId,
@@ -102,10 +106,7 @@ class TestService(
     ): SubmitNoteTestResponse {
         customNoteService.requireNoteOwnership(userId, customNoteId)
         val correctCount = request.results.count { it.correct }
-        return SubmitNoteTestResponse(
-            correctCount = correctCount,
-            incorrectCount = request.results.size - correctCount
-        )
+        return buildSubmitNoteTestResponse(userId, request, correctCount)
     }
 
     // POST /v2/test/wrong-answer-notes/by-period/{period}/submit
@@ -118,11 +119,43 @@ class TestService(
             wrongAnswerNoteService.recordIncorrectsAgain(userId, incorrectTermIds, clock.instant())
         }
         val correctCount = request.results.count { it.correct }
+        return buildSubmitNoteTestResponse(userId, request, correctCount)
+    }
+
+    private fun buildSubmitNoteTestResponse(
+        userId: UUID,
+        request: SubmitRequest,
+        correctCount: Int
+    ): SubmitNoteTestResponse {
+        val studiedCounts = buildStudiedCounts(userId, request)
         return SubmitNoteTestResponse(
             correctCount = correctCount,
-            incorrectCount = request.results.size - correctCount
+            incorrectCount = request.results.size - correctCount,
+            sessionStudiedCount = studiedCounts.sessionStudiedCount,
+            todayStudiedCount = studiedCounts.todayStudiedCount,
+            totalStudiedCount = studiedCounts.totalStudiedCount
         )
     }
+
+    // 노트 테스트는 진도 누적에 닿지 않으므로 today total 은 기본 단어장 학습 누적값 조회만
+    private fun buildStudiedCounts(userId: UUID, request: SubmitRequest): StudiedCountResult {
+        val today = clock.instant().atZone(APP_ZONE_ID).toLocalDate()
+        val todayStudiedCount = dailyProgressRepository
+            .findByIdOrNull(DailyProgressId(userId, today))
+            ?.allLearnedCount ?: 0
+        val totalStudiedCount = dailyProgressRepository.sumAllLearnedCountByUserId(userId).toInt()
+        return StudiedCountResult(
+            sessionStudiedCount = request.studiedTermCount ?: request.results.size,
+            todayStudiedCount = todayStudiedCount,
+            totalStudiedCount = totalStudiedCount
+        )
+    }
+
+    private data class StudiedCountResult(
+        val sessionStudiedCount: Int,
+        val todayStudiedCount: Int,
+        val totalStudiedCount: Int
+    )
 
     private fun validateTermIdsBelongToGlossary(glossaryId: Long, termIds: List<Long>) {
         val requested = termIds.toSet()

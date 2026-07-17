@@ -9,6 +9,7 @@ import com.snurdy.backend.domain.card.dto.WrongAnswerCard
 import com.snurdy.backend.domain.card.dto.WrongAnswerCardsResponse
 import com.snurdy.backend.domain.card.dto.toCustomNoteCard
 import com.snurdy.backend.domain.card.dto.toGlossaryCard
+import com.snurdy.backend.domain.card.dto.toStudyTerm
 import com.snurdy.backend.domain.card.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
@@ -68,14 +69,22 @@ class CardService(
             emptyList()
         }
 
-        val termIds = assignments.map { it.first.termId }.distinct()
+        // 학습 화면용 terms 에도 북마크와 형광펜이 필요하므로 학습 세트 전체 기준으로 조회
+        val termIds = sampledTerms.map { it.termId }
         val bookmarkedTermIds = bookmarkRepository
             .findBookmarkedTermIds(userId, glossaryId, termIds)
             .toSet()
         val morphemesByTermId = morphemeHighlightAssembler.buildByTermIds(
             termIds = termIds,
-            spellingByTermId = assignments.associate { it.first.termId to it.first.spelling }
+            spellingByTermId = sampledTerms.associate { it.termId to it.spelling }
         )
+
+        val terms = sampledTerms.map { term ->
+            term.toStudyTerm(
+                bookmarked = term.termId in bookmarkedTermIds,
+                morphemes = morphemesByTermId[term.termId].orEmpty()
+            )
+        }
 
         val cards = assignments.map { (term, testType) ->
             val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
@@ -93,6 +102,7 @@ class CardService(
         return GlossaryCardsResponse(
             requestedCount = request.count,
             availableCount = cards.size,
+            terms = terms,
             cards = cards
         )
     }

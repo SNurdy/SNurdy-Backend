@@ -12,7 +12,11 @@ data class SubmitRequest(
     @field:Valid
     @field:NotEmpty
     @field:Schema(description = "문제별 결과 목록")
-    val results: List<TestResultItem>
+    val results: List<TestResultItem>,
+
+    @field:Positive
+    @field:Schema(description = "학습 화면에서 확인한 학습 세트 단어 수. 기본 단어장 플로우는 cards 응답의 terms 개수를 전송, 노트 테스트는 생략. 생략 시 results 개수로 대체", example = "10")
+    val studiedTermCount: Int? = null
 )
 
 @Schema(description = "테스트 문제 1개의 결과")
@@ -35,6 +39,12 @@ data class SubmitGlossaryTestResponse(
     val correctCount: Int,
     @field:Schema(description = "오답 문제 수", example = "5")
     val incorrectCount: Int,
+    @field:Schema(description = "이번 세션에서 학습한 단어 수. 요청의 studiedTermCount 그대로, 생략 시 results 개수", example = "10")
+    val sessionStudiedCount: Int,
+    @field:Schema(description = "오늘 기본 단어장 테스트로 처리한 누적 단어 수. 재학습 포함, 이번 제출분 반영", example = "30")
+    val todayStudiedCount: Int,
+    @field:Schema(description = "전체 기간 기본 단어장 테스트로 처리한 누적 단어 수. 재학습 포함", example = "120")
+    val totalStudiedCount: Int,
     @field:Schema(description = "사용자의 일일 학습 목표 단어 수 달성 여부", example = "true")
     val todayGoalCompleted: Boolean,
     @field:Schema(description = "이번 테스트 전후 단어장 진척률/레벨 스냅샷")
@@ -46,7 +56,13 @@ data class SubmitNoteTestResponse(
     @field:Schema(description = "정답 문제 수", example = "18")
     val correctCount: Int,
     @field:Schema(description = "오답 문제 수", example = "2")
-    val incorrectCount: Int
+    val incorrectCount: Int,
+    @field:Schema(description = "이번 세션에서 학습한 단어 수. 요청의 studiedTermCount 그대로, 생략 시 results 개수", example = "20")
+    val sessionStudiedCount: Int,
+    @field:Schema(description = "오늘 기본 단어장 테스트로 처리한 누적 단어 수. 노트 테스트는 누적에 포함되지 않고 조회만", example = "30")
+    val todayStudiedCount: Int,
+    @field:Schema(description = "전체 기간 기본 단어장 테스트로 처리한 누적 단어 수. 노트 테스트는 누적에 포함되지 않고 조회만", example = "120")
+    val totalStudiedCount: Int
 )
 
 @Schema(description = "테스트 후 단어장 진척률/레벨 스냅샷")

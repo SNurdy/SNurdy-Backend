@@ -3,8 +3,10 @@ package com.snurdy.backend.domain.migration.service
 import com.snurdy.backend.domain.bookmark.entity.BookmarkEntity
 import com.snurdy.backend.domain.bookmark.entity.BookmarkId
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
+import com.snurdy.backend.domain.dictionary.term.entity.TermEntity
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
 import com.snurdy.backend.domain.progress.entity.DailyProgressEntity
 import com.snurdy.backend.domain.progress.entity.DailyProgressId
@@ -24,6 +26,11 @@ import com.snurdy.backend.domain.migration.dto.TermProgressPayload
 import com.snurdy.backend.domain.migration.dto.UserSummaryPayload
 import com.snurdy.backend.domain.migration.repository.MigrationSessionRepository
 import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.domain.user.customNote.entity.CustomNoteEntity
+import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermEntity
+import com.snurdy.backend.domain.user.customNote.entity.CustomNoteTermId
+import com.snurdy.backend.domain.user.customNote.repository.CustomNoteRepository
+import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
 import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
@@ -49,6 +56,8 @@ class MigrationUploadService(
     private val termRepository: TermRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
+    private val customNoteRepository: CustomNoteRepository,
+    private val customNoteTermRepository: CustomNoteTermRepository,
     private val clock: Clock
 ) {
 
@@ -231,7 +240,32 @@ class MigrationUploadService(
         }
 
         bookmarkRepository.saveAll(entities)
+        createBookmarkNote(user, payloads, glossaries, terms)
         return entities.size
+    }
+
+    // v1 북마크는 v2 에서 커스텀 단어장 담기로 의미가 바뀌어 마이그레이션 후 화면에 노출되지 않으므로
+    // 기존 북마크 단어들을 기존 북마크 단어장 하나로 묶어 사용자가 계속 볼 수 있게 함
+    // 마이그레이션 단어장은 단어 수 상한 없이 북마크 전체를 담음
+    private fun createBookmarkNote(
+        user: UserEntity,
+        payloads: List<BookmarkPayload>,
+        glossaries: Map<Long, GlossaryEntity>,
+        terms: Map<Long, TermEntity>
+    ) {
+        // 마이그레이션 전 사용자가 같은 제목 단어장을 직접 만든 경우 제목 UNIQUE 충돌 방어
+        if (customNoteRepository.existsByOwnerIdAndTitle(user.id, BOOKMARK_NOTE_TITLE)) return
+
+        val note = customNoteRepository.save(CustomNoteEntity(ownerId = user.id, title = BOOKMARK_NOTE_TITLE))
+        val termEntities = payloads.map { payload ->
+            CustomNoteTermEntity(
+                id = CustomNoteTermId(noteId = note.id, glossaryId = payload.glossaryId, termId = payload.termId),
+                note = note,
+                glossary = glossaries.getValue(payload.glossaryId),
+                term = terms.getValue(payload.termId)
+            )
+        }
+        customNoteTermRepository.saveAll(termEntities)
     }
 
     private fun saveDailyProgresses(user: UserEntity, payloads: List<DailyProgressPayload>): Int {
@@ -319,4 +353,8 @@ class MigrationUploadService(
             bookmarkCount = bookmarkRepository.countByIdUserId(userId).toInt(),
             dailyProgressCount = dailyProgressRepository.countByIdUserId(userId).toInt()
         )
+
+    companion object {
+        private const val BOOKMARK_NOTE_TITLE = "기존 북마크"
+    }
 }

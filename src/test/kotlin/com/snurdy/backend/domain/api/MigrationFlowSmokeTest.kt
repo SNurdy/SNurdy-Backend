@@ -50,6 +50,25 @@ class MigrationFlowSmokeTest : ApiSmokeTestBase() {
     }
 
     @Test
+    fun `upload 시 북마크 단어가 기존 북마크 커스텀 단어장으로 생성된다`() {
+        val migrationId = startMigration()
+        uploadMigration(migrationId)
+
+        val noteId = jdbcTemplate.queryForObject(
+            "SELECT id FROM custom_notes WHERE owner_id = UUID_TO_BIN(?) AND title = ?",
+            Long::class.java,
+            userId.toString(),
+            "기존 북마크"
+        )
+        val termCount = jdbcTemplate.queryForObject(
+            "SELECT COUNT(*) FROM custom_note_terms WHERE note_id = ?",
+            Long::class.java,
+            noteId
+        )
+        require(termCount == 1L) { "기존 북마크 단어장에 북마크 단어 1개가 담겨야 한다 실제 $termCount" }
+    }
+
+    @Test
     fun `동일 migrationId upload 재시도는 멱등 응답한다`() {
         val migrationId = startMigration()
         uploadMigration(migrationId)

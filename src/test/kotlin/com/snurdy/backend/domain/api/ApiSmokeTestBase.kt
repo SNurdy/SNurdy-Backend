@@ -151,6 +151,8 @@ abstract class ApiSmokeTestBase {
     }
 
     private fun cleanupUserData() {
+        // custom_note_terms 는 ON DELETE CASCADE 로 함께 정리
+        jdbcTemplate.update("DELETE FROM custom_notes WHERE owner_id = UUID_TO_BIN(?)", userId.toString())
         jdbcTemplate.update("DELETE FROM bookmarks WHERE user_id = UUID_TO_BIN(?)", userId.toString())
         jdbcTemplate.update("DELETE FROM term_progresses WHERE user_id = UUID_TO_BIN(?)", userId.toString())
         jdbcTemplate.update("DELETE FROM glossary_progresses WHERE user_id = UUID_TO_BIN(?)", userId.toString())

@@ -73,7 +73,7 @@ class SecurityConfig(
 
     // Chain 1: 정적 자원 / 공개 페이지 / 인프라 헬스체크 / 스웨거.
     // JWT 필터 미탑재, 세션 없음. CMS 정적 HTML/CSS/JS 도 여기로.
-    // /actuator/prometheus 는 의도적으로 제외 → Chain 3에서 ROLE_ADMIN 요구.
+    // actuator prometheus 는 내부 Prometheus 스크래핑 전용으로 permitAll 로 개방하고 외부는 nginx 가 deny all 로 차단
     // dev profile 에서는 swagger 경로가 Chain 0 에서 먼저 매칭되어 BasicAuth 거침
     @Bean
     @Order(1)
@@ -85,6 +85,7 @@ class SecurityConfig(
                     AntPathRequestMatcher("/health"),
                     AntPathRequestMatcher("/v1/health"),
                     AntPathRequestMatcher("/actuator/health"),
+                    AntPathRequestMatcher("/actuator/prometheus", HttpMethod.GET.name()),
                     AntPathRequestMatcher("/swagger-ui/**"),
                     AntPathRequestMatcher("/swagger-resources/**"),
                     AntPathRequestMatcher("/v3/api-docs/**"),

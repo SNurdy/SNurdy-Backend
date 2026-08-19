@@ -11,14 +11,13 @@ import com.snurdy.backend.domain.auth.repository.RefreshTokenRepository
 import com.snurdy.backend.domain.user.account.entity.SocialType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
 import com.snurdy.backend.domain.user.account.repository.UserRepository
-import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
-import com.snurdy.backend.domain.user.preference.repository.UserPreferenceRepository
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.UserError
 import com.snurdy.backend.global.exception.ApiException
 import com.snurdy.backend.global.jwt.JwtProperties
 import com.snurdy.backend.global.jwt.JwtTokenProvider
 import com.snurdy.backend.global.jwt.TokenPair
+import com.snurdy.backend.global.jwt.TokenType
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
@@ -40,7 +39,7 @@ class AuthServiceTest {
     private lateinit var appleSocialProvider: AppleSocialProvider
     private lateinit var googleSocialProvider: GoogleSocialProvider
     private lateinit var userRepository: UserRepository
-    private lateinit var userPreferenceRepository: UserPreferenceRepository
+    private lateinit var userRegistrationService: UserRegistrationService
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var jwtTokenProvider: JwtTokenProvider
     private lateinit var accessTokenBlacklistService: AccessTokenBlacklistService
@@ -54,10 +53,10 @@ class AuthServiceTest {
         appleSocialProvider = mockk()
         googleSocialProvider = mockk()
         userRepository = mockk()
-        userPreferenceRepository = mockk(relaxed = true)
-        every { userPreferenceRepository.save(any<UserPreferenceEntity>()) } answers { firstArg() }
+        userRegistrationService = mockk()
         refreshTokenRepository = mockk()
         jwtTokenProvider = mockk()
+        every { jwtTokenProvider.getTokenType(any()) } returns TokenType.REFRESH
         accessTokenBlacklistService = mockk(relaxed = true)
         jwtProperties = JwtProperties(
             secretKey = "test-secret-test-secret-test-secret-test-secret",
@@ -70,7 +69,7 @@ class AuthServiceTest {
             appleSocialProvider = appleSocialProvider,
             googleSocialProvider = googleSocialProvider,
             userRepository = userRepository,
-            userPreferenceRepository = userPreferenceRepository,
+            userRegistrationService = userRegistrationService,
             refreshTokenRepository = refreshTokenRepository,
             jwtTokenProvider = jwtTokenProvider,
             accessTokenBlacklistService = accessTokenBlacklistService,
@@ -102,7 +101,7 @@ class AuthServiceTest {
 
         verify(exactly = 1) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
         verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
-        verify(exactly = 0) { userRepository.save(any()) }
+        verify(exactly = 0) { userRegistrationService.registerNewUser(any(), any()) }
     }
 
     @Test
@@ -111,11 +110,10 @@ class AuthServiceTest {
         val socialUserInfo = createSocialUserInfo()
         val reloadedUser = createUser(id = RELOADED_USER_ID)
         val issuedToken = createTokenResponse(reloadedUser.id)
-        val savedUserCandidate = slot<UserEntity>()
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
         every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returnsMany listOf(null, reloadedUser)
-        every { userRepository.save(capture(savedUserCandidate)) } throws DataIntegrityViolationException("duplicated")
+        every { userRegistrationService.registerNewUser(socialUserInfo, SocialType.KAKAO) } throws DataIntegrityViolationException("duplicated")
         every { jwtTokenProvider.createTokenPair(reloadedUser.id, reloadedUser.role.name) } returns createTokenPair()
         every { refreshTokenRepository.save(RefreshToken.create(reloadedUser.id, NEW_REFRESH_TOKEN, REFRESH_TOKEN_VALIDITY_DAYS)) } just runs
 
@@ -124,8 +122,7 @@ class AuthServiceTest {
 
         // Then
         assertEquals(issuedToken, result)
-        assertEquals(SOCIAL_ID, savedUserCandidate.captured.socialId)
-        assertEquals(SocialType.KAKAO, savedUserCandidate.captured.socialType)
+        verify(exactly = 1) { userRegistrationService.registerNewUser(socialUserInfo, SocialType.KAKAO) }
         verify(exactly = 2) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) }
         verify(exactly = 0) { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNotNull(any(), any()) }
         verify(exactly = 1) { jwtTokenProvider.createTokenPair(reloadedUser.id, reloadedUser.role.name) }
@@ -141,7 +138,7 @@ class AuthServiceTest {
 
         every { kakaoSocialProvider.getUserInfo(ACCESS_TOKEN) } returns socialUserInfo
         every { userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(SocialType.KAKAO, SOCIAL_ID) } returns null
-        every { userRepository.save(any()) } returns recreatedUser
+        every { userRegistrationService.registerNewUser(socialUserInfo, SocialType.KAKAO) } returns recreatedUser
         every { jwtTokenProvider.createTokenPair(recreatedUser.id, recreatedUser.role.name) } returns createTokenPair()
         every { refreshTokenRepository.save(capture(savedRefreshToken)) } just runs
 
@@ -313,6 +310,39 @@ class AuthServiceTest {
         assertEquals(user.id, savedRefreshToken.captured.userId)
         assertEquals(reissuedToken.refreshToken, savedRefreshToken.captured.token)
         assertEquals(THIRTY_DAYS_IN_SECONDS, savedRefreshToken.captured.ttlSeconds)
+    }
+
+    @Test
+    fun `reissue 시 refresh 가 아닌 토큰이 들어오면 INVALID_TOKEN 예외가 발생하고 저장된 토큰을 유지한다`() {
+        // Given
+        every { jwtTokenProvider.validateToken(NEW_ACCESS_TOKEN) } returns true
+        every { jwtTokenProvider.getTokenType(NEW_ACCESS_TOKEN) } returns TokenType.ACCESS
+
+        // When
+        val exception = assertThrows(ApiException::class.java) {
+            authService.reissue(NEW_ACCESS_TOKEN)
+        }
+
+        // Then
+        assertEquals(AuthError.INVALID_TOKEN, exception.error)
+        verify(exactly = 0) { refreshTokenRepository.findByUserId(any()) }
+        verify(exactly = 0) { refreshTokenRepository.deleteByUserId(any()) }
+    }
+
+    @Test
+    fun `logout 시 refresh 가 아닌 토큰이 들어오면 INVALID_TOKEN 예외가 발생하고 저장된 토큰을 유지한다`() {
+        // Given
+        every { jwtTokenProvider.validateToken(NEW_ACCESS_TOKEN) } returns true
+        every { jwtTokenProvider.getTokenType(NEW_ACCESS_TOKEN) } returns TokenType.ACCESS
+
+        // When
+        val exception = assertThrows(ApiException::class.java) {
+            authService.logout(NEW_ACCESS_TOKEN)
+        }
+
+        // Then
+        assertEquals(AuthError.INVALID_TOKEN, exception.error)
+        verify(exactly = 0) { refreshTokenRepository.deleteByUserId(any()) }
     }
 
     private fun createSocialUserInfo(): SocialUserInfo = SocialUserInfo(

@@ -81,6 +81,13 @@ kotlin {
     }
 }
 
+// 엔티티 클래스가 final 이면 Hibernate 가 LAZY 프록시를 만들지 못해 eager 로 폴백함
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.MappedSuperclass")
+    annotation("jakarta.persistence.Embeddable")
+}
+
 tasks.getByName<Test>("test") {
     useJUnitPlatform()
     testLogging {

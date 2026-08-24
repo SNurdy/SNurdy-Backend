@@ -11,10 +11,11 @@ data class SocialUserInfo(
     val nickname: String? = null
 )
 
-fun SocialUserInfo.toEntity(socialType: SocialType) = UserEntity(
+// nickname 은 랜덤 생성 폴백이 필요한 외부 계산 결과라 호출자가 확정해 넘긴다
+fun SocialUserInfo.toEntity(socialType: SocialType, nickname: String) = UserEntity(
     socialId = socialId,
     socialType = socialType,
     email = email,
     name = name.normalizeToNull(),
-    nickname = nickname.normalizeToNull()?.take(UserEntity.MAX_NICKNAME_LENGTH)
+    nickname = nickname.take(UserEntity.MAX_NICKNAME_LENGTH)
 )

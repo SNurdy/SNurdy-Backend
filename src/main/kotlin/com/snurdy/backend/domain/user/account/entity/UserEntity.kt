@@ -82,8 +82,9 @@ class UserEntity(
         migrationDeclinedAt = Instant.now()
     }
 
+    // 빈값이면 대입하지 않아 기존 닉네임을 보존. nickname 은 항상 값이 있어야 하므로 null 로 밀지 않음
     fun updateNickname(nickname: String?) {
-        this.nickname = nickname.normalizeToNull()?.take(MAX_NICKNAME_LENGTH)
+        nickname.normalizeToNull()?.let { this.nickname = it.take(MAX_NICKNAME_LENGTH) }
     }
 
     fun updateProfileImageUrl(url: String?) {

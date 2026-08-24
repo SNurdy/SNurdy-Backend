@@ -91,6 +91,13 @@ class UserEntity(
         this.profileImageUrl = url?.take(MAX_PROFILE_IMAGE_URL_LENGTH)
     }
 
+    // 초기 가입 시 소셜에서 이메일을 못 받은 유저를 재로그인 시점에 채운다. 이미 있으면 덮지 않음
+    fun backfillEmailIfMissing(email: String?) {
+        if (this.email == null) {
+            this.email = email.normalizeToNull()
+        }
+    }
+
     // 마케팅 동의 토글
     // 동의 시 동의 시각도 함께 기록
     // 철회 시 시각은 null로 비움

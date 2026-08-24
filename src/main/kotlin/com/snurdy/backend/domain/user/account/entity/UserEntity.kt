@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.user.account.entity
 
 import com.snurdy.backend.global.entity.BaseTimeEntity
+import com.snurdy.backend.global.extension.normalizeToNull
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -82,7 +83,7 @@ class UserEntity(
     }
 
     fun updateNickname(nickname: String?) {
-        this.nickname = nickname?.take(MAX_NICKNAME_LENGTH)
+        this.nickname = nickname.normalizeToNull()?.take(MAX_NICKNAME_LENGTH)
     }
 
     fun updateProfileImageUrl(url: String?) {

@@ -2,6 +2,7 @@ package com.snurdy.backend.domain.auth.external.dto.common
 
 import com.snurdy.backend.domain.user.account.entity.SocialType
 import com.snurdy.backend.domain.user.account.entity.UserEntity
+import com.snurdy.backend.global.extension.normalizeToNull
 
 data class SocialUserInfo(
     val socialId: String,
@@ -14,6 +15,6 @@ fun SocialUserInfo.toEntity(socialType: SocialType) = UserEntity(
     socialId = socialId,
     socialType = socialType,
     email = email,
-    name = name,
-    nickname = nickname?.take(UserEntity.MAX_NICKNAME_LENGTH)
+    name = name.normalizeToNull(),
+    nickname = nickname.normalizeToNull()?.take(UserEntity.MAX_NICKNAME_LENGTH)
 )

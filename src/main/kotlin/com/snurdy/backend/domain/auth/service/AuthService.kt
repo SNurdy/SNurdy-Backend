@@ -30,6 +30,7 @@ class AuthService(
     private val googleSocialProvider: GoogleSocialProvider,
     private val userRepository: UserRepository,
     private val userRegistrationService: UserRegistrationService,
+    private val socialProfileSyncService: SocialProfileSyncService,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val jwtTokenProvider: JwtTokenProvider,
     private val accessTokenBlacklistService: AccessTokenBlacklistService,
@@ -83,6 +84,10 @@ class AuthService(
     private fun processLogin(userInfo: SocialUserInfo, socialType: SocialType): TokenResponse {
         val activeUser = userRepository.findBySocialTypeAndSocialIdAndDeletedAtIsNull(socialType, userInfo.socialId)
         if (activeUser != null) {
+            // 초기 가입 시 이메일을 못 받은 유저가 재동의로 이메일을 넘기면 이때 채운다
+            if (activeUser.email == null) {
+                socialProfileSyncService.syncMissingEmail(activeUser.id, userInfo.email)
+            }
             return issueTokens(activeUser)
         }
 

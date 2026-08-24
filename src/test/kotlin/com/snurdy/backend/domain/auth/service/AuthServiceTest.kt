@@ -40,6 +40,7 @@ class AuthServiceTest {
     private lateinit var googleSocialProvider: GoogleSocialProvider
     private lateinit var userRepository: UserRepository
     private lateinit var userRegistrationService: UserRegistrationService
+    private lateinit var socialProfileSyncService: SocialProfileSyncService
     private lateinit var refreshTokenRepository: RefreshTokenRepository
     private lateinit var jwtTokenProvider: JwtTokenProvider
     private lateinit var accessTokenBlacklistService: AccessTokenBlacklistService
@@ -54,6 +55,7 @@ class AuthServiceTest {
         googleSocialProvider = mockk()
         userRepository = mockk()
         userRegistrationService = mockk()
+        socialProfileSyncService = mockk(relaxed = true)
         refreshTokenRepository = mockk()
         jwtTokenProvider = mockk()
         every { jwtTokenProvider.getTokenType(any()) } returns TokenType.REFRESH
@@ -70,6 +72,7 @@ class AuthServiceTest {
             googleSocialProvider = googleSocialProvider,
             userRepository = userRepository,
             userRegistrationService = userRegistrationService,
+            socialProfileSyncService = socialProfileSyncService,
             refreshTokenRepository = refreshTokenRepository,
             jwtTokenProvider = jwtTokenProvider,
             accessTokenBlacklistService = accessTokenBlacklistService,

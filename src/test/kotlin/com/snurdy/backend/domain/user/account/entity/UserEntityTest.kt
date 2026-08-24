@@ -18,7 +18,7 @@ class UserEntityTest {
         )
 
         // When
-        val user = socialUserInfo.toEntity(SocialType.GOOGLE)
+        val user = socialUserInfo.toEntity(SocialType.GOOGLE, "backend-learner")
 
         // Then
         assertEquals("social-1", user.socialId)
@@ -32,13 +32,10 @@ class UserEntityTest {
     fun `toEntity 변환 시 닉네임 길이가 20자를 초과하면 20자로 절단한다`() {
         // Given
         val longNickname = "nickname-over-twenty-characters"
-        val socialUserInfo = SocialUserInfo(
-            socialId = "social-2",
-            nickname = longNickname
-        )
+        val socialUserInfo = SocialUserInfo(socialId = "social-2")
 
         // When
-        val user = socialUserInfo.toEntity(SocialType.APPLE)
+        val user = socialUserInfo.toEntity(SocialType.APPLE, longNickname)
 
         // Then
         assertEquals(MAX_NICKNAME_LENGTH, requireNotNull(user.nickname).length)
@@ -46,18 +43,20 @@ class UserEntityTest {
     }
 
     @Test
-    fun `toEntity 변환 시 닉네임이 없으면 null 을 유지한다`() {
+    fun `toEntity 변환 시 name 이 blank 면 null 로 정규화한다`() {
         // Given
         val socialUserInfo = SocialUserInfo(
             socialId = "social-3",
-            email = "no-nickname@example.com"
+            email = "blank-name@example.com",
+            name = "   "
         )
 
         // When
-        val user = socialUserInfo.toEntity(SocialType.KAKAO)
+        val user = socialUserInfo.toEntity(SocialType.KAKAO, "잔잔한 고래")
 
         // Then
-        assertEquals(null, user.nickname)
+        assertEquals(null, user.name)
+        assertEquals("잔잔한 고래", user.nickname)
     }
 
     companion object {

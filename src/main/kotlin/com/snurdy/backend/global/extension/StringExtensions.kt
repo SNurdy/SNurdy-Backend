@@ -12,3 +12,6 @@ fun String.extractBearerToken(): String {
     }
     return trimmed.substring(BEARER_PREFIX.length).trim()
 }
+
+// 값 없음의 표현을 null 하나로 통일하려고 blank 를 null 로 정규화
+fun String?.normalizeToNull(): String? = this?.trim()?.takeIf { it.isNotEmpty() }

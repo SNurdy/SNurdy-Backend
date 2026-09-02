@@ -61,6 +61,10 @@ dependencies {
     // Spring Cloud AWS - S3
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 
+    // Sentry
+    implementation("io.sentry:sentry-spring-boot-starter-jakarta")
+    implementation("io.sentry:sentry-logback")
+
     // test
     testImplementation("io.mockk:mockk:1.13.16")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -72,6 +76,7 @@ dependencyManagement {
     imports {
         mavenBom("org.springframework.cloud:spring-cloud-dependencies:$springCloudVersion")
         mavenBom("io.awspring.cloud:spring-cloud-aws-dependencies:3.3.1")
+        mavenBom("io.sentry:sentry-bom:8.50.1")
     }
 }
 

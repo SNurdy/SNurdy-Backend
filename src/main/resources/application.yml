@@ -122,3 +122,10 @@ management:
     metrics:
       export:
         enabled: true
+
+sentry:
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:local}
+  send-default-pii: false
+  logging:
+    minimum-event-level: error

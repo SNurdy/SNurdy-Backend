@@ -4,8 +4,22 @@
 
 `terms` 테이블(사전 카탈로그)에 표기 규칙이 통일되지 않은 데이터가 누적되어 있다. 대소문자, 괄호, 한글 띄어쓰기, 약어 표기가 제각각이고, 같은 개념이 표기만 다르게 여러 번 입력된 중복 행이 존재한다. 이 문서는 문제를 카테고리로 정리하고 정규화 규칙과 안전한 적용 절차를 정의한다.
 
-- 작성 기준 데이터: prod export 스냅샷 (활성 term 948행, soft-delete 0)
-- 현재 단계: 규칙 확정 및 문서화. 실제 데이터 반영은 규칙 확정 후 진행
+- 작성 기준 데이터: prod export 스냅샷 (활성 term 948행), dev export 스냅샷 (term 1228행)
+- prod와 dev의 term 카탈로그가 갈라져 있다. 담당자가 dev에서 단어를 추가해 두었고, 이를 prod에 먼저 반영한 뒤 정규화한다
+
+## 로드맵 (전체 순서)
+
+정규화와 동기화는 별개 트랙이며 순서가 있다.
+
+| Phase | 내용 | 상태 |
+|---|---|---|
+| 0 | admin 도메인/테이블 제거, 문제점 수집, dev/prod diff 분석 | 완료 |
+| 1 | dev -> prod 동기화 (신규 term만 추가, 기존 행 무변경) | 진행 |
+| 2 | 통합 1228행 기준 중복 재스캔 (신규가 만든 새 중복 확인) | 대기 |
+| 3 | 정규화 규칙 확정 (부록 B 미결 결정, 고유명사 예외 검수) | 결정 필요 |
+| 4 | 정규화 적용 (A 대소문자 -> D 띄어쓰기 -> E 약어 -> B/C 괄호분리 -> F 중복정리) | Phase 3 후 |
+
+Phase 4는 5장의 적용 순서를 따른다. Phase 1의 상세는 아래 참조.
 
 ## 2. 전제 조건
 
@@ -22,6 +36,46 @@
 ### 2.3 참조 관계 (중요)
 `terms`를 참조하는 FK는 대부분 `ON DELETE CASCADE`다. term 행을 삭제하면 아래 사용자 데이터가 함께 삭제된다.
 - `term_progresses`(학습 진도), `bookmarks`(북마크), `wrong_answer_terms`(오답), `custom_note_terms`(커스텀노트), `glossary_terms`(단어장 매핑), `term_morphemes`(형태소 매핑)
+
+---
+
+## Phase 1. dev to prod 동기화
+
+### P1.1 diff 결과
+dev(1228)와 prod(948)를 id 기준으로 대조한 결과.
+- 삭제 0. prod에 있는 term이 dev에서 사라진 경우 없음
+- 신규 280개. dev에만 있는 id 949..1228 연속. 순수 추가
+- 핵심 필드(spelling/meaning/abbreviation) 수정 0. 기존 948개는 core가 동일
+- explanation만 다른 행 10개 (id 14,25,35,72,133,284,404,478,520,522). 동기화에서 제외
+- glossaries 29=29, 신규/변경 없음. 새 단어장 없음
+
+결론: insert-only 동기화가 가능하다. 기존 행은 건드리지 않으므로 prod 유저 데이터와 prod에서 직접 한 수정이 모두 보존된다.
+
+### P1.2 prod에서 직접 한 수정 (보존 대상)
+prod에 반영되어 있고 dev에는 없는 변경. 동기화가 덮어쓰면 안 된다.
+- morpheme id=501: prod `bronch(o)-`(기관지) vs dev `-ion`. prod쪽이 정본
+- 기존 term의 glossary_terms 24행, term_morphemes 38행이 prod에만 존재. 상당수가 중복 변형 term의 매핑이며 `Bronchitis/Bronchiectasis/Bronchoscopy -> m501 bronch(o)-` 매핑을 포함한다. 삭제하지 않는다
+
+### P1.3 morpheme id 충돌 처리
+dev 형태소 545행 중 신규 45개(id 502..547), 삭제 0, 기존 1..500 동일. 단 id=501이 prod(bronch)와 dev(-ion)에서 다르다.
+- prod 501(bronch)은 기존 term 505, 508, 528 및 Bronchitis 계열이 참조하므로 유지
+- dev 501(-ion)은 신규 term 1176이 참조. prod에 새 id 548로 INSERT하고, 1176의 term_morphemes 매핑을 501 -> 548로 remap
+
+### P1.4 동기화 범위 (신규만, 기존 행 무변경)
+FK 순서를 지켜 INSERT한다.
+
+| 순서 | 테이블 | 작업 | 건수 | 비고 |
+|---|---|---|---|---|
+| 1 | terms | INSERT | 280 | id 949..1228, dev id 보존 |
+| 2 | morphemes | INSERT | 46 | id 502..547 + dev 501(-ion)을 새 id 548로 |
+| 3 | morpheme_variants | INSERT | 70 | 신규 morpheme의 변형 |
+| 4 | term_morphemes | INSERT | 352 | 신규 term 매핑, term 1176은 501 -> 548 remap |
+| 5 | glossary_terms | INSERT | 293 | 참조 glossary 전부 prod 존재 |
+
+기존 term(id <= 948)의 매핑 변경 및 explanation 변경은 이번 동기화에서 제외한다. dev의 기존 term 재편(glossary_terms 83 추가 등)은 담당자 확인 후 별도 처리.
+
+### P1.5 검증
+dev 배포로 마이그레이션 적용 확인 후 prod 배포. 동기화 후 통합 1228행 기준으로 중복(카테고리 F)을 재스캔한다. 신규 term이 기존 term과 새 중복을 만들 수 있고, 신규 term 자체도 표기 문제가 있다 (예: id 949 `Transabdominal preperitoneal hrenioplasty` 오타 및 Title Case).
 
 ---
 

@@ -17,13 +17,6 @@ class TokenTypeTest {
     }
 
     @Test
-    fun `대소문자 무관하게 admin claim도 ADMIN으로 매핑된다 (구버전 토큰 호환)`() {
-        assertEquals(TokenType.ADMIN, TokenType.fromClaim("admin"))
-        assertEquals(TokenType.ADMIN, TokenType.fromClaim("ADMIN"))
-        assertEquals(TokenType.ADMIN, TokenType.fromClaim("Admin"))
-    }
-
-    @Test
     fun `알 수 없는 type 또는 null이면 null 반환`() {
         assertNull(TokenType.fromClaim(null))
         assertNull(TokenType.fromClaim(""))

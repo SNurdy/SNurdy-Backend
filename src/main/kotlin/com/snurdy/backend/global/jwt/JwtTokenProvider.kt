@@ -22,9 +22,6 @@ class JwtTokenProvider(
         refreshTokenExpiresIn = jwtProperties.refreshTokenExpiration
     )
 
-    fun createAdminAccessToken(adminId: UUID): String =
-        generateToken(adminId, ADMIN_ROLE, jwtProperties.adminAccessTokenExpiration, TokenType.ADMIN)
-
     fun validateToken(token: String): Boolean = runCatching {
         parseClaims(token)
     }.isSuccess
@@ -50,8 +47,6 @@ class JwtTokenProvider(
 
     fun accessTokenExpiration(): Long = jwtProperties.accessTokenExpiration
 
-    fun adminAccessTokenExpiration(): Long = jwtProperties.adminAccessTokenExpiration
-
     private fun generateToken(userId: UUID, role: String, expirationMillis: Long, tokenType: TokenType): String {
         val now = Date()
         return Jwts.builder()
@@ -67,6 +62,5 @@ class JwtTokenProvider(
     companion object {
         private const val CLAIM_ROLE = "role"
         private const val CLAIM_TYPE = "type"
-        private const val ADMIN_ROLE = "ADMIN"
     }
 }

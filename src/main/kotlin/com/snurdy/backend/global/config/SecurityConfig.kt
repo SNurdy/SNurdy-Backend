@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
 import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.web.cors.CorsConfiguration
@@ -90,17 +89,12 @@ class SecurityConfig(
                     AntPathRequestMatcher("/swagger-resources/**"),
                     AntPathRequestMatcher("/v3/api-docs/**"),
                     AntPathRequestMatcher("/webjars/**"),
-                    AntPathRequestMatcher("/swagger"),
-                    AntPathRequestMatcher("/admin/**", HttpMethod.GET.name())
+                    AntPathRequestMatcher("/swagger")
                 )
             )
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { it.anyRequest().permitAll() }
-            .headers { headers ->
-                // CMS 페이지 clickjacking 방어
-                headers.addHeaderWriter(XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.DENY))
-            }
 
         return http.build()
     }
@@ -113,7 +107,6 @@ class SecurityConfig(
         http.securityMatcher(
             OrRequestMatcher(
                 AntPathRequestMatcher("/v1/auth/**"),
-                AntPathRequestMatcher("/v1/admin/auth/**"),
                 AntPathRequestMatcher("/v1/app/version/**")
             )
         )
@@ -131,7 +124,7 @@ class SecurityConfig(
                 accessDeniedHandler = securityExceptionHandler
             }
 
-            // admin logout은 블랙리스트 등록을 위해 JWT 필터가 먼저 돌며 blacklist 체크를 해야 함
+            // logout은 블랙리스트 등록을 위해 JWT 필터가 먼저 돌며 blacklist 체크를 해야 함
             addFilterBefore<UsernamePasswordAuthenticationFilter>(jwtAuthenticationFilter)
         }
 
@@ -150,12 +143,10 @@ class SecurityConfig(
             sessionManagement { sessionCreationPolicy = SessionCreationPolicy.STATELESS }
 
             authorizeHttpRequests {
-                // 관리자 API
-                authorize("/v1/admin/**", hasRole("ADMIN"))
                 // 마이그레이션
                 authorize("/v1/migration/**", hasRole("USER"))
-                // Actuator 비공개 엔드포인트 (env, beans, loggers 등)
-                authorize("/actuator/**", hasRole("ADMIN"))
+                // Actuator 비공개 엔드포인트는 발급 가능한 권한이 없으므로 완전 차단. health prometheus 는 Chain1 permitAll
+                authorize("/actuator/**", denyAll)
                 // Internal 은 완전 차단
                 authorize("/internal/**", denyAll)
                 // 그 외 인증 필요

@@ -62,6 +62,6 @@ class AccessTokenBlacklistService(
     companion object {
         private const val KEY_PREFIX = "access_token_blacklist:"
         private const val BLACKLISTED_MARK = "1"
-        private val BLACKLISTABLE_TYPES = setOf(TokenType.ACCESS, TokenType.ADMIN)
+        private val BLACKLISTABLE_TYPES = setOf(TokenType.ACCESS)
     }
 }

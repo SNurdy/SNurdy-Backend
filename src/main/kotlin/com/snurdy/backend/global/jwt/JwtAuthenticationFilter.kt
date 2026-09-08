@@ -28,7 +28,7 @@ class JwtAuthenticationFilter(
         }
 
         val tokenType = jwtTokenProvider.getTokenType(token)
-        if (tokenType != TokenType.ACCESS && tokenType != TokenType.ADMIN) {
+        if (tokenType != TokenType.ACCESS) {
             filterChain.doFilter(request, response)
             return
         }

@@ -1,7 +1,5 @@
 package com.snurdy.backend.global.docs
 
-import com.snurdy.backend.global.constants.AdminError
-import com.snurdy.backend.global.constants.AdminSuccess
 import com.snurdy.backend.global.constants.AuthError
 import com.snurdy.backend.global.constants.AuthSuccess
 import com.snurdy.backend.global.constants.BookmarkSuccess
@@ -46,7 +44,6 @@ object ApiCodeRegistry {
             ProfileImageError.entries,
             WrongAnswerNoteError.entries,
             TermMemoError.entries,
-            AdminError.entries,
             VersionError.entries
         ).flatten().forEach {
             val prev = put(it.code, it)
@@ -69,7 +66,6 @@ object ApiCodeRegistry {
             WrongAnswerNoteSuccess.entries,
             TermMemoSuccess.entries,
             MigrationSuccess.entries,
-            AdminSuccess.entries,
             VersionSuccess.entries
         ).flatten().forEach {
             val prev = put(it.code, it)

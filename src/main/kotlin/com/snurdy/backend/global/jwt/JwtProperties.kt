@@ -7,8 +7,7 @@ import java.util.concurrent.TimeUnit
 data class JwtProperties(
     val secretKey: String,
     val accessTokenExpiration: Long,
-    val refreshTokenExpiration: Long,
-    val adminAccessTokenExpiration: Long = accessTokenExpiration
+    val refreshTokenExpiration: Long
 ) {
     val refreshTokenValidityDays: Long
         get() = TimeUnit.MILLISECONDS.toDays(refreshTokenExpiration)

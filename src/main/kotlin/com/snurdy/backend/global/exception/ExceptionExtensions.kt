@@ -23,6 +23,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.MissingRequestHeaderException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
@@ -57,6 +58,10 @@ fun Throwable.toApiException(): ApiException = when (this) {
     // 파라미터 누락 - 어떤 파라미터인지 알려줌
     is MissingServletRequestParameterException ->
         ApiException(CommonError.BAD_REQUEST, "필수 파라미터 누락: ${this.parameterName}")
+
+    // 헤더 누락 - 어떤 헤더인지 알려줌
+    is MissingRequestHeaderException ->
+        ApiException(CommonError.BAD_REQUEST, "필수 헤더 누락: ${this.headerName}")
 
     // multipart 사이즈 초과 - tomcat / Spring 의 file/part limit 초과
     // 현재 multipart endpoint 는 프로필 이미지 업로드 1종이라 ProfileImageError 매핑

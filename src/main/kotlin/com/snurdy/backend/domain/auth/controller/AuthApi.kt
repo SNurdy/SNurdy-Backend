@@ -52,6 +52,6 @@ interface AuthApi {
     @PostMapping("/logout")
     fun logout(
         @RequestHeader("Authorization-Refresh") refreshToken: String,
-        @RequestHeader("Authorization") accessToken: String
+        @RequestHeader(value = "Authorization", required = false) accessToken: String?
     ): ApiResponse<Unit>
 }

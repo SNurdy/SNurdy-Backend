@@ -18,8 +18,10 @@ data class GlossaryCard(
     val testType: TestType,
     @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구. LISTEN_AND_WRITE 는 클라가 화면 노출 없이 TTS 재생만", example = "심전도")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "Electrocardiogram")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null", example = "[\"Hemoglobin\", \"Hematocrit\", \"Erythrocyte\"]")
     val distractors: List<String>?,
     @field:Schema(description = "영문 용어", example = "Electrocardiogram")
@@ -64,8 +66,10 @@ data class WrongAnswerCard(
     val testType: TestType,
     @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "심전도")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "Electrocardiogram")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null")
     val distractors: List<String>?,
     @field:Schema(description = "영문 용어", example = "Electrocardiogram")
@@ -92,8 +96,10 @@ data class CustomNoteCard(
     val testType: TestType,
     @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "심전도")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "Electrocardiogram")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null")
     val distractors: List<String>?,
     @field:Schema(description = "영문 용어", example = "Electrocardiogram")
@@ -158,6 +164,10 @@ data class WrongAnswerCardsResponse(
     val cards: List<WrongAnswerCard>
 )
 
+// 콤마로 구분된 동의어를 작성형 인정 정답 목록으로 분리 데이터는 V57 이후 콤마로 통일
+fun splitAcceptableAnswers(answer: String): List<String> =
+    answer.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
 // 매핑 helper — sampling 결과 (term projection) + derive 결과 (testType/question/answer/distractors) 조합
 // receiver projection 의 인터페이스 차이로 1:N 매핑 형태이므로 receiver 별 명시
 fun SimpleTermProjection.toGlossaryCard(
@@ -172,6 +182,7 @@ fun SimpleTermProjection.toGlossaryCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,
@@ -207,6 +218,7 @@ fun NoteCardTermProjection.toWrongAnswerCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,
@@ -229,6 +241,7 @@ fun NoteCardTermProjection.toCustomNoteCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,

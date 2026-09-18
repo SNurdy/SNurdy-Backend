@@ -10,7 +10,6 @@ import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriodCardL
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerTermsResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toResponse
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.toWrongAnswerCard
-import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermEntity
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermRepository
 import com.snurdy.backend.global.constants.DictionaryError
@@ -32,32 +31,16 @@ class WrongAnswerNoteService(
     private val clock: Clock
 ) {
 
-    // 기본 단어장 submit 시 오답 batch 누적 반영
-    // 신규 termId 면 INSERT, 기존 row 면 totalIncorrectCount += 1 + incorrectAt 갱신 + soft delete 복구
+    // 기본 단어장 submit 시 오답 누적 반영
+    // termId 별 upsert 로 PK (user_id, term_id) 충돌을 DB 레벨에서 원자 처리
+    // 신규면 INSERT 기존이면 누적 증가 및 soft delete 복구 동시 제출 레이스에도 안전
     // glossaryId 는 호출자가 결정 (현재 학습 중인 단어장)
     @Transactional
     fun recordIncorrects(userId: UUID, termIds: List<Long>, glossaryId: Long, occurredAt: Instant) {
         if (termIds.isEmpty()) return
-        val distinctTermIds = termIds.distinct()
-
-        val existingByTermId = wrongAnswerTermRepository
-            .findAllByIdUserIdAndIdTermIdIn(userId, distinctTermIds)
-            .associateBy { it.id.termId }
-
-        val newTermIds = distinctTermIds.filter { it !in existingByTermId }
-        if (newTermIds.isNotEmpty()) {
-            wrongAnswerTermRepository.saveAll(
-                newTermIds.map { termId ->
-                    WrongAnswerTermEntity.firstIncorrect(
-                        userId = userId,
-                        termId = termId,
-                        glossaryId = glossaryId,
-                        occurredAt = occurredAt
-                    )
-                }
-            )
+        termIds.distinct().forEach { termId ->
+            wrongAnswerTermRepository.upsertIncorrect(userId, termId, glossaryId, occurredAt)
         }
-        existingByTermId.values.forEach { it.recordIncorrect(glossaryId, occurredAt) }
     }
 
     // 오답노트 submit 시 또 틀린 단어들의 누적값만 갱신

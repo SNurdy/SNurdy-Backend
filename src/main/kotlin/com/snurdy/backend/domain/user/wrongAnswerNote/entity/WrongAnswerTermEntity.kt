@@ -5,7 +5,6 @@ import jakarta.persistence.EmbeddedId
 import jakarta.persistence.Entity
 import jakarta.persistence.Table
 import java.time.Instant
-import java.util.UUID
 
 @Entity
 @Table(name = "wrong_answer_terms")
@@ -39,20 +38,4 @@ class WrongAnswerTermEntity(
     }
 
     fun isActive(): Boolean = deletedAt == null
-
-    companion object {
-        // 처음 오답 발생 시 신규 row 생성
-        fun firstIncorrect(
-            userId: UUID,
-            termId: Long,
-            glossaryId: Long,
-            occurredAt: Instant
-        ): WrongAnswerTermEntity = WrongAnswerTermEntity(
-            id = WrongAnswerTermId(userId = userId, termId = termId),
-            glossaryId = glossaryId,
-            incorrectAt = occurredAt,
-            totalIncorrectCount = 1,
-            deletedAt = null
-        )
-    }
 }

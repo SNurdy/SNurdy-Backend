@@ -6,6 +6,7 @@ import com.snurdy.backend.domain.user.wrongAnswerNote.entity.WrongAnswerTermId
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.Instant
@@ -18,11 +19,35 @@ interface WrongAnswerTermRepository : JpaRepository<WrongAnswerTermEntity, Wrong
         termIds: Collection<Long>
     ): List<WrongAnswerTermEntity>
 
-    // soft delete 무관 — recordIncorrects 가 deletedAt 상태와 관계 없이 row 찾아 복구
+    // soft delete 무관 — recordIncorrectsAgain 이 deletedAt 상태와 관계 없이 row 찾아 복구
     fun findAllByIdUserIdAndIdTermIdIn(
         userId: UUID,
         termIds: Collection<Long>
     ): List<WrongAnswerTermEntity>
+
+    // 오답 1건 upsert 신규면 INSERT 기존이면 누적 증가 및 soft delete 복구
+    // ON DUPLICATE KEY 로 동시 제출 시 PK 충돌 대신 원자적 누적 처리
+    @Modifying
+    @Query(
+        value = """
+        INSERT INTO wrong_answer_terms
+            (user_id, term_id, glossary_id, incorrect_at, total_incorrect_count, deleted_at)
+        VALUES
+            (:userId, :termId, :glossaryId, :occurredAt, 1, NULL)
+        ON DUPLICATE KEY UPDATE
+            glossary_id = :glossaryId,
+            incorrect_at = :occurredAt,
+            total_incorrect_count = total_incorrect_count + 1,
+            deleted_at = NULL
+        """,
+        nativeQuery = true
+    )
+    fun upsertIncorrect(
+        @Param("userId") userId: UUID,
+        @Param("termId") termId: Long,
+        @Param("glossaryId") glossaryId: Long,
+        @Param("occurredAt") occurredAt: Instant
+    )
 
     // 기간별 카드 카운트. after 가 null 이면 ALL
     @Query(

@@ -12,23 +12,25 @@ import jakarta.validation.constraints.NotNull
 
 @Schema(description = "과별 단어장 학습 카드 1개")
 data class GlossaryCard(
-    @field:Schema(description = "단어 id", example = "101")
+    @field:Schema(description = "단어 id", example = "293")
     val termId: Long,
-    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_TERM_FROM_MEANING")
+    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_MEANING_FROM_TERM")
     val testType: TestType,
-    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구. LISTEN_AND_WRITE 는 클라가 화면 노출 없이 TTS 재생만", example = "심전도")
+    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구. LISTEN_AND_WRITE 는 클라가 화면 노출 없이 TTS 재생만", example = "arterial line")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "동맥선, 동맥 카테터")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null", example = "[\"Hemoglobin\", \"Hematocrit\", \"Erythrocyte\"]")
     val distractors: List<String>?,
-    @field:Schema(description = "영문 용어", example = "Electrocardiogram")
+    @field:Schema(description = "영문 용어", example = "arterial line")
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "심전도")
+    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "ECG")
+    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    @field:Schema(description = "상세 설명. 없으면 null", example = "지속적인 혈압 감시 및 동맥혈 채취를 위해 동맥 내에 삽입하는 카테터입니다.")
     val explanation: String?,
     @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부", example = "false")
     val bookmarked: Boolean,
@@ -38,15 +40,15 @@ data class GlossaryCard(
 
 @Schema(description = "과별 단어장 학습 세트 단어 1개")
 data class GlossaryStudyTerm(
-    @field:Schema(description = "단어 id", example = "101")
+    @field:Schema(description = "단어 id", example = "293")
     val termId: Long,
-    @field:Schema(description = "영문 용어", example = "Electrocardiogram")
+    @field:Schema(description = "영문 용어", example = "arterial line")
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "심전도")
+    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "ECG")
+    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    @field:Schema(description = "상세 설명. 없으면 null", example = "지속적인 혈압 감시 및 동맥혈 채취를 위해 동맥 내에 삽입하는 카테터입니다.")
     val explanation: String?,
     @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부", example = "false")
     val bookmarked: Boolean,
@@ -56,25 +58,27 @@ data class GlossaryStudyTerm(
 
 @Schema(description = "오답노트 학습 카드 1개")
 data class WrongAnswerCard(
-    @field:Schema(description = "단어 id", example = "101")
+    @field:Schema(description = "단어 id", example = "293")
     val termId: Long,
     @field:Schema(description = "단어가 속한 단어장 id", example = "12")
     val glossaryId: Long,
-    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_TERM_FROM_MEANING")
+    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_MEANING_FROM_TERM")
     val testType: TestType,
-    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "심전도")
+    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "arterial line")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "동맥선, 동맥 카테터")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null")
     val distractors: List<String>?,
-    @field:Schema(description = "영문 용어", example = "Electrocardiogram")
+    @field:Schema(description = "영문 용어", example = "arterial line")
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "심전도")
+    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "ECG")
+    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    @field:Schema(description = "상세 설명. 없으면 null", example = "지속적인 혈압 감시 및 동맥혈 채취를 위해 동맥 내에 삽입하는 카테터입니다.")
     val explanation: String?,
     @field:Schema(description = "단어가 속한 단어장에서 사용자가 북마크 했는지 여부", example = "false")
     val bookmarked: Boolean,
@@ -84,25 +88,27 @@ data class WrongAnswerCard(
 
 @Schema(description = "커스텀노트 학습 카드 1개")
 data class CustomNoteCard(
-    @field:Schema(description = "단어 id", example = "101")
+    @field:Schema(description = "단어 id", example = "293")
     val termId: Long,
     @field:Schema(description = "단어가 속한 단어장 id", example = "12")
     val glossaryId: Long,
-    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_TERM_FROM_MEANING")
+    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_MEANING_FROM_TERM")
     val testType: TestType,
-    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "심전도")
+    @field:Schema(description = "문제 텍스트, 서버가 testType 으로 derive 한 노출 문구", example = "arterial line")
     val question: String,
-    @field:Schema(description = "정답 텍스트, 클라가 채점에 사용", example = "Electrocardiogram")
+    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "동맥선, 동맥 카테터")
     val answer: String,
+    @field:Schema(description = "작성형 채점용 인정 정답 목록. 콤마 동의어를 분리한 결과로 하나라도 일치하면 정답. MC 카드는 answer 사용", example = "[\"동맥선\", \"동맥 카테터\"]")
+    val answers: List<String>,
     @field:Schema(description = "다지선다 카드의 보기 3개. 작성형 / LISTEN_AND_WRITE 카드는 null")
     val distractors: List<String>?,
-    @field:Schema(description = "영문 용어", example = "Electrocardiogram")
+    @field:Schema(description = "영문 용어", example = "arterial line")
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "심전도")
+    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "ECG")
+    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null", example = "심장 활동의 전기적 변화를 기록한 그래프")
+    @field:Schema(description = "상세 설명. 없으면 null", example = "지속적인 혈압 감시 및 동맥혈 채취를 위해 동맥 내에 삽입하는 카테터입니다.")
     val explanation: String?,
     @field:Schema(description = "단어가 속한 단어장에서 사용자가 북마크 했는지 여부", example = "false")
     val bookmarked: Boolean,
@@ -158,6 +164,11 @@ data class WrongAnswerCardsResponse(
     val cards: List<WrongAnswerCard>
 )
 
+// 콤마로 구분된 동의어를 작성형 인정 정답 목록으로 분리
+// 데이터는 V57 이후 콤마 구분자로 통일됨
+fun splitAcceptableAnswers(answer: String): List<String> =
+    answer.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+
 // 매핑 helper — sampling 결과 (term projection) + derive 결과 (testType/question/answer/distractors) 조합
 // receiver projection 의 인터페이스 차이로 1:N 매핑 형태이므로 receiver 별 명시
 fun SimpleTermProjection.toGlossaryCard(
@@ -172,6 +183,7 @@ fun SimpleTermProjection.toGlossaryCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,
@@ -207,6 +219,7 @@ fun NoteCardTermProjection.toWrongAnswerCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,
@@ -229,6 +242,7 @@ fun NoteCardTermProjection.toCustomNoteCard(
     testType = testType,
     question = question,
     answer = answer,
+    answers = splitAcceptableAnswers(answer),
     distractors = distractors,
     spelling = spelling,
     meaning = meaning,

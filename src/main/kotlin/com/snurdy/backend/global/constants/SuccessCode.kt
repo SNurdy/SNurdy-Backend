@@ -79,6 +79,24 @@ enum class ProfileImageSuccess(
     UPLOAD(HttpStatus.OK, "PROFILE_IMAGE_S001", "프로필 이미지를 변경했습니다")
 }
 
+// 신규 학습 API
+enum class StudyCardSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_STUDY_CARDS(HttpStatus.OK, "STUDY_CARD_S001", "학습 카드를 조회했습니다")
+}
+
+enum class TestCardSuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_TEST_CARDS(HttpStatus.OK, "TEST_CARD_S001", "테스트 카드를 조회했습니다")
+}
+
+// 기존 학습 API
 enum class CardSuccess(
     override val status: HttpStatus,
     override val code: String,

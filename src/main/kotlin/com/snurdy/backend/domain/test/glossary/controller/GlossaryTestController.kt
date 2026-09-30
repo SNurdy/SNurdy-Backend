@@ -1,12 +1,11 @@
-package com.snurdy.backend.domain.test.controller
+package com.snurdy.backend.domain.test.glossary.controller
 
-import com.snurdy.backend.domain.card.dto.GlossaryCardsRequest
-import com.snurdy.backend.domain.card.dto.GlossaryCardsResponse
-import com.snurdy.backend.domain.card.service.CardService
-import com.snurdy.backend.domain.test.dto.SubmitGlossaryTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
-import com.snurdy.backend.domain.test.service.TestService
-import com.snurdy.backend.global.constants.CardSuccess
+import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
+import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
+import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
+import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
+import com.snurdy.backend.domain.test.glossary.service.GlossaryTestService
+import com.snurdy.backend.global.constants.TestCardSuccess
 import com.snurdy.backend.global.constants.TestSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
@@ -14,27 +13,26 @@ import java.util.UUID
 
 @RestController
 class GlossaryTestController(
-    private val cardService: CardService,
-    private val testService: TestService
+    private val glossaryTestService: GlossaryTestService
 ) : GlossaryTestApi {
 
-    override fun listCards(
+    override fun listTestCards(
         userId: UUID,
         glossaryId: Long,
-        request: GlossaryCardsRequest
-    ): ApiResponse<GlossaryCardsResponse> =
+        request: GlossaryTestCardsRequest
+    ): ApiResponse<GlossaryTestCardsResponse> =
         ApiResponse.success(
-            CardSuccess.LIST_CARDS,
-            cardService.listGlossaryCards(userId, glossaryId, request)
+            TestCardSuccess.LIST_TEST_CARDS,
+            glossaryTestService.listTestCards(userId, glossaryId, request)
         )
 
     override fun submit(
         userId: UUID,
         glossaryId: Long,
-        request: SubmitRequest
-    ): ApiResponse<SubmitGlossaryTestResponse> =
+        request: GlossaryTestSubmitRequest
+    ): ApiResponse<GlossaryTestSubmitResponse> =
         ApiResponse.success(
             TestSuccess.SUBMIT_TEST,
-            testService.submitGlossaryTest(userId, glossaryId, request)
+            glossaryTestService.submitTest(userId, glossaryId, request)
         )
 }

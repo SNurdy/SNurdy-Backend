@@ -1,9 +1,9 @@
-package com.snurdy.backend.domain.test.controller
+package com.snurdy.backend.domain.test.legacy.controller
 
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
 import com.snurdy.backend.domain.card.dto.WrongAnswerCardsResponse
-import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
+import com.snurdy.backend.domain.test.legacy.dto.SubmitNoteTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitRequest
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriod
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
@@ -20,7 +20,7 @@ import java.util.UUID
 
 @Tag(name = "Wrong Answer Note Test", description = "오답노트 학습/테스트 API (by-period / by-glossary)")
 @RequestMapping("/v2/test/wrong-answer-notes")
-interface WrongAnswerNoteTestApi {
+interface LegacyWrongAnswerNoteTestApi {
 
     @Operation(summary = "오답노트 by-period 학습 카드 조회")
     @ApiSuccessCode("CARD_S001")

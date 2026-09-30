@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.card.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.test.entity.TestType
-import com.snurdy.backend.domain.test.entity.requiresAbbreviation
+import com.snurdy.backend.domain.test.legacy.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.requiresAbbreviation
 import org.springframework.stereotype.Component
 
 // 주어진 단어 풀을 슬롯/변형에 1:1 매핑

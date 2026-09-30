@@ -14,10 +14,10 @@ import com.snurdy.backend.domain.card.dto.toWrongAnswerCard
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
-import com.snurdy.backend.domain.test.entity.TestType
-import com.snurdy.backend.domain.test.entity.deriveAnswer
-import com.snurdy.backend.domain.test.entity.deriveQuestion
-import com.snurdy.backend.domain.test.entity.isMultipleChoice
+import com.snurdy.backend.domain.test.legacy.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.deriveAnswer
+import com.snurdy.backend.domain.test.legacy.entity.deriveQuestion
+import com.snurdy.backend.domain.test.legacy.entity.isMultipleChoice
 import com.snurdy.backend.domain.user.customNote.repository.CustomNoteTermRepository
 import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteService

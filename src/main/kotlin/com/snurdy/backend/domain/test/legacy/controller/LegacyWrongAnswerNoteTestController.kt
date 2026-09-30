@@ -1,11 +1,11 @@
-package com.snurdy.backend.domain.test.controller
+package com.snurdy.backend.domain.test.legacy.controller
 
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
 import com.snurdy.backend.domain.card.dto.WrongAnswerCardsResponse
 import com.snurdy.backend.domain.card.service.CardService
-import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
-import com.snurdy.backend.domain.test.service.TestService
+import com.snurdy.backend.domain.test.legacy.dto.SubmitNoteTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitRequest
+import com.snurdy.backend.domain.test.legacy.service.LegacyTestService
 import com.snurdy.backend.domain.user.wrongAnswerNote.dto.WrongAnswerPeriod
 import com.snurdy.backend.global.constants.CardSuccess
 import com.snurdy.backend.global.constants.TestSuccess
@@ -14,10 +14,10 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-class WrongAnswerNoteTestController(
+class LegacyWrongAnswerNoteTestController(
     private val cardService: CardService,
-    private val testService: TestService
-) : WrongAnswerNoteTestApi {
+    private val legacyTestService: LegacyTestService
+) : LegacyWrongAnswerNoteTestApi {
 
     override fun listCardsByPeriod(
         userId: UUID,
@@ -36,7 +36,7 @@ class WrongAnswerNoteTestController(
     ): ApiResponse<SubmitNoteTestResponse> =
         ApiResponse.success(
             TestSuccess.SUBMIT_TEST,
-            testService.submitWrongAnswerTest(userId, request)
+            legacyTestService.submitWrongAnswerTest(userId, request)
         )
 
     override fun listCardsByGlossary(
@@ -56,6 +56,6 @@ class WrongAnswerNoteTestController(
     ): ApiResponse<SubmitNoteTestResponse> =
         ApiResponse.success(
             TestSuccess.SUBMIT_TEST,
-            testService.submitWrongAnswerTest(userId, request)
+            legacyTestService.submitWrongAnswerTest(userId, request)
         )
 }

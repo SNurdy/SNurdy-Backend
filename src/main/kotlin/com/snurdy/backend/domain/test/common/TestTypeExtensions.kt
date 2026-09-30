@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.test.legacy.entity
+package com.snurdy.backend.domain.test.common
 
 // 정답 / 입력 변형 enum 의 sampling / derive / 분류 helper
 

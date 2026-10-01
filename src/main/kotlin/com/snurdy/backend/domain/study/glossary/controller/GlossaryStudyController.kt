@@ -3,7 +3,7 @@ package com.snurdy.backend.domain.study.glossary.controller
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsRequest
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsResponse
 import com.snurdy.backend.domain.study.glossary.service.GlossaryStudyService
-import com.snurdy.backend.global.constants.StudyCardSuccess
+import com.snurdy.backend.global.constants.StudySuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -19,7 +19,7 @@ class GlossaryStudyController(
         request: GlossaryStudyCardsRequest
     ): ApiResponse<GlossaryStudyCardsResponse> =
         ApiResponse.success(
-            StudyCardSuccess.LIST_STUDY_CARDS,
+            StudySuccess.LIST_STUDY_CARDS,
             glossaryStudyService.listStudyCards(userId, glossaryId, request)
         )
 }

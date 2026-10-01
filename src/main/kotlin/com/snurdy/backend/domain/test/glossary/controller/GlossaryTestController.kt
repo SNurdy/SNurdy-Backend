@@ -5,7 +5,6 @@ import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
 import com.snurdy.backend.domain.test.glossary.service.GlossaryTestService
-import com.snurdy.backend.global.constants.TestCardSuccess
 import com.snurdy.backend.global.constants.TestSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
@@ -22,7 +21,7 @@ class GlossaryTestController(
         request: GlossaryTestCardsRequest
     ): ApiResponse<GlossaryTestCardsResponse> =
         ApiResponse.success(
-            TestCardSuccess.LIST_TEST_CARDS,
+            TestSuccess.LIST_TEST_CARDS,
             glossaryTestService.listTestCards(userId, glossaryId, request)
         )
 

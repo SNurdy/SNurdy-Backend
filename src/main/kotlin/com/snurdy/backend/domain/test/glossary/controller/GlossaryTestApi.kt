@@ -22,7 +22,7 @@ import java.util.UUID
 interface GlossaryTestApi {
 
     @Operation(summary = "기본 단어장 테스트 카드 조회")
-    @ApiSuccessCode("TEST_CARD_S001")
+    @ApiSuccessCode("TEST_S003")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E001")
     @PostMapping("/test-cards")
     fun listTestCards(

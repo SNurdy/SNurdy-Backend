@@ -20,7 +20,7 @@ import java.util.UUID
 interface GlossaryStudyApi {
 
     @Operation(summary = "기본 단어장 학습 카드 조회")
-    @ApiSuccessCode("STUDY_CARD_S001")
+    @ApiSuccessCode("STUDY_S001")
     @ApiErrorCodes("DICTIONARY_E001")
     @PostMapping("/study-cards")
     fun listStudyCards(

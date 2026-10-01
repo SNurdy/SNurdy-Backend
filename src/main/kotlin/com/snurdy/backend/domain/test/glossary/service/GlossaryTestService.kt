@@ -106,7 +106,7 @@ class GlossaryTestService(
 
         return GlossaryTestCardsResponse(
             availableCounts = availableCounts,
-            cards = cards
+            cards = cards.shuffled()
         )
     }
 
@@ -144,9 +144,8 @@ class GlossaryTestService(
         val progressRateAfter = GlossaryProgressCalculator.progressRate(learnedAfter, totalTermCount)
         val levelAfter = GlossaryProgressCalculator.levelFromRate(progressRateAfter)
 
-        val today2 = clock.instant().atZone(APP_ZONE_ID).toLocalDate()
         val todayStudiedCount = dailyProgressRepository
-            .findByIdOrNull(DailyProgressId(userId, today2))
+            .findByIdOrNull(DailyProgressId(userId, today))
             ?.allLearnedCount ?: 0
         val totalStudiedCount = dailyProgressRepository.sumAllLearnedCountByUserId(userId).toInt()
 

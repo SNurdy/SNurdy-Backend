@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.study.glossary.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
@@ -40,4 +41,17 @@ data class GlossaryStudyTerm(
     val bookmarked: Boolean,
     @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위. 색은 클라이언트가 order 순서대로 매핑")
     val morphemes: List<OrderedMorpheme>
+)
+
+fun SimpleTermProjection.toStudyTerm(
+    bookmarked: Boolean,
+    morphemes: List<OrderedMorpheme>
+): GlossaryStudyTerm = GlossaryStudyTerm(
+    termId = termId,
+    spelling = spelling,
+    meaning = meaning,
+    abbreviation = abbreviation,
+    explanation = explanation,
+    bookmarked = bookmarked,
+    morphemes = morphemes
 )

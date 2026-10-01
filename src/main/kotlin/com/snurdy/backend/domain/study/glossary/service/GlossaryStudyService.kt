@@ -1,14 +1,12 @@
 package com.snurdy.backend.domain.study.glossary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsRequest
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsResponse
-import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyTerm
+import com.snurdy.backend.domain.study.glossary.dto.toStudyTerm
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
@@ -60,17 +58,4 @@ class GlossaryStudyService(
             terms = terms
         )
     }
-
-    private fun SimpleTermProjection.toStudyTerm(
-        bookmarked: Boolean,
-        morphemes: List<OrderedMorpheme>
-    ): GlossaryStudyTerm = GlossaryStudyTerm(
-        termId = termId,
-        spelling = spelling,
-        meaning = meaning,
-        abbreviation = abbreviation,
-        explanation = explanation,
-        bookmarked = bookmarked,
-        morphemes = morphemes
-    )
 }

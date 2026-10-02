@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.study.glossary.controller
 
+import com.snurdy.backend.domain.study.glossary.docs.GlossaryStudySwaggerDescription
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsRequest
 import com.snurdy.backend.domain.study.glossary.dto.GlossaryStudyCardsResponse
 import com.snurdy.backend.global.docs.ApiErrorCodes
@@ -15,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "Glossary Study", description = "기본 단어장 학습 API")
+@Tag(
+    name = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_API_TAG_NAME,
+    description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_API_TAG_DESCRIPTION
+)
 @RequestMapping("/v2/study/glossaries/{glossaryId}")
 interface GlossaryStudyApi {
 
-    @Operation(summary = "기본 단어장 학습 카드 조회")
+    @Operation(summary = GlossaryStudySwaggerDescription.LIST_STUDY_CARDS_SUMMARY)
     @ApiSuccessCode("STUDY_S001")
     @ApiErrorCodes("DICTIONARY_E001")
     @PostMapping("/study-cards")

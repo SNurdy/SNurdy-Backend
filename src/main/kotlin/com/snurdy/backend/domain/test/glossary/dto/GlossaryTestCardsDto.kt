@@ -2,56 +2,103 @@ package com.snurdy.backend.domain.test.glossary.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.test.common.TestType
+import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
+import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerExample
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotEmpty
 
-@Schema(description = "기본 단어장 테스트 카드 요청")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_REQUEST)
 data class GlossaryTestCardsRequest(
     @field:NotEmpty
-    @field:Schema(description = "학습 세트의 단어 id 목록", example = "[293, 294, 295]")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_REQUEST_TERM_IDS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARDS_REQUEST_TERM_IDS
+    )
     val termIds: List<Long>,
 
     @field:NotEmpty
     @field:Schema(
-        description = "선택된 테스트 유형 리스트. 다지선다 선택 시 MC_*_FROM_* 3종을 모두 포함",
-        example = "[\"WRITE_MEANING_FROM_TERM\"]"
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_REQUEST_TEST_TYPES,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARDS_REQUEST_TEST_TYPES
     )
     val testTypes: List<TestType>
 )
 
-@Schema(description = "기본 단어장 테스트 카드 응답")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_RESPONSE)
 data class GlossaryTestCardsResponse(
-    @field:Schema(description = "선택 유형별 출제 가능 카드 수", example = "{\"WRITE_MEANING_FROM_TERM\": 10}")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_RESPONSE_AVAILABLE_COUNTS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARDS_RESPONSE_AVAILABLE_COUNTS
+    )
     val availableCounts: Map<TestType, Int>,
 
-    @field:Schema(description = "실제 테스트에 사용할 카드")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARDS_RESPONSE_CARDS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARDS_RESPONSE_CARDS
+    )
     val cards: List<GlossaryTestCard>
 )
 
-@Schema(description = "기본 단어장 테스트 카드 1개")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD)
 data class GlossaryTestCard(
-    @field:Schema(description = "단어 id", example = "293")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_TERM_ID,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_TERM_ID
+    )
     val termId: Long,
-    @field:Schema(description = "이 카드의 테스트 유형", example = "WRITE_MEANING_FROM_TERM")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_TEST_TYPE,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_TEST_TYPE
+    )
     val testType: TestType,
-    @field:Schema(description = "문제 텍스트. LISTEN_AND_WRITE 는 클라가 화면 노출 없이 TTS 재생만", example = "arterial line")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_QUESTION,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_QUESTION
+    )
     val question: String,
-    @field:Schema(description = "다지선다 대표 정답 텍스트. MC 채점에 사용. 작성형은 answers 사용", example = "동맥선, 동맥 카테터")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_ANSWER,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_ANSWER
+    )
     val answer: String,
-    @field:Schema(description = "작성형 채점용 인정 정답 목록", example = "[\"동맥선\", \"동맥 카테터\"]")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_ANSWERS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_ANSWERS
+    )
     val answers: List<String>,
-    @field:Schema(description = "다지선다 보기 3개. 작성형 / LISTEN_AND_WRITE 는 null")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_DISTRACTORS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_DISTRACTORS
+    )
     val distractors: List<String>?,
-    @field:Schema(description = "영문 용어", example = "arterial line")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_SPELLING,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_SPELLING
+    )
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_MEANING,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_MEANING
+    )
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_ABBREVIATION,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_ABBREVIATION
+    )
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_EXPLANATION,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_EXPLANATION
+    )
     val explanation: String?,
-    @field:Schema(description = "북마크 여부", example = "false")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_BOOKMARKED,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_BOOKMARKED
+    )
     val bookmarked: Boolean,
-    @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_CARD_MORPHEMES,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_CARD_MORPHEMES
+    )
     val morphemes: List<OrderedMorpheme>
 )

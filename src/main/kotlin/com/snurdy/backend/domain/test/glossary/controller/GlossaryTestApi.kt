@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.test.glossary.controller
 
+import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
@@ -17,11 +18,14 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "Glossary Test", description = "기본 단어장 테스트 API")
+@Tag(
+    name = GlossaryTestSwaggerDescription.GLOSSARY_TEST_API_TAG_NAME,
+    description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_API_TAG_DESCRIPTION
+)
 @RequestMapping("/v2/test/glossaries/{glossaryId}")
 interface GlossaryTestApi {
 
-    @Operation(summary = "기본 단어장 테스트 카드 조회")
+    @Operation(summary = GlossaryTestSwaggerDescription.LIST_TEST_CARDS_SUMMARY)
     @ApiSuccessCode("TEST_S003")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E001")
     @PostMapping("/test-cards")
@@ -31,7 +35,7 @@ interface GlossaryTestApi {
         @RequestBody @Valid request: GlossaryTestCardsRequest
     ): ApiResponse<GlossaryTestCardsResponse>
 
-    @Operation(summary = "기본 단어장 테스트 결과 제출")
+    @Operation(summary = GlossaryTestSwaggerDescription.SUBMIT_SUMMARY)
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E002")
     @PostMapping("/test-submit")

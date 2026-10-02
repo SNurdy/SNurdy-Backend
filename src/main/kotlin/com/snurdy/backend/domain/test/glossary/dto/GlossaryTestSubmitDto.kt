@@ -1,74 +1,130 @@
 package com.snurdy.backend.domain.test.glossary.dto
 
 import com.snurdy.backend.domain.test.common.TestType
+import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
+import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerExample
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 
-@Schema(description = "기본 단어장 테스트 결과 제출 요청")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_REQUEST)
 data class GlossaryTestSubmitRequest(
     @field:Valid
     @field:NotEmpty
-    @field:Schema(description = "문제별 결과 목록")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_REQUEST_RESULTS,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_REQUEST_RESULTS
+    )
     val results: List<GlossaryTestResultItem>,
 
     @field:Positive
-    @field:Schema(description = "학습 화면에서 확인한 학습 세트 단어 수. study-cards 응답의 terms 개수를 전송. 생략 시 results 개수로 대체", example = "10")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_REQUEST_STUDIED_TERM_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_REQUEST_STUDIED_TERM_COUNT
+    )
     val studiedTermCount: Int? = null
 )
 
-@Schema(description = "테스트 문제 1개의 결과")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_RESULT_ITEM)
 data class GlossaryTestResultItem(
     @field:Positive
-    @field:Schema(description = "출제된 단어 id", example = "101")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_RESULT_ITEM_TERM_ID,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_RESULT_ITEM_TERM_ID
+    )
     val termId: Long,
     @field:NotNull
-    @field:Schema(description = "이 문제의 테스트 유형", example = "WRITE_TERM_FROM_MEANING")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_RESULT_ITEM_TEST_TYPE,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_RESULT_ITEM_TEST_TYPE
+    )
     val testType: TestType,
-    @field:Schema(description = "정답 여부, 클라이언트가 판정한 결과", example = "true")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_RESULT_ITEM_CORRECT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_RESULT_ITEM_CORRECT
+    )
     val correct: Boolean,
-    @field:Schema(description = "사용자가 입력한 답안, 오답노트 표시용", example = "Electrocardiogram")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_RESULT_ITEM_USER_ANSWER,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_RESULT_ITEM_USER_ANSWER
+    )
     val userAnswer: String
 )
 
-@Schema(description = "기본 단어장 테스트 제출 응답")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE)
 data class GlossaryTestSubmitResponse(
-    @field:Schema(description = "정답 문제 수", example = "25")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_CORRECT_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_CORRECT_COUNT
+    )
     val correctCount: Int,
-    @field:Schema(description = "오답 문제 수", example = "5")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_INCORRECT_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_INCORRECT_COUNT
+    )
     val incorrectCount: Int,
-    @field:Schema(description = "이번 세션에서 학습한 단어 수", example = "10")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_SESSION_STUDIED_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_SESSION_STUDIED_COUNT
+    )
     val sessionStudiedCount: Int,
-    @field:Schema(description = "오늘 기본 단어장 테스트로 처리한 누적 단어 수", example = "30")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_TODAY_STUDIED_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_TODAY_STUDIED_COUNT
+    )
     val todayStudiedCount: Int,
-    @field:Schema(description = "전체 기간 기본 단어장 테스트로 처리한 누적 단어 수", example = "120")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_TOTAL_STUDIED_COUNT,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_TOTAL_STUDIED_COUNT
+    )
     val totalStudiedCount: Int,
-    @field:Schema(description = "일일 학습 목표 달성 여부", example = "true")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_TODAY_GOAL_COMPLETED,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SUBMIT_RESPONSE_TODAY_GOAL_COMPLETED
+    )
     val todayGoalCompleted: Boolean,
-    @field:Schema(description = "테스트 전후 진척률/레벨 스냅샷")
+    @field:Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SUBMIT_RESPONSE_GLOSSARY)
     val glossary: GlossaryTestSnapshot
 )
 
-@Schema(description = "테스트 후 단어장 진척률/레벨 스냅샷")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT)
 data class GlossaryTestSnapshot(
-    @field:Schema(description = "단어장 id", example = "12")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT_GLOSSARY_ID,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SNAPSHOT_GLOSSARY_ID
+    )
     val glossaryId: Long,
-    @field:Schema(description = "테스트 전 진척률 0~100", example = "80.0")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT_PROGRESS_RATE_BEFORE,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SNAPSHOT_PROGRESS_RATE_BEFORE
+    )
     val progressRateBefore: Double,
-    @field:Schema(description = "테스트 후 진척률 0~100", example = "85.0")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT_PROGRESS_RATE_AFTER,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SNAPSHOT_PROGRESS_RATE_AFTER
+    )
     val progressRateAfter: Double,
-    @field:Schema(description = "테스트 전 레벨 1~5", example = "4")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT_LEVEL_BEFORE,
+        example = GlossaryTestSwaggerExample.GLOSSARY_TEST_SNAPSHOT_LEVEL_BEFORE
+    )
     val levelBefore: Int,
-    @field:Schema(description = "레벨 상승 시에만 채워짐. 변화 없으면 null")
+    @field:Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_TEST_SNAPSHOT_LEVEL_UP)
     val levelUp: GlossaryLevelUpEvent?
 )
 
-@Schema(description = "단어장 레벨 상승 이벤트")
+@Schema(description = GlossaryTestSwaggerDescription.GLOSSARY_LEVEL_UP_EVENT)
 data class GlossaryLevelUpEvent(
-    @field:Schema(description = "상승 전 레벨", example = "4")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_LEVEL_UP_EVENT_FROM,
+        example = GlossaryTestSwaggerExample.GLOSSARY_LEVEL_UP_EVENT_FROM
+    )
     val from: Int,
-    @field:Schema(description = "상승 후 레벨", example = "5")
+    @field:Schema(
+        description = GlossaryTestSwaggerDescription.GLOSSARY_LEVEL_UP_EVENT_TO,
+        example = GlossaryTestSwaggerExample.GLOSSARY_LEVEL_UP_EVENT_TO
+    )
     val to: Int
 )

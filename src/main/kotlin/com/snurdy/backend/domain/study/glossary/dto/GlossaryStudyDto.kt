@@ -2,51 +2,80 @@ package com.snurdy.backend.domain.study.glossary.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
+import com.snurdy.backend.domain.study.glossary.docs.GlossaryStudySwaggerDescription
+import com.snurdy.backend.domain.study.glossary.docs.GlossaryStudySwaggerExample
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 
-@Schema(description = "과별 단어장 학습 카드 요청")
+@Schema(description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_CARDS_REQUEST)
 data class GlossaryStudyCardsRequest(
     @field:NotNull
     @field:Min(1)
     @field:Max(50)
-    @field:Schema(description = "학습할 단어 수 (10/20/30/40/50)", example = "10")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_CARDS_REQUEST_COUNT,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_CARDS_REQUEST_COUNT
+    )
     val count: Int
 )
 
-@Schema(description = "과별 단어장 학습 카드 응답")
+@Schema(description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_CARDS_RESPONSE)
 data class GlossaryStudyCardsResponse(
-    @field:Schema(description = "클라이언트가 요청한 단어 수", example = "10")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_CARDS_RESPONSE_REQUESTED_COUNT,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_CARDS_RESPONSE_REQUESTED_COUNT
+    )
     val requestedCount: Int,
 
-    @field:Schema(description = "학습 화면에 노출할 학습 세트 단어. 단어장 잔여 단어가 requestedCount 보다 적으면 그만큼만 내려감")
-    val terms: List<GlossaryStudyTerm>
+    @field:Schema(description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_CARDS_RESPONSE_TERMS)
+    val terms: List<GlossaryStudyTermItem>
 )
 
-@Schema(description = "과별 단어장 학습 세트 단어 1개")
-data class GlossaryStudyTerm(
-    @field:Schema(description = "단어 id", example = "293")
+@Schema(description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_ITEM)
+data class GlossaryStudyTermItem(
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_TERM_ID,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_TERM_ID
+    )
     val termId: Long,
-    @field:Schema(description = "영문 용어", example = "arterial line")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_ITEM_SPELLING,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_ITEM_SPELLING
+    )
     val spelling: String,
-    @field:Schema(description = "한글 의미", example = "동맥선, 동맥 카테터")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_MEANING,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_MEANING
+    )
     val meaning: String,
-    @field:Schema(description = "약어. 없으면 null", example = "A-Line")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_ABBREVIATION,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_ABBREVIATION
+    )
     val abbreviation: String?,
-    @field:Schema(description = "상세 설명. 없으면 null", example = "지속적인 혈압 감시 및 동맥혈 채취를 위해 동맥 내에 삽입하는 카테터입니다.")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_EXPLANATION,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_EXPLANATION
+    )
     val explanation: String?,
-    @field:Schema(description = "현재 학습 중인 단어장 안에서 사용자가 북마크 했는지 여부", example = "false")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_BOOKMARKED,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_BOOKMARKED
+    )
     val bookmarked: Boolean,
-    @field:Schema(description = "어근/어미 분석 + 형광펜 하이라이팅 범위. 색은 클라이언트가 order 순서대로 매핑")
+    @field:Schema(
+        description = GlossaryStudySwaggerDescription.GLOSSARY_STUDY_TERM_ITEM_MORPHEMES,
+        example = GlossaryStudySwaggerExample.GLOSSARY_STUDY_TERM_ITEM_MORPHEMES
+    )
     val morphemes: List<OrderedMorpheme>
 )
 
 fun SimpleTermProjection.toStudyTerm(
     bookmarked: Boolean,
     morphemes: List<OrderedMorpheme>
-): GlossaryStudyTerm = GlossaryStudyTerm(
+): GlossaryStudyTermItem  = GlossaryStudyTermItem (
     termId = termId,
     spelling = spelling,
     meaning = meaning,

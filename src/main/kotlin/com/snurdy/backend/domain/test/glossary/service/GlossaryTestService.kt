@@ -119,7 +119,8 @@ class GlossaryTestService(
         if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }
-        val termIds = request.results.map { it.termId }
+        val results = request.results.distinctBy { it.termId }
+        val termIds = results.map { it.termId }
         validateTermIdsBelongToGlossary(glossaryId, termIds)
 
         val totalTermCount = glossaryTermRepository.countByIdGlossaryId(glossaryId)
@@ -133,7 +134,7 @@ class GlossaryTestService(
         val todayBefore = dailyProgressRepository.findByIdOrNull(DailyProgressId(userId, today))
         val todayWasActiveBefore = todayBefore?.let { (it.newLearnedCount + it.allLearnedCount) > 0 } ?: false
 
-        val events = request.results.map {
+        val events = results.map {
             ProgressEvent(glossaryId = glossaryId, termId = it.termId, correct = it.correct)
         }
         progressUpdateService.updateProgress(userId, events)
@@ -149,11 +150,11 @@ class GlossaryTestService(
             ?.allLearnedCount ?: 0
         val totalStudiedCount = dailyProgressRepository.sumAllLearnedCountByUserId(userId).toInt()
 
-        val correctCount = request.results.count { it.correct }
+        val correctCount = results.count { it.correct }
         return GlossaryTestSubmitResponse(
             correctCount = correctCount,
-            incorrectCount = request.results.size - correctCount,
-            sessionStudiedCount = request.studiedTermCount ?: request.results.size,
+            incorrectCount = results.size - correctCount,
+            sessionStudiedCount = request.studiedTermCount ?: results.size,
             todayStudiedCount = todayStudiedCount,
             totalStudiedCount = totalStudiedCount,
             todayGoalCompleted = !todayWasActiveBefore,

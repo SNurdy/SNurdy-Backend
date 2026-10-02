@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.preference.dto
 
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import com.snurdy.backend.domain.user.preference.entity.UserPreferenceEntity
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotNull

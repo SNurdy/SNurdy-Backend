@@ -1,6 +1,6 @@
-package com.snurdy.backend.domain.test.dto
+package com.snurdy.backend.domain.test.legacy.dto
 
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty

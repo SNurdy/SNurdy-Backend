@@ -79,6 +79,7 @@ enum class ProfileImageSuccess(
     UPLOAD(HttpStatus.OK, "PROFILE_IMAGE_S001", "프로필 이미지를 변경했습니다")
 }
 
+// 기존 학습 API
 enum class CardSuccess(
     override val status: HttpStatus,
     override val code: String,
@@ -93,7 +94,16 @@ enum class TestSuccess(
     override val message: String
 ) : SuccessCode {
     LIST_DISTRACTORS(HttpStatus.OK, "TEST_S001", "다지선다 오답을 생성했습니다"),
-    SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다")
+    SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다"),
+    LIST_TEST_CARDS(HttpStatus.OK, "TEST_S003", "테스트 카드를 조회했습니다")
+}
+
+enum class StudySuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_STUDY_CARDS(HttpStatus.OK, "STUDY_S001", "학습 카드를 조회했습니다")
 }
 
 enum class CalendarSuccess(

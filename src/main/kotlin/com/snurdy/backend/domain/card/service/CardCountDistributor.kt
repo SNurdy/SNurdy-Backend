@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.card.service
 
-import com.snurdy.backend.domain.test.entity.TestType
-import com.snurdy.backend.domain.test.entity.isMultipleChoice
+import com.snurdy.backend.domain.test.legacy.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.isMultipleChoice
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component

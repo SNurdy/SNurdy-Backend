@@ -1,9 +1,9 @@
-package com.snurdy.backend.domain.test.controller
+package com.snurdy.backend.domain.test.legacy.controller
 
 import com.snurdy.backend.domain.card.dto.CustomNoteCardsResponse
 import com.snurdy.backend.domain.card.dto.NoteCardsRequest
-import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
+import com.snurdy.backend.domain.test.legacy.dto.SubmitNoteTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -19,7 +19,7 @@ import java.util.UUID
 
 @Tag(name = "Custom Note Test", description = "커스텀노트 학습/테스트 API")
 @RequestMapping("/v2/test/custom-notes/{customNoteId}")
-interface CustomNoteTestApi {
+interface LegacyCustomNoteTestApi {
 
     @Operation(summary = "커스텀노트 학습 카드 조회")
     @ApiSuccessCode("CARD_S001")

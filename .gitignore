@@ -48,5 +48,4 @@ out/
 keys/
 .DS_Store
 
-### 로컬 전용 문서 (커밋 금지) ###
-docs/
+/docs/

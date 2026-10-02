@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.test.service
+package com.snurdy.backend.domain.test.legacy.service
 
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
@@ -9,11 +9,11 @@ import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.service.ProgressUpdateService
-import com.snurdy.backend.domain.test.dto.LevelUpEvent
-import com.snurdy.backend.domain.test.dto.SubmitGlossaryTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitNoteTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
-import com.snurdy.backend.domain.test.dto.TestGlossarySnapshot
+import com.snurdy.backend.domain.test.legacy.dto.LevelUpEvent
+import com.snurdy.backend.domain.test.legacy.dto.SubmitGlossaryTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitNoteTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitRequest
+import com.snurdy.backend.domain.test.legacy.dto.TestGlossarySnapshot
 import com.snurdy.backend.domain.user.customNote.service.CustomNoteService
 import com.snurdy.backend.domain.user.wrongAnswerNote.service.WrongAnswerNoteService
 import com.snurdy.backend.global.constants.APP_ZONE_ID
@@ -27,7 +27,7 @@ import java.time.Clock
 import java.util.UUID
 
 @Service
-class TestService(
+class LegacyTestService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val customNoteService: CustomNoteService,

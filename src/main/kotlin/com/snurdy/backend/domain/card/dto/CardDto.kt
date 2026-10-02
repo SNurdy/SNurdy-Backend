@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.card.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import com.snurdy.backend.domain.user.customNote.repository.NoteCardTermProjection
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Max

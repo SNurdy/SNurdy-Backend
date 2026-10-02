@@ -1,9 +1,9 @@
-package com.snurdy.backend.domain.test.controller
+package com.snurdy.backend.domain.test.legacy.controller
 
 import com.snurdy.backend.domain.card.dto.GlossaryCardsRequest
 import com.snurdy.backend.domain.card.dto.GlossaryCardsResponse
-import com.snurdy.backend.domain.test.dto.SubmitGlossaryTestResponse
-import com.snurdy.backend.domain.test.dto.SubmitRequest
+import com.snurdy.backend.domain.test.legacy.dto.SubmitGlossaryTestResponse
+import com.snurdy.backend.domain.test.legacy.dto.SubmitRequest
 import com.snurdy.backend.global.docs.ApiErrorCodes
 import com.snurdy.backend.global.docs.ApiSuccessCode
 import com.snurdy.backend.global.dto.response.ApiResponse
@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import java.util.UUID
 
-@Tag(name = "Glossary Test", description = "기본 단어장 학습/테스트 API")
+@Tag(name = "Glossary Test - 레거시", description = "<구버전 앱 호환용> 기본 단어장 학습/테스트 API")
 @RequestMapping("/v2/test/glossaries/{glossaryId}")
-interface GlossaryTestApi {
+interface LegacyGlossaryTestApi {
 
+    @Deprecated("구버전 앱 호환용")
     @Operation(summary = "기본 단어장 학습 카드 조회")
     @ApiSuccessCode("CARD_S001")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E001")
@@ -31,6 +32,7 @@ interface GlossaryTestApi {
         @RequestBody @Valid request: GlossaryCardsRequest
     ): ApiResponse<GlossaryCardsResponse>
 
+    @Deprecated("구버전 앱 호환용")
     @Operation(summary = "기본 단어장 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
     @ApiErrorCodes("DICTIONARY_E001", "TEST_E002")

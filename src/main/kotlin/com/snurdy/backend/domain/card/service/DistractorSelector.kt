@@ -3,8 +3,8 @@ package com.snurdy.backend.domain.card.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.term.repository.DistractorTermProjection
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.test.entity.TestType
-import com.snurdy.backend.domain.test.entity.multipleChoiceFieldOf
+import com.snurdy.backend.domain.test.legacy.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.multipleChoiceFieldOf
 import org.springframework.stereotype.Component
 
 // MC 카드의 오답 보기 3개 추출

@@ -23,6 +23,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
 import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.multipart.MaxUploadSizeExceededException
+import org.springframework.http.HttpStatus
+import org.springframework.web.HttpMediaTypeNotAcceptableException
+import org.springframework.web.HttpMediaTypeNotSupportedException
+import org.springframework.web.bind.MissingRequestHeaderException
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
+import org.springframework.web.multipart.MultipartException
+import org.springframework.web.servlet.resource.NoResourceFoundException
 
 fun Throwable.toApiException(): ApiException = when (this) {
     is ApiException -> this
@@ -50,10 +57,28 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is MissingServletRequestParameterException ->
         ApiException(CommonError.BAD_REQUEST, "필수 파라미터 누락: ${this.parameterName}")
 
+    // 헤더 누락 - 어떤 헤더인지 알려줌
+    is MissingRequestHeaderException ->
+        ApiException(CommonError.BAD_REQUEST, "필수 헤더 누락: ${this.headerName}")
+
+    // path variable 또는 query 타입 불일치 - 어떤 파라미터인지 알려줌
+    is MethodArgumentTypeMismatchException ->
+        ApiException(CommonError.BAD_REQUEST, "잘못된 형식: ${this.name}")
+
+    // 매핑되지 않은 경로
+    is NoResourceFoundException -> ApiException(CommonError.NOT_FOUND, cause = this)
+
+    // Content-Type 및 Accept 협상 실패
+    is HttpMediaTypeNotSupportedException -> ApiException(CommonError.UNSUPPORTED_MEDIA_TYPE, cause = this)
+    is HttpMediaTypeNotAcceptableException -> ApiException(CommonError.NOT_ACCEPTABLE, cause = this)
+
     // multipart 사이즈 초과 - tomcat / Spring 의 file/part limit 초과
     // 현재 multipart endpoint 는 프로필 이미지 업로드 1종이라 ProfileImageError 매핑
     // 추후 다른 도메인 multipart 추가 시 CommonError 로 일반화 검토
     is MaxUploadSizeExceededException -> ApiException(ProfileImageError.TOO_LARGE, cause = this)
+
+    // MaxUploadSizeExceededException 의 상위 타입이라 반드시 그 아래에 둔다
+    is MultipartException -> ApiException(CommonError.BAD_REQUEST, cause = this)
 
     // 그 외 - 기본 메시지 사용
     else -> ApiException(CommonError.INTERNAL_ERROR, cause = this)

@@ -19,9 +19,11 @@ enum class CommonError(
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_E403", "접근 권한이 없습니다"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_E404", "리소스를 찾을 수 없습니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_E405", "지원하지 않는 HTTP 메서드입니다"),
+    NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE, "COMMON_E406", "지원하지 않는 응답 형식입니다"),
     CONFLICT(HttpStatus.CONFLICT, "COMMON_E409", "요청이 현재 상태와 충돌합니다"),
     DUPLICATED(HttpStatus.CONFLICT, "COMMON_E410", "이미 존재하는 데이터입니다"),
     INVALID_REFERENCE(HttpStatus.BAD_REQUEST, "COMMON_E411", "참조하는 데이터가 존재하지 않습니다"),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON_E415", "지원하지 않는 Content-Type 입니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_E500", "서버 오류가 발생했습니다"),
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON_E502", "외부 API 오류가 발생했습니다"),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON_E503", "일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요")

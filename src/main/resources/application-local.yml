@@ -21,3 +21,12 @@ cors:
   allowed-origins:
     - "http://localhost:5173"
     - "http://localhost:8081"
+
+spring.cloud.aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:local}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:local}
+  sqs:
+    endpoint: http://localhost:4566
+  ses:
+    endpoint: http://localhost:4566

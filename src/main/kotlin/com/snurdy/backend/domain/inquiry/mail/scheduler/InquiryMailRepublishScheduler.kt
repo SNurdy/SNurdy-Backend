@@ -19,6 +19,6 @@ class InquiryMailRepublishScheduler(
             log.warn("PUBLISHING 상태로 멈춘 문의 메일 {}건을 재발행 대상으로 되돌림", recoveredCount)
         }
 
-        inquiryMailPublisher.findPendingOutboxIds().forEach(inquiryMailPublisher::publishOutbox)
+        inquiryMailPublisher.findRepublishableOutboxIds().forEach(inquiryMailPublisher::publishOutbox)
     }
 }

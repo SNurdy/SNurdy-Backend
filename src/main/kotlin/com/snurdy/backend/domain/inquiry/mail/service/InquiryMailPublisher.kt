@@ -61,7 +61,7 @@ class InquiryMailPublisher(
             )
         } ?: 0
 
-    fun findPendingOutboxIds(): List<Long> =
+    fun findRepublishableOutboxIds(): List<Long> =
         inquiryMailOutboxRepository.findIdsByStatusAndCreatedBefore(
             InquiryMailStatus.PENDING,
             clock.instant().minus(PENDING_GRACE_PERIOD),

@@ -65,12 +65,12 @@ class InquiryService(
 
         val content = request.content.trim()
         // 내용이 같으면 수정 메일이 중복으로 가지 않도록 아무것도 하지 않는다
-        if (inquiry.hasSameContent(request.category, content)) {
+        if (inquiry.hasSameCategoryAndContent(request.category, content)) {
             return inquiry.toDetail(answer = null)
         }
 
         inquiryRateLimiter.checkMailSendingAllowed(userId)
-        inquiry.updateContent(request.category, content)
+        inquiry.updateCategoryAndContent(request.category, content)
         flushWithAnswerConflictCheck()
         requestInquiryMail(inquiry, InquiryMailType.UPDATED)
         return inquiry.toDetail(answer = null)

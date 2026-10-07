@@ -50,10 +50,10 @@ class InquiryEntity(
 
     fun isAnswered(): Boolean = status == InquiryStatus.ANSWERED
 
-    fun hasSameContent(category: InquiryCategory, content: String): Boolean =
+    fun hasSameCategoryAndContent(category: InquiryCategory, content: String): Boolean =
         this.category == category && this.content == content
 
-    fun updateContent(category: InquiryCategory, content: String) {
+    fun updateCategoryAndContent(category: InquiryCategory, content: String) {
         this.category = category
         this.content = content
     }

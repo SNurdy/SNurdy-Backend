@@ -37,7 +37,7 @@ class InquiryService(
     fun createInquiry(userId: UUID, request: CreateInquiryRequest): InquiryDetailResponse {
         inquiryRateLimiter.checkMailSendingAllowed(userId)
         val inquiry = inquiryRepository.save(request.toEntity(userId))
-        recordMail(inquiry, InquiryMailType.CREATED)
+        requestInquiryMail(inquiry, InquiryMailType.CREATED)
         return inquiry.toDetail(answer = null)
     }
 
@@ -72,7 +72,7 @@ class InquiryService(
         inquiryRateLimiter.checkMailSendingAllowed(userId)
         inquiry.updateContent(request.category, content)
         flushWithAnswerConflictCheck()
-        recordMail(inquiry, InquiryMailType.UPDATED)
+        requestInquiryMail(inquiry, InquiryMailType.UPDATED)
         return inquiry.toDetail(answer = null)
     }
 
@@ -95,7 +95,7 @@ class InquiryService(
         }
     }
 
-    private fun recordMail(inquiry: InquiryEntity, mailType: InquiryMailType) {
+    private fun requestInquiryMail(inquiry: InquiryEntity, mailType: InquiryMailType) {
         val outbox = inquiryMailOutboxRepository.save(
             InquiryMailOutboxEntity(
                 inquiryId = inquiry.id,

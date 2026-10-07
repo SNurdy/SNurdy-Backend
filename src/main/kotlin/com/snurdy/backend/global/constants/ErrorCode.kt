@@ -163,3 +163,16 @@ enum class VersionError(
     INVALID_VERSION_FORMAT(HttpStatus.BAD_REQUEST, "VERSION_E002", "올바르지 않은 버전 형식입니다"),
     VERSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "VERSION_E003", "버전 정보를 찾을 수 없습니다");
 }
+
+// 문의 에러
+enum class InquiryError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_E001", "문의를 찾을 수 없습니다"),
+    ALREADY_ANSWERED(HttpStatus.CONFLICT, "INQUIRY_E002", "답변이 등록된 문의는 수정하거나 삭제할 수 없습니다"),
+    TOO_MANY_INQUIRIES(HttpStatus.TOO_MANY_REQUESTS, "INQUIRY_E003", "문의 작성 횟수를 초과했습니다. 잠시 후 다시 시도해주세요"),
+    ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_E004", "등록된 답변이 없습니다"),
+    ANSWER_ALREADY_EXISTS(HttpStatus.CONFLICT, "INQUIRY_E005", "이미 답변이 등록된 문의입니다")
+}

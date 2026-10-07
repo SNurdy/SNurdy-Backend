@@ -16,6 +16,8 @@ import com.snurdy.backend.global.constants.MigrationError
 import com.snurdy.backend.global.constants.MigrationSuccess
 import com.snurdy.backend.global.constants.CustomNoteError
 import com.snurdy.backend.global.constants.CustomNoteSuccess
+import com.snurdy.backend.global.constants.InquiryError
+import com.snurdy.backend.global.constants.InquirySuccess
 import com.snurdy.backend.global.constants.ProfileImageError
 import com.snurdy.backend.global.constants.ProfileImageSuccess
 import com.snurdy.backend.global.constants.StudySuccess
@@ -45,7 +47,8 @@ object ApiCodeRegistry {
             ProfileImageError.entries,
             WrongAnswerNoteError.entries,
             TermMemoError.entries,
-            VersionError.entries
+            VersionError.entries,
+            InquiryError.entries
         ).flatten().forEach {
             val prev = put(it.code, it)
             require(prev == null) { "중복된 ErrorCode 문자열: ${it.code} (${prev!!::class.simpleName} vs ${it::class.simpleName})" }
@@ -68,7 +71,8 @@ object ApiCodeRegistry {
             TermMemoSuccess.entries,
             MigrationSuccess.entries,
             VersionSuccess.entries,
-            StudySuccess.entries
+            StudySuccess.entries,
+            InquirySuccess.entries
         ).flatten().forEach {
             val prev = put(it.code, it)
             require(prev == null) { "중복된 SuccessCode 문자열: ${it.code} (${prev!!::class.simpleName} vs ${it::class.simpleName})" }

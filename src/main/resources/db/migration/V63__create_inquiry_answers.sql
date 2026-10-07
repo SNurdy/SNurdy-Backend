@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS inquiry_answers (
     inquiry_id    BIGINT        NOT NULL COMMENT '대상 문의 ID',
     admin_user_id BINARY(16)    NOT NULL COMMENT '답변한 관리자 UUID',
     content       VARCHAR(2000) NOT NULL COMMENT '답변 내용 utf8mb4 문자 단위 2000자',
-    read_at       TIMESTAMP     NULL COMMENT '사용자 최초 확인 시각 NULL 이면 안 읽음',
     created_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),

@@ -182,3 +182,19 @@ enum class VersionSuccess(
 ) : SuccessCode {
     CHECK(HttpStatus.OK, "VERSION_S001", "업데이트 확인이 완료되었습니다");
 }
+
+enum class InquirySuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    CREATE_INQUIRY(HttpStatus.CREATED, "INQUIRY_S001", "문의를 등록했습니다"),
+    LIST_INQUIRIES(HttpStatus.OK, "INQUIRY_S002", "문의 목록 조회에 성공했습니다"),
+    GET_INQUIRY(HttpStatus.OK, "INQUIRY_S003", "문의 상세 조회에 성공했습니다"),
+    UPDATE_INQUIRY(HttpStatus.OK, "INQUIRY_S004", "문의를 수정했습니다"),
+    DELETE_INQUIRY(HttpStatus.OK, "INQUIRY_S005", "문의를 삭제했습니다"),
+    ADMIN_LIST_INQUIRIES(HttpStatus.OK, "INQUIRY_S006", "관리자 문의 목록 조회에 성공했습니다"),
+    ADMIN_GET_INQUIRY(HttpStatus.OK, "INQUIRY_S007", "관리자 문의 상세 조회에 성공했습니다"),
+    CREATE_INQUIRY_ANSWER(HttpStatus.CREATED, "INQUIRY_S008", "답변을 등록했습니다"),
+    UPDATE_INQUIRY_ANSWER(HttpStatus.OK, "INQUIRY_S009", "답변을 수정했습니다")
+}

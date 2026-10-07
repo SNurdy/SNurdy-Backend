@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import java.time.Instant
 import java.util.UUID
 
 @Entity
@@ -31,20 +30,8 @@ class InquiryAnswerEntity(
     val adminUserId: UUID,
 
     @Column(name = "content", nullable = false, length = MAX_CONTENT_LENGTH)
-    var content: String,
-
-    @Column(name = "read_at")
-    var readAt: Instant? = null
+    var content: String
 ) : BaseTimeEntity() {
-
-    fun isRead(): Boolean = readAt != null
-
-    // 최초 확인 시각만 기록하고 이후 조회로 덮어쓰지 않음
-    fun markRead(at: Instant) {
-        if (readAt == null) {
-            readAt = at
-        }
-    }
 
     fun updateContent(newContent: String) {
         this.content = newContent

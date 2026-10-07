@@ -25,7 +25,6 @@ object InquirySwaggerDescription {
     const val INQUIRY_DETAIL = "문의 상세"
     const val INQUIRY_CONTENT = "문의 내용 전체"
     const val INQUIRY_EDITABLE = "수정과 삭제 가능 여부. 답변 전이면 true"
-    const val INQUIRY_UPDATED_AT = "문의 마지막 수정 시각"
     const val INQUIRY_ANSWER = "답변. 답변 전이면 null"
     const val INQUIRY_ANSWER_CONTENT = "답변 내용"
     const val INQUIRY_ANSWERED_AT = "답변 등록 시각"

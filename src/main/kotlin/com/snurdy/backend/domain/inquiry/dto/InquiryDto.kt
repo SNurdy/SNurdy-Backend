@@ -103,10 +103,7 @@ data class InquiryDetailResponse(
     val answer: InquiryAnswerResponse?,
 
     @field:Schema(description = InquirySwaggerDescription.INQUIRY_CREATED_AT, example = InquirySwaggerExample.INQUIRY_CREATED_AT)
-    val createdAt: Instant?,
-
-    @field:Schema(description = InquirySwaggerDescription.INQUIRY_UPDATED_AT, example = InquirySwaggerExample.INQUIRY_UPDATED_AT)
-    val updatedAt: Instant?
+    val createdAt: Instant?
 )
 
 fun InquiryEntity.toDetail(answer: InquiryAnswerEntity?): InquiryDetailResponse =
@@ -117,8 +114,7 @@ fun InquiryEntity.toDetail(answer: InquiryAnswerEntity?): InquiryDetailResponse 
         status = status,
         editable = !isAnswered(),
         answer = answer?.toResponse(),
-        createdAt = createdAt,
-        updatedAt = updatedAt
+        createdAt = createdAt
     )
 
 fun CreateInquiryRequest.toEntity(userId: UUID): InquiryEntity =

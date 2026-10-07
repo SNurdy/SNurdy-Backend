@@ -9,7 +9,6 @@ object InquirySwaggerExample {
     const val INQUIRY_STATUS = "ANSWERED"
     const val INQUIRY_EDITABLE = "false"
     const val INQUIRY_CREATED_AT = "2026-10-06T05:23:00Z"
-    const val INQUIRY_UPDATED_AT = "2026-10-06T05:30:00Z"
     const val INQUIRY_ANSWER_CONTENT = "불편을 드려 죄송합니다. 다음 업데이트에서 수정됩니다"
     const val INQUIRY_ANSWERED_AT = "2026-10-07T01:10:00Z"
 }

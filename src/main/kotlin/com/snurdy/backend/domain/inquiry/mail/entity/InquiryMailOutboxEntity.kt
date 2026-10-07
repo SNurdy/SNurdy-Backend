@@ -54,22 +54,6 @@ class InquiryMailOutboxEntity(
 
     fun isSent(): Boolean = status == InquiryMailStatus.SENT
 
-    fun markSent(at: Instant) {
-        this.attemptCount += 1
-        this.status = InquiryMailStatus.SENT
-        this.sentAt = at
-    }
-
-    fun recordAttemptFailure(error: String) {
-        this.attemptCount += 1
-        this.lastError = error.take(MAX_ERROR_LENGTH)
-    }
-
-    fun markFailed(error: String) {
-        recordAttemptFailure(error)
-        this.status = InquiryMailStatus.FAILED
-    }
-
     companion object {
         const val MAX_ERROR_LENGTH = 500
     }

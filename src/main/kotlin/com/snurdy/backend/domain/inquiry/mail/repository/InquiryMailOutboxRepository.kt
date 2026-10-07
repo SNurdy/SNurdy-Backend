@@ -86,4 +86,59 @@ interface InquiryMailOutboxRepository : JpaRepository<InquiryMailOutboxEntity, L
         @Param("createdBefore") createdBefore: Instant,
         pageable: Pageable
     ): List<Long>
+
+    // 중복 메시지가 동시에 처리되어도 먼저 기록된 SENT 를 덮어쓰지 않도록 SENT 가 아닐 때만 기록
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        """
+        UPDATE InquiryMailOutboxEntity o
+           SET o.status = com.snurdy.backend.domain.inquiry.mail.entity.InquiryMailStatus.SENT,
+               o.attemptCount = o.attemptCount + 1,
+               o.sentAt = :now,
+               o.updatedAt = :now
+         WHERE o.id = :outboxId
+           AND o.status <> com.snurdy.backend.domain.inquiry.mail.entity.InquiryMailStatus.SENT
+        """
+    )
+    fun markSent(@Param("outboxId") outboxId: Long, @Param("now") now: Instant): Int
+
+    // 재시도 전 실패 횟수와 원인만 남기고 상태는 유지
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        """
+        UPDATE InquiryMailOutboxEntity o
+           SET o.attemptCount = o.attemptCount + 1,
+               o.lastError = :lastError,
+               o.updatedAt = :now
+         WHERE o.id = :outboxId
+           AND o.status <> com.snurdy.backend.domain.inquiry.mail.entity.InquiryMailStatus.SENT
+        """
+    )
+    fun recordDeliveryFailure(
+        @Param("outboxId") outboxId: Long,
+        @Param("lastError") lastError: String,
+        @Param("now") now: Instant
+    ): Int
+
+    // 마지막 시도까지 실패해 DLQ 로 넘어가는 행을 FAILED 로 기록
+    @Transactional
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query(
+        """
+        UPDATE InquiryMailOutboxEntity o
+           SET o.status = com.snurdy.backend.domain.inquiry.mail.entity.InquiryMailStatus.FAILED,
+               o.attemptCount = o.attemptCount + 1,
+               o.lastError = :lastError,
+               o.updatedAt = :now
+         WHERE o.id = :outboxId
+           AND o.status <> com.snurdy.backend.domain.inquiry.mail.entity.InquiryMailStatus.SENT
+        """
+    )
+    fun markFailed(
+        @Param("outboxId") outboxId: Long,
+        @Param("lastError") lastError: String,
+        @Param("now") now: Instant
+    ): Int
 }

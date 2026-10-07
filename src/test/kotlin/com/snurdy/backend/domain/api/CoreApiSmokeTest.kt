@@ -156,6 +156,8 @@ class CoreApiSmokeTest : ApiSmokeTestBase() {
             registry.add("oauth.apple.redirect-uri") { "http://localhost/apple" }
             registry.add("oauth.apple.key-path") { "test-key-path" }
             registry.add("oauth.google.client-id") { "test-google-client" }
+
+            registry.add("inquiry.mail.consumer-enabled") { false }
         }
     }
 }

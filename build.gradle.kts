@@ -61,6 +61,10 @@ dependencies {
     // Spring Cloud AWS - S3
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 
+    // Spring Cloud AWS - SQS SES
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs")
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-ses")
+
     // Sentry
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("io.sentry:sentry-logback")

@@ -29,7 +29,7 @@ class InquiryMailPublisher(
         propagationBehavior = TransactionDefinition.PROPAGATION_REQUIRES_NEW
     }
 
-    fun publishOutbox(outboxId: Long) {
+    fun publishOutboxToQueue(outboxId: Long) {
         if (!changeStatus(outboxId, InquiryMailStatus.PENDING, InquiryMailStatus.PUBLISHING)) return
 
         try {

@@ -15,6 +15,6 @@ class InquiryMailRequestedEventListener(
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun handleInquiryMailRequested(event: InquiryMailRequestedEvent) {
-        inquiryMailPublisher.publishOutbox(event.outboxId)
+        inquiryMailPublisher.publishOutboxToQueue(event.outboxId)
     }
 }

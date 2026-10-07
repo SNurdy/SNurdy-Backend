@@ -4,15 +4,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties(prefix = "inquiry")
 data class InquiryProperties(
-    val queue: Queue,
     val mail: Mail,
     val rateLimit: RateLimit = RateLimit()
 ) {
-    data class Queue(
-        val mail: String
-    )
-
     data class Mail(
+        val queueName: String,
         val sender: String,
         val senderName: String,
         val receiver: String,

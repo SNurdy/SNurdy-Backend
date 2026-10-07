@@ -22,7 +22,7 @@ class InquiryMailPublisher(
         if (!claimed) return
 
         try {
-            sqsTemplate.send(inquiryProperties.queue.mail, InquiryMailMessage(outboxId))
+            sqsTemplate.send(inquiryProperties.mail.queueName, InquiryMailMessage(outboxId))
         } catch (e: Exception) {
             log.warn("문의 메일 SQS 발행 실패로 PENDING 으로 되돌림 outboxId={}", outboxId, e)
             inquiryMailOutboxRepository.releaseToPending(outboxId, clock.instant())

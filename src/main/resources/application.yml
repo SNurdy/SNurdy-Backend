@@ -86,9 +86,8 @@ spring.cloud.aws:
       max-messages-per-poll: 5
 
 inquiry:
-  queue:
-    mail: ${INQUIRY_MAIL_QUEUE}
   mail:
+    queue-name: ${INQUIRY_MAIL_QUEUE}
     sender: ${INQUIRY_MAIL_SENDER:inquiry@snurdy.org}
     sender-name: SNurdy 문의
     receiver: ${INQUIRY_MAIL_RECEIVER}

@@ -9,4 +9,6 @@ interface InquiryRepository : JpaRepository<InquiryEntity, Long> {
     fun findByIdAndUserIdAndDeletedAtIsNull(id: Long, userId: UUID): InquiryEntity?
 
     fun findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId: UUID): List<InquiryEntity>
+
+    fun findByIdAndDeletedAtIsNull(id: Long): InquiryEntity?
 }

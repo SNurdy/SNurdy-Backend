@@ -145,6 +145,8 @@ class SecurityConfig(
             authorizeHttpRequests {
                 // 마이그레이션
                 authorize("/v1/migration/**", hasRole("USER"))
+                // 관리자
+                authorize("/v2/admin/**", hasRole("ADMIN"))
                 // Actuator 비공개 엔드포인트는 발급 가능한 권한이 없으므로 완전 차단. health prometheus 는 Chain1 permitAll
                 authorize("/actuator/**", denyAll)
                 // Internal 은 완전 차단

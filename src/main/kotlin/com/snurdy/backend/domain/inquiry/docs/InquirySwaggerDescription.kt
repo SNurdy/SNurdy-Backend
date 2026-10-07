@@ -29,4 +29,10 @@ object InquirySwaggerDescription {
     const val INQUIRY_ANSWER = "답변. 답변 전이면 null"
     const val INQUIRY_ANSWER_CONTENT = "답변 내용"
     const val INQUIRY_ANSWERED_AT = "답변 등록 시각"
+
+    const val ADMIN_INQUIRY_API_TAG_NAME = "Admin Inquiry"
+    const val ADMIN_INQUIRY_API_TAG_DESCRIPTION = "1대1 문의 관리자 API. ADMIN 권한 필요"
+    const val CREATE_INQUIRY_ANSWER_SUMMARY = "답변 등록"
+    const val CREATE_INQUIRY_ANSWER_REQUEST = "답변 등록 요청"
+    const val INQUIRY_ANSWER_REQUEST_CONTENT = "답변 내용. 공백만으로는 불가하며 최대 2000자"
 }

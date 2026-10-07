@@ -12,6 +12,7 @@ import com.snurdy.backend.global.validation.CodePointSize
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import java.time.Instant
+import java.util.UUID
 
 private const val CONTENT_PREVIEW_LENGTH = 20
 
@@ -118,4 +119,11 @@ fun InquiryEntity.toDetail(answer: InquiryAnswerEntity?): InquiryDetailResponse 
         answer = answer?.toResponse(),
         createdAt = createdAt,
         updatedAt = updatedAt
+    )
+
+fun CreateInquiryRequest.toEntity(userId: UUID): InquiryEntity =
+    InquiryEntity(
+        userId = userId,
+        category = category,
+        content = content.trim()
     )

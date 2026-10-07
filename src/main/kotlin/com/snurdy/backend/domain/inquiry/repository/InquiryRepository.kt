@@ -6,7 +6,7 @@ import java.util.UUID
 
 interface InquiryRepository : JpaRepository<InquiryEntity, Long> {
 
-    fun findByIdAndDeletedAtIsNull(id: Long): InquiryEntity?
+    fun findByIdAndUserIdAndDeletedAtIsNull(id: Long, userId: UUID): InquiryEntity?
 
     fun findAllByUserIdAndDeletedAtIsNullOrderByCreatedAtDesc(userId: UUID): List<InquiryEntity>
 }

@@ -46,8 +46,6 @@ class InquiryEntity(
     var version: Long = 0L
         protected set
 
-    fun isOwnedBy(userId: UUID): Boolean = this.userId == userId
-
     fun isDeleted(): Boolean = deletedAt != null
 
     fun isAnswered(): Boolean = status == InquiryStatus.ANSWERED

@@ -7,7 +7,7 @@ import com.snurdy.backend.domain.inquiry.entity.InquiryCategory
 import com.snurdy.backend.domain.inquiry.entity.InquiryEntity
 import com.snurdy.backend.domain.inquiry.entity.InquiryStatus
 import com.snurdy.backend.global.extension.toSingleLine
-import com.snurdy.backend.global.extension.truncateByCodePoints
+import com.snurdy.backend.global.extension.truncateWithEllipsis
 import com.snurdy.backend.global.validation.CodePointSize
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
@@ -77,7 +77,7 @@ fun InquiryEntity.toSummary(): InquirySummaryResponse =
     InquirySummaryResponse(
         inquiryId = id,
         category = category,
-        contentPreview = content.toSingleLine().truncateByCodePoints(CONTENT_PREVIEW_LENGTH),
+        contentPreview = content.toSingleLine().truncateWithEllipsis(CONTENT_PREVIEW_LENGTH),
         status = status,
         createdAt = createdAt
     )

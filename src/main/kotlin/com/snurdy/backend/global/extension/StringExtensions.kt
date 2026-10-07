@@ -25,4 +25,9 @@ fun String.truncateByCodePoints(limit: Int): String {
 // 목록이나 메일 제목처럼 한 줄로 보여야 하는 곳에서 줄바꿈과 주변 공백을 공백 하나로 합침
 fun String.toSingleLine(): String = trim().replace(LINE_BREAK_REGEX, " ")
 
+fun String.truncateWithEllipsis(limit: Int): String {
+    val truncated = truncateByCodePoints(limit)
+    return if (truncated.length == length) this else "${truncated.trimEnd()}…"
+}
+
 private val LINE_BREAK_REGEX = Regex("\\s*\\R\\s*")

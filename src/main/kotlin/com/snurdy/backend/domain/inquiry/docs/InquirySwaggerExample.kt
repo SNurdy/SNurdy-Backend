@@ -5,7 +5,7 @@ object InquirySwaggerExample {
     const val INQUIRY_ID = "123"
     const val INQUIRY_CATEGORY = "BUG"
     const val INQUIRY_CONTENT = "학습 화면에서 카드를 넘기면 앱이 멈춰요"
-    const val INQUIRY_CONTENT_PREVIEW = "학습 화면에서 카드를 넘기면 앱이 멈춰요"
+    const val INQUIRY_CONTENT_PREVIEW = "학습 화면에서 카드를 넘기면 앱..."
     const val INQUIRY_STATUS = "ANSWERED"
     const val INQUIRY_EDITABLE = "false"
     const val INQUIRY_CREATED_AT = "2026-10-06T05:23:00Z"

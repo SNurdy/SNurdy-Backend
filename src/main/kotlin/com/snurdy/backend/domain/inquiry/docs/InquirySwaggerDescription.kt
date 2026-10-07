@@ -17,7 +17,7 @@ object InquirySwaggerDescription {
 
     const val INQUIRY_SUMMARY = "문의 목록 1건"
     const val INQUIRY_ID = "문의 ID"
-    const val INQUIRY_CONTENT_PREVIEW = "문의 내용 미리보기. 줄바꿈을 공백으로 바꾼 앞 20자"
+    const val INQUIRY_CONTENT_PREVIEW = "문의 내용 미리보기. 줄바꿈을 공백으로 바꾼 앞 20자이며 잘렸으면 끝에 말줄임표가 붙음"
     const val INQUIRY_STATUS = "답변 상태. WAITING 은 답변 대기, ANSWERED 는 답변 완료"
     const val INQUIRY_CREATED_AT = "문의 작성 시각"
     const val INQUIRY_LIST_RESPONSE = "내 문의 목록. 최신순"

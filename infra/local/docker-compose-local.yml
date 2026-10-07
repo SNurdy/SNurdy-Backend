@@ -23,7 +23,7 @@ services:
       - redis-local-data:/data
 
   snurdy-aws-local:
-    image: localstack/localstack:latest
+    image: localstack/localstack:2026.9.0
     container_name: snurdy-aws-local
     restart: always
     ports:

@@ -30,3 +30,10 @@ spring.cloud.aws:
     endpoint: http://localhost:4566
   ses:
     endpoint: http://localhost:4566
+
+  inquiry:
+    queue:
+      mail: inquiry-mail
+    mail:
+      receiver: local@example.com
+      subject-prefix: "[LOCAL]"

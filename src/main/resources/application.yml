@@ -143,3 +143,8 @@ sentry:
   send-default-pii: false
   logging:
     minimum-event-level: error
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false

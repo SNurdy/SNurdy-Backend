@@ -74,6 +74,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
+
+    // 로컬 SQL 로그 가독성
+    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 }
 
 dependencyManagement {

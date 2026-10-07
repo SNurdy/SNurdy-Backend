@@ -56,7 +56,7 @@ interface InquiryApi {
 
     @Operation(summary = InquirySwaggerDescription.UPDATE_INQUIRY_SUMMARY)
     @ApiSuccessCode("INQUIRY_S004")
-    @ApiErrorCodes("INQUIRY_E001", "INQUIRY_E002")
+    @ApiErrorCodes("INQUIRY_E001", "INQUIRY_E002", "INQUIRY_E003")
     @PutMapping("/{inquiryId}")
     fun updateInquiry(
         @CurrentUserId userId: UUID,

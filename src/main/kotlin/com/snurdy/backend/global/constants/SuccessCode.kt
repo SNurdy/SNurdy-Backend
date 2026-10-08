@@ -127,7 +127,8 @@ enum class DictionarySuccess(
     GET_GLOSSARY_TERMS(HttpStatus.OK, "DICTIONARY_S005", "용어장 용어 목록 조회에 성공했습니다"),
     SEARCH_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S006", "어근어미 키워드 검색에 성공했습니다"),
     LIST_MORPHEMES(HttpStatus.OK, "DICTIONARY_S007", "어근어미 목록 조회에 성공했습니다"),
-    LIST_TERMS_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S008", "어근어미별 용어 목록 조회에 성공했습니다")
+    LIST_TERMS_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S008", "어근어미별 용어 목록 조회에 성공했습니다"),
+    GET_DICTIONARY_VERSION(HttpStatus.OK, "DICTIONARY_S009", "사전 버전 조회에 성공했습니다")
 }
 
 enum class TermMemoSuccess(

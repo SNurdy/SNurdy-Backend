@@ -28,10 +28,11 @@ class GlossaryTestController(
     override fun submit(
         userId: UUID,
         glossaryId: Long,
+        idempotencyKey: UUID?,
         request: GlossaryTestSubmitRequest
     ): ApiResponse<GlossaryTestSubmitResponse> =
         ApiResponse.success(
             TestSuccess.SUBMIT_TEST,
-            glossaryTestService.submitTest(userId, glossaryId, request)
+            glossaryTestService.submitTest(userId, glossaryId, request, idempotencyKey)
         )
 }

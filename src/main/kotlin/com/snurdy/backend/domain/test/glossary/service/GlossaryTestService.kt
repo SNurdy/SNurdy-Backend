@@ -11,9 +11,11 @@ import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.service.ProgressUpdateService
-import com.snurdy.backend.domain.test.common.deriveAnswer
-import com.snurdy.backend.domain.test.common.deriveQuestion
-import com.snurdy.backend.domain.test.common.isMultipleChoice
+import com.snurdy.backend.domain.test.common.dto.deriveAnswer
+import com.snurdy.backend.domain.test.common.dto.deriveQuestion
+import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
+import com.snurdy.backend.domain.test.common.entity.TestSubmissionType
+import com.snurdy.backend.domain.test.common.service.TestSubmissionService
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryLevelUpEvent
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCard
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
@@ -43,6 +45,7 @@ class GlossaryTestService(
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val progressUpdateService: ProgressUpdateService,
+    private val testSubmissionService: TestSubmissionService,
     private val clock: Clock
 ) {
 
@@ -114,9 +117,14 @@ class GlossaryTestService(
     fun submitTest(
         userId: UUID,
         glossaryId: Long,
-        request: GlossaryTestSubmitRequest
+        request: GlossaryTestSubmitRequest,
+        idempotencyKey: UUID?
     ): GlossaryTestSubmitResponse {
         progressUpdateService.lockUserForProgressUpdate(userId)
+
+        testSubmissionService
+            .findPreviousResponse(userId, idempotencyKey, GlossaryTestSubmitResponse::class.java)
+            ?.let { return it }
 
         if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
@@ -153,7 +161,7 @@ class GlossaryTestService(
         val totalStudiedCount = dailyProgressRepository.sumAllLearnedCountByUserId(userId).toInt()
 
         val correctCount = results.count { it.correct }
-        return GlossaryTestSubmitResponse(
+        val response = GlossaryTestSubmitResponse(
             correctCount = correctCount,
             incorrectCount = results.size - correctCount,
             sessionStudiedCount = request.studiedTermCount ?: results.size,
@@ -171,6 +179,9 @@ class GlossaryTestService(
                 ) else null
             )
         )
+
+        testSubmissionService.saveResponse(userId, idempotencyKey, TestSubmissionType.GLOSSARY, response)
+        return response
     }
 
     private fun validateTermIdsBelongToGlossary(glossaryId: Long, termIds: List<Long>) {

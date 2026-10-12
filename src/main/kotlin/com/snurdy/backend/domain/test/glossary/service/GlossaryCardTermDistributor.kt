@@ -1,8 +1,8 @@
 package com.snurdy.backend.domain.test.glossary.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.test.common.TestType
-import com.snurdy.backend.domain.test.common.requiresAbbreviation
+import com.snurdy.backend.domain.test.common.dto.TestType
+import com.snurdy.backend.domain.test.common.dto.requiresAbbreviation
 import org.springframework.stereotype.Component
 
 @Component

@@ -1,6 +1,7 @@
 package com.snurdy.backend.domain.test.glossary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
+import com.snurdy.backend.domain.card.dto.splitAcceptableAnswers
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
@@ -10,6 +11,7 @@ import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCard
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
+import com.snurdy.backend.domain.test.glossary.dto.toTestCard
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
@@ -64,19 +66,12 @@ class GlossaryTestCardService(
 
         val cards = assignments.map { (term, testType) ->
             val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
-            GlossaryTestCard(
-                termId = term.termId,
+            term.toTestCard(
                 testType = testType,
-                question = testType.deriveQuestion(term.spelling, term.meaning, term.abbreviation),
                 answer = answer,
-                answers = splitAcceptableAnswers(answer),
                 distractors = if (testType.isMultipleChoice()) {
                     distractorSelector.select(term.termId, answer, testType, distractorPool)
                 } else null,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation,
                 bookmarked = term.termId in bookmarkedTermIds,
                 morphemes = morphemesByTermId[term.termId].orEmpty()
             )
@@ -91,8 +86,4 @@ class GlossaryTestCardService(
             cards = cards.shuffled()
         )
     }
-
-    // 콤마 동의어를 작성형 인정 정답 목록으로 분리
-    private fun splitAcceptableAnswers(answer: String): List<String> =
-        answer.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 }

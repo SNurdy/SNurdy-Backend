@@ -6,6 +6,10 @@ spring:
     show-sql: false
   datasource:
     hikari:
+      connection-timeout: 10000
+      keepalive-time: 30000
+      max-lifetime: 1740000
+      validation-timeout: 5000
       data-source-properties:
         rewriteBatchedStatements: true
 

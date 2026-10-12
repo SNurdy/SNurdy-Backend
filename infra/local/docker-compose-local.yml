@@ -22,6 +22,20 @@ services:
     volumes:
       - redis-local-data:/data
 
+  snurdy-aws-local:
+    image: localstack/localstack:2026.9.0
+    container_name: snurdy-aws-local
+    restart: always
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sqs,ses
+      AWS_DEFAULT_REGION: ap-northeast-2
+      SQS_ENDPOINT_STRATEGY: path
+      LOCALSTACK_AUTH_TOKEN: ${LOCALSTACK_AUTH_TOKEN:-}
+    volumes:
+      - ./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh:ro
+
 volumes:
   mysql-local-data:
   redis-local-data:

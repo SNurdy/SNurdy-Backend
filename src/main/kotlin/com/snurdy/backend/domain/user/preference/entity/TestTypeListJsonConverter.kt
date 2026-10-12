@@ -2,7 +2,7 @@ package com.snurdy.backend.domain.user.preference.entity
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
 

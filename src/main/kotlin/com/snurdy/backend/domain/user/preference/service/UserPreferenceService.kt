@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.user.preference.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultCardCountResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateDefaultTestTypesResponse
 import com.snurdy.backend.domain.user.preference.dto.UpdateSelectedGlossaryResponse

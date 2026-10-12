@@ -20,6 +20,26 @@ interface GlossaryTermRepository : JpaRepository<GlossaryTermEntity, GlossaryTer
 
     @Query(
         value = """
+    SELECT t.id AS termId,
+           t.spelling AS spelling,
+           t.meaning AS meaning,
+           t.abbreviation AS abbreviation,
+           t.explanation AS explanation
+    FROM glossary_terms gt
+    JOIN terms t ON t.id = gt.term_id
+    WHERE gt.glossary_id = :glossaryId
+      AND t.id IN :termIds
+      AND t.deleted_at IS NULL
+    """,
+        nativeQuery = true
+    )
+    fun findSimpleTermsByGlossaryIdAndTermIds(
+        @Param("glossaryId") glossaryId: Long,
+        @Param("termIds") termIds: List<Long>
+    ): List<SimpleTermProjection>
+
+    @Query(
+        value = """
         SELECT t.id AS termId,
                t.spelling AS spelling,
                t.meaning AS meaning,

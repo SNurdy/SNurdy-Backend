@@ -61,6 +61,10 @@ dependencies {
     // Spring Cloud AWS - S3
     implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 
+    // Spring Cloud AWS - SQS SES
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-sqs")
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-ses")
+
     // Sentry
     implementation("io.sentry:sentry-spring-boot-starter-jakarta")
     implementation("io.sentry:sentry-logback")
@@ -70,6 +74,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:mysql")
+
+    // 로컬 SQL 로그 가독성
+    implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.11.0")
 }
 
 dependencyManagement {

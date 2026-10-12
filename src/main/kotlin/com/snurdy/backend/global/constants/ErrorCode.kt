@@ -19,9 +19,11 @@ enum class CommonError(
     FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON_E403", "접근 권한이 없습니다"),
     NOT_FOUND(HttpStatus.NOT_FOUND, "COMMON_E404", "리소스를 찾을 수 없습니다"),
     METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "COMMON_E405", "지원하지 않는 HTTP 메서드입니다"),
+    NOT_ACCEPTABLE(HttpStatus.NOT_ACCEPTABLE, "COMMON_E406", "지원하지 않는 응답 형식입니다"),
     CONFLICT(HttpStatus.CONFLICT, "COMMON_E409", "요청이 현재 상태와 충돌합니다"),
     DUPLICATED(HttpStatus.CONFLICT, "COMMON_E410", "이미 존재하는 데이터입니다"),
     INVALID_REFERENCE(HttpStatus.BAD_REQUEST, "COMMON_E411", "참조하는 데이터가 존재하지 않습니다"),
+    UNSUPPORTED_MEDIA_TYPE(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "COMMON_E415", "지원하지 않는 Content-Type 입니다"),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_E500", "서버 오류가 발생했습니다"),
     BAD_GATEWAY(HttpStatus.BAD_GATEWAY, "COMMON_E502", "외부 API 오류가 발생했습니다"),
     SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON_E503", "일시적으로 서비스를 이용할 수 없습니다. 잠시 후 다시 시도해주세요")
@@ -160,4 +162,17 @@ enum class VersionError(
     UNSUPPORTED_PLATFORM(HttpStatus.BAD_REQUEST, "VERSION_E001", "지원하지 않는 플랫폼입니다"),
     INVALID_VERSION_FORMAT(HttpStatus.BAD_REQUEST, "VERSION_E002", "올바르지 않은 버전 형식입니다"),
     VERSION_INFO_NOT_FOUND(HttpStatus.NOT_FOUND, "VERSION_E003", "버전 정보를 찾을 수 없습니다");
+}
+
+// 문의 에러
+enum class InquiryError(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : ErrorCode {
+    NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_E001", "문의를 찾을 수 없습니다"),
+    ALREADY_ANSWERED(HttpStatus.CONFLICT, "INQUIRY_E002", "답변이 등록된 문의는 수정하거나 삭제할 수 없습니다"),
+    TOO_MANY_INQUIRIES(HttpStatus.TOO_MANY_REQUESTS, "INQUIRY_E003", "문의 작성 횟수를 초과했습니다. 잠시 후 다시 시도해주세요"),
+    ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "INQUIRY_E004", "등록된 답변이 없습니다"),
+    ANSWER_ALREADY_EXISTS(HttpStatus.CONFLICT, "INQUIRY_E005", "이미 답변이 등록된 문의입니다")
 }

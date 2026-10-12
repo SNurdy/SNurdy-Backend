@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.util.DisconnectedClientHelper
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -30,7 +31,13 @@ class GlobalExceptionHandler {
     fun handleException(
         e: Exception,
         request: HttpServletRequest
-    ): ResponseEntity<ApiResponse<Unit>> {
+    ): ResponseEntity<ApiResponse<Unit>>? {
+        // 클라이언트가 먼저 연결을 끊어 응답을 쓸 수 없으므로 서버 오류로 기록하지 않는다
+        if (DisconnectedClientHelper.isClientDisconnectedException(e)) {
+            log.debug("클라이언트 연결 종료 {} {} - {}", request.method, request.requestURI, e.message)
+            return null
+        }
+
         val apiException = e.toApiException()
 
         if (apiException.error.status.is5xxServerError) {

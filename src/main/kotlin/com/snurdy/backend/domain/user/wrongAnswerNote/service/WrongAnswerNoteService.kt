@@ -72,18 +72,13 @@ class WrongAnswerNoteService(
 
     @Transactional(readOnly = true)
     fun listByGlossary(userId: UUID): WrongAnswerGlossaryCardListResponse {
-        val groups = wrongAnswerTermRepository.groupByGlossary(userId)
-        if (groups.isEmpty()) return WrongAnswerGlossaryCardListResponse(glossaries = emptyList())
+        val counts = wrongAnswerTermRepository.groupByGlossary(userId)
+            .associate { it.glossaryId to it.incorrectTermCount }
 
-        val glossaryIds = groups.map { it.glossaryId }
-        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+        val cards = glossaryRepository.findAll()
+            .sortedBy { it.id }
+            .map { it.toWrongAnswerCard(counts[it.id] ?: 0L) }
 
-        val cards = groups
-            .mapNotNull { group ->
-                val glossary = glossaries[group.glossaryId] ?: return@mapNotNull null
-                glossary.toWrongAnswerCard(group.incorrectTermCount)
-            }
-            .sortedBy { it.glossaryId }
         return WrongAnswerGlossaryCardListResponse(glossaries = cards)
     }
 

@@ -1,6 +1,6 @@
 package com.snurdy.backend.domain.user.preference.entity
 
-import com.snurdy.backend.domain.test.entity.TestType
+import com.snurdy.backend.domain.test.legacy.entity.TestType
 import com.snurdy.backend.global.entity.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Convert

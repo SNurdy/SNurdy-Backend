@@ -79,6 +79,7 @@ enum class ProfileImageSuccess(
     UPLOAD(HttpStatus.OK, "PROFILE_IMAGE_S001", "프로필 이미지를 변경했습니다")
 }
 
+// 기존 학습 API
 enum class CardSuccess(
     override val status: HttpStatus,
     override val code: String,
@@ -93,7 +94,16 @@ enum class TestSuccess(
     override val message: String
 ) : SuccessCode {
     LIST_DISTRACTORS(HttpStatus.OK, "TEST_S001", "다지선다 오답을 생성했습니다"),
-    SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다")
+    SUBMIT_TEST(HttpStatus.OK, "TEST_S002", "테스트 결과를 반영했습니다"),
+    LIST_TEST_CARDS(HttpStatus.OK, "TEST_S003", "테스트 카드를 조회했습니다")
+}
+
+enum class StudySuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    LIST_STUDY_CARDS(HttpStatus.OK, "STUDY_S001", "학습 카드를 조회했습니다")
 }
 
 enum class CalendarSuccess(
@@ -117,7 +127,8 @@ enum class DictionarySuccess(
     GET_GLOSSARY_TERMS(HttpStatus.OK, "DICTIONARY_S005", "용어장 용어 목록 조회에 성공했습니다"),
     SEARCH_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S006", "어근어미 키워드 검색에 성공했습니다"),
     LIST_MORPHEMES(HttpStatus.OK, "DICTIONARY_S007", "어근어미 목록 조회에 성공했습니다"),
-    LIST_TERMS_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S008", "어근어미별 용어 목록 조회에 성공했습니다")
+    LIST_TERMS_BY_MORPHEME(HttpStatus.OK, "DICTIONARY_S008", "어근어미별 용어 목록 조회에 성공했습니다"),
+    GET_DICTIONARY_VERSION(HttpStatus.OK, "DICTIONARY_S009", "사전 버전 조회에 성공했습니다")
 }
 
 enum class TermMemoSuccess(
@@ -171,4 +182,20 @@ enum class VersionSuccess(
     override val message: String
 ) : SuccessCode {
     CHECK(HttpStatus.OK, "VERSION_S001", "업데이트 확인이 완료되었습니다");
+}
+
+enum class InquirySuccess(
+    override val status: HttpStatus,
+    override val code: String,
+    override val message: String
+) : SuccessCode {
+    CREATE_INQUIRY(HttpStatus.CREATED, "INQUIRY_S001", "문의를 등록했습니다"),
+    LIST_INQUIRIES(HttpStatus.OK, "INQUIRY_S002", "문의 목록 조회에 성공했습니다"),
+    GET_INQUIRY(HttpStatus.OK, "INQUIRY_S003", "문의 상세 조회에 성공했습니다"),
+    UPDATE_INQUIRY(HttpStatus.OK, "INQUIRY_S004", "문의를 수정했습니다"),
+    DELETE_INQUIRY(HttpStatus.OK, "INQUIRY_S005", "문의를 삭제했습니다"),
+    ADMIN_LIST_INQUIRIES(HttpStatus.OK, "INQUIRY_S006", "관리자 문의 목록 조회에 성공했습니다"),
+    ADMIN_GET_INQUIRY(HttpStatus.OK, "INQUIRY_S007", "관리자 문의 상세 조회에 성공했습니다"),
+    CREATE_INQUIRY_ANSWER(HttpStatus.CREATED, "INQUIRY_S008", "답변을 등록했습니다"),
+    UPDATE_INQUIRY_ANSWER(HttpStatus.OK, "INQUIRY_S009", "답변을 수정했습니다")
 }

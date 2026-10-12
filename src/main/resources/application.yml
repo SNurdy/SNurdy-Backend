@@ -78,6 +78,23 @@ spring.cloud.aws:
     secret-key: ${AWS_SECRET_ACCESS_KEY:}
   s3:
     enabled: true
+  sqs:
+    queue-not-found-strategy: fail
+    listener:
+      poll-timeout: 20s
+      max-concurrent-messages: 5
+      max-messages-per-poll: 5
+
+inquiry:
+  mail:
+    queue-name: ${INQUIRY_MAIL_QUEUE}
+    sender: ${INQUIRY_MAIL_SENDER:inquiry@snurdy.org}
+    sender-name: SNurdy 문의
+    receiver: ${INQUIRY_MAIL_RECEIVER}
+    subject-prefix: ${INQUIRY_MAIL_SUBJECT_PREFIX:}
+  rate-limit:
+    cooldown-seconds: 30
+    daily-limit: 10
 
 storage:
   s3:
@@ -125,3 +142,8 @@ sentry:
   send-default-pii: false
   logging:
     minimum-event-level: error
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false

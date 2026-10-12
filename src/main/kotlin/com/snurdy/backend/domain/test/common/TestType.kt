@@ -1,0 +1,11 @@
+package com.snurdy.backend.domain.test.common
+
+enum class TestType {
+    WRITE_MEANING_FROM_TERM,
+    WRITE_TERM_FROM_MEANING,
+    LISTEN_AND_WRITE,
+    WRITE_ABBREVIATION_FROM_TERM,
+    MC_MEANING_FROM_TERM,
+    MC_TERM_FROM_ABBREVIATION,
+    MC_TERM_FROM_MEANING
+}

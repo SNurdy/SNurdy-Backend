@@ -10,7 +10,7 @@ class ApplePublicKeyProvider(
     private val appleAuthClient: AppleAuthClient
 ) : RsaPublicKeyProvider(
     fetchError = AuthError.APPLE_API_ERROR,
-    keyNotFoundError = AuthError.APPLE_API_ERROR
+    keyNotFoundError = AuthError.INVALID_TOKEN
 ) {
     override fun fetchKeys(): Map<String, RSAPublicKey> =
         appleAuthClient.getApplePublicKeys().keys.associate { key ->

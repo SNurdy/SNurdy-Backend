@@ -1,6 +1,8 @@
 package com.snurdy.backend.domain.user.wrongAnswerNote.dto
 
 import com.snurdy.backend.domain.dictionary.glossary.entity.GlossaryEntity
+import com.snurdy.backend.domain.user.wrongAnswerNote.docs.WrongAnswerNoteSwaggerDescription
+import com.snurdy.backend.domain.user.wrongAnswerNote.docs.WrongAnswerNoteSwaggerExample
 import com.snurdy.backend.domain.user.wrongAnswerNote.repository.WrongAnswerTermItemProjection
 import com.snurdy.backend.global.constants.APP_ZONE_ID
 import io.swagger.v3.oas.annotations.media.Schema
@@ -37,55 +39,89 @@ fun WrongAnswerPeriod.thresholdAfter(now: Instant): Instant? {
     }
 }
 
-@Schema(description = "기간별 오답노트 카드 1건")
+@Schema(description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_PERIOD_CARD)
 data class WrongAnswerPeriodCard(
-    @field:Schema(description = "기간 식별자", example = "TODAY")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_PERIOD_CARD_PERIOD,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_PERIOD_CARD_PERIOD
+    )
     val period: WrongAnswerPeriod,
-    @field:Schema(description = "카드 상단 라벨", example = "오늘 틀린 단어")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_PERIOD_CARD_LABEL,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_PERIOD_CARD_LABEL
+    )
     val label: String,
-    @field:Schema(description = "해당 기간 안의 오답 단어 수", example = "12")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_PERIOD_CARD_INCORRECT_TERM_COUNT,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_PERIOD_CARD_INCORRECT_TERM_COUNT
+    )
     val incorrectTermCount: Long
 )
 
 @Schema(
-    description = "기간별 오답노트 카드 목록",
-    example = """{"periods":[{"period":"TODAY","label":"오늘 틀린 단어","incorrectTermCount":12},{"period":"WEEK","label":"이번 주 틀린 단어","incorrectTermCount":34},{"period":"MONTH","label":"이번 달 틀린 단어","incorrectTermCount":120},{"period":"ALL","label":"전체 틀린 단어","incorrectTermCount":340}]}"""
+    description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_PERIOD_CARD_LIST_RESPONSE,
+    example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_PERIOD_CARD_LIST_RESPONSE
 )
 data class WrongAnswerPeriodCardListResponse(
     val periods: List<WrongAnswerPeriodCard>
 )
 
-@Schema(description = "과별 오답노트 카드 1건")
+@Schema(description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD)
 data class WrongAnswerGlossaryCard(
-    @field:Schema(description = "DEFAULT 단어장 ID", example = "1")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_GLOSSARY_ID,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_GLOSSARY_CARD_GLOSSARY_ID
+    )
     val glossaryId: Long,
-    @field:Schema(description = "단어장 제목", example = "정형외과")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_TITLE,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_GLOSSARY_CARD_TITLE
+    )
     val title: String,
-    @field:Schema(description = "단어장 분류", example = "외과")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_CATEGORY,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_GLOSSARY_CARD_CATEGORY
+    )
     val category: String,
-    @field:Schema(description = "해당 과의 오답 단어 수", example = "12")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_INCORRECT_TERM_COUNT,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_GLOSSARY_CARD_INCORRECT_TERM_COUNT
+    )
     val incorrectTermCount: Long
 )
 
-@Schema(description = "과별 오답노트 카드 목록")
+@Schema(description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_LIST_RESPONSE)
 data class WrongAnswerGlossaryCardListResponse(
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_GLOSSARY_CARD_LIST_RESPONSE_GLOSSARIES,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_GLOSSARY_CARD_LIST_RESPONSE_GLOSSARIES
+    )
     val glossaries: List<WrongAnswerGlossaryCard>
 )
 
-@Schema(description = "오답 단어 1건")
+@Schema(description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_TERM_ITEM)
 data class WrongAnswerTermItem(
-    @field:Schema(description = "단어 id", example = "101")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_TERM_ITEM_TERM_ID,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_TERM_ITEM_TERM_ID
+    )
     val termId: Long,
-    @field:Schema(description = "단어가 속한 단어장 id", example = "12")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_TERM_ITEM_GLOSSARY_ID,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_TERM_ITEM_GLOSSARY_ID
+    )
     val glossaryId: Long,
     val spelling: String,
     val meaning: String,
     val abbreviation: String?,
-    @field:Schema(description = "단어의 누적 오답 횟수 (사용자 x 단어 단위)", example = "18")
+    @field:Schema(
+        description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_TERM_ITEM_TOTAL_INCORRECT_COUNT,
+        example = WrongAnswerNoteSwaggerExample.WRONG_ANSWER_TERM_ITEM_TOTAL_INCORRECT_COUNT
+    )
     val totalIncorrectCount: Int
 )
 
-@Schema(description = "오답 단어 페이지 응답")
+@Schema(description = WrongAnswerNoteSwaggerDescription.WRONG_ANSWER_TERMS_RESPONSE)
 data class WrongAnswerTermsResponse(
     val page: Int,
     val size: Int,
@@ -95,13 +131,13 @@ data class WrongAnswerTermsResponse(
     val terms: List<WrongAnswerTermItem>
 )
 
-@Schema(description = "오답노트에서 단어 다중 삭제 요청. 입력한 단어가 모두 노트에 활성 상태로 있어야 처리")
+@Schema(description = WrongAnswerNoteSwaggerDescription.DELETE_TERMS_FROM_WRONG_ANSWER_NOTE_REQUEST)
 data class DeleteTermsFromWrongAnswerNoteRequest(
-    @field:NotEmpty(message = "삭제할 단어 ID 목록이 비어 있을 수 없습니다")
-    @field:Size(max = 100, message = "한 번에 최대 100개까지 삭제할 수 있습니다")
+    @field:NotEmpty
+    @field:Size(max = 100)
     @field:Schema(
-        description = "삭제할 단어 ID 목록 (최대 100개)",
-        example = "[123, 456]"
+        description = WrongAnswerNoteSwaggerDescription.DELETE_TERMS_FROM_WRONG_ANSWER_NOTE_REQUEST_TERM_IDS,
+        example = WrongAnswerNoteSwaggerExample.DELETE_TERMS_FROM_WRONG_ANSWER_NOTE_REQUEST_TERM_IDS
     )
     val termIds: List<@Positive Long>
 )

@@ -1,17 +1,15 @@
 spring:
-  config:
-    activate:
-      on-profile: local
   jpa:
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
+    show-sql: false
 
 logging:
   level:
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    p6spy: INFO
+
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
 
 storage:
   s3:
@@ -21,3 +19,18 @@ cors:
   allowed-origins:
     - "http://localhost:5173"
     - "http://localhost:8081"
+
+spring.cloud.aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY_ID:local}
+    secret-key: ${AWS_SECRET_ACCESS_KEY:local}
+  sqs:
+    endpoint: http://localhost:4566
+  ses:
+    endpoint: http://localhost:4566
+
+inquiry:
+  mail:
+    queue-name: inquiry-mail
+    receiver: local@example.com
+    subject-prefix: "[LOCAL]"

@@ -37,7 +37,7 @@ interface GlossaryTestApi {
 
     @Operation(summary = GlossaryTestSwaggerDescription.SUBMIT_SUMMARY)
     @ApiSuccessCode("TEST_S002")
-    @ApiErrorCodes("DICTIONARY_E001", "TEST_E002")
+    @ApiErrorCodes("DICTIONARY_E001", "TEST_E002", "USER_E010")
     @PostMapping("/test-submit")
     fun submit(
         @CurrentUserId userId: UUID,

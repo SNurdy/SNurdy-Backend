@@ -17,13 +17,13 @@ class TestSubmissionService(
     private val objectMapper: ObjectMapper
 ) {
 
-    // 사용자 행 잠금 이후에 호출해야 동시에 온 같은 키 요청이 선행 요청의 기록을 본다
     @Transactional(propagation = Propagation.MANDATORY)
     fun <T> findPreviousResponse(
         userId: UUID,
-        idempotencyKey: UUID,
+        idempotencyKey: UUID?,
         responseType: Class<T>
     ): T? {
+        if (idempotencyKey == null) return null
         val previous = testSubmissionRepository
             .findByIdOrNull(TestSubmissionId(userId, idempotencyKey))
             ?: return null
@@ -33,10 +33,11 @@ class TestSubmissionService(
     @Transactional(propagation = Propagation.MANDATORY)
     fun saveResponse(
         userId: UUID,
-        idempotencyKey: UUID,
+        idempotencyKey: UUID?,
         submissionType: TestSubmissionType,
         response: Any
     ) {
+        if (idempotencyKey == null) return
         testSubmissionRepository.save(
             TestSubmissionEntity(
                 id = TestSubmissionId(userId, idempotencyKey),

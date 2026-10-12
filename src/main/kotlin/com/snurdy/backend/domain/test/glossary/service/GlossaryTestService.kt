@@ -122,11 +122,9 @@ class GlossaryTestService(
     ): GlossaryTestSubmitResponse {
         progressUpdateService.lockUserForProgressUpdate(userId)
 
-        if (idempotencyKey != null) {
-            testSubmissionService
-                .findPreviousResponse(userId, idempotencyKey, GlossaryTestSubmitResponse::class.java)
-                ?.let { return it }
-        }
+        testSubmissionService
+            .findPreviousResponse(userId, idempotencyKey, GlossaryTestSubmitResponse::class.java)
+            ?.let { return it }
 
         if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
@@ -182,9 +180,7 @@ class GlossaryTestService(
             )
         )
 
-        if (idempotencyKey != null) {
-            testSubmissionService.saveResponse(userId, idempotencyKey, TestSubmissionType.GLOSSARY, response)
-        }
+        testSubmissionService.saveResponse(userId, idempotencyKey, TestSubmissionType.GLOSSARY, response)
         return response
     }
 

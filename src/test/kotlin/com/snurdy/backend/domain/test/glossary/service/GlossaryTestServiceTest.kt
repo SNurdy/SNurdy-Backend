@@ -6,6 +6,7 @@ import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepo
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
 import com.snurdy.backend.domain.test.common.dto.TestType
+import com.snurdy.backend.domain.test.common.service.TestSubmissionService
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
@@ -28,7 +29,8 @@ class GlossaryTestServiceTest {
     private lateinit var bookmarkRepository: BookmarkRepository
     private lateinit var distractorSelector: GlossaryDistractorSelector
     private lateinit var morphemeHighlightAssembler: MorphemeHighlightAssembler
-    private lateinit var service: GlossaryTestService
+    private lateinit var glossaryTestService: GlossaryTestService
+    private lateinit var testSubmissionService: TestSubmissionService
 
     private val userId = UUID.randomUUID()
     private val glossaryId = 12L
@@ -57,7 +59,7 @@ class GlossaryTestServiceTest {
         distractorSelector = mockk()
         morphemeHighlightAssembler = mockk()
         val countDistributor = GlossaryCardCountDistributor()
-        service = GlossaryTestService(
+        glossaryTestService = GlossaryTestService(
             glossaryRepository = glossaryRepository,
             glossaryTermRepository = glossaryTermRepository,
             bookmarkRepository = bookmarkRepository,
@@ -68,7 +70,8 @@ class GlossaryTestServiceTest {
             glossaryProgressRepository = mockk(),
             dailyProgressRepository = mockk(),
             progressUpdateService = mockk(),
-            clock = Clock.systemUTC()
+            clock = Clock.systemUTC(),
+            testSubmissionService = mockk()
         )
 
         every { glossaryRepository.existsById(glossaryId) } returns true
@@ -85,7 +88,7 @@ class GlossaryTestServiceTest {
         } returns requestedTermIds.map { term(it) }
 
         // When
-        val response = service.listTestCards(
+        val response = glossaryTestService.listTestCards(
             userId,
             glossaryId,
             GlossaryTestCardsRequest(termIds = requestedTermIds, testTypes = listOf(TestType.WRITE_MEANING_FROM_TERM))
@@ -107,7 +110,7 @@ class GlossaryTestServiceTest {
         } returns listOf(term(1L))
 
         // When
-        val card = service.listTestCards(
+        val card = glossaryTestService.listTestCards(
             userId,
             glossaryId,
             GlossaryTestCardsRequest(termIds = requestedTermIds, testTypes = listOf(TestType.WRITE_MEANING_FROM_TERM))
@@ -133,7 +136,7 @@ class GlossaryTestServiceTest {
         val groupedOrder = List(20) { TestType.WRITE_MEANING_FROM_TERM } + List(20) { TestType.WRITE_TERM_FROM_MEANING }
 
         // When 셔플 결과가 우연히 묶인 순서와 같을 확률을 없애기 위해 여러 번 호출
-        val responses = List(5) { service.listTestCards(userId, glossaryId, request) }
+        val responses = List(5) { glossaryTestService.listTestCards(userId, glossaryId, request) }
 
         // Then
         responses.forEach {
@@ -155,7 +158,7 @@ class GlossaryTestServiceTest {
 
         // When
         val exception = assertThrows(ApiException::class.java) {
-            service.listTestCards(
+            glossaryTestService.listTestCards(
                 userId,
                 glossaryId,
                 GlossaryTestCardsRequest(termIds = requestedTermIds, testTypes = listOf(TestType.WRITE_MEANING_FROM_TERM))
@@ -173,7 +176,7 @@ class GlossaryTestServiceTest {
 
         // When
         val exception = assertThrows(ApiException::class.java) {
-            service.listTestCards(
+            glossaryTestService.listTestCards(
                 userId,
                 glossaryId,
                 GlossaryTestCardsRequest(termIds = listOf(1L), testTypes = listOf(TestType.WRITE_MEANING_FROM_TERM))

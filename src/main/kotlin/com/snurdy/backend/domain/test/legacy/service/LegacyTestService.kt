@@ -45,6 +45,8 @@ class LegacyTestService(
         glossaryId: Long,
         request: SubmitRequest
     ): SubmitGlossaryTestResponse {
+        progressUpdateService.lockUserForProgressUpdate(userId)
+
         if (!glossaryRepository.existsById(glossaryId)) {
             throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
         }

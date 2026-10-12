@@ -26,6 +26,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import com.snurdy.backend.global.constants.APP_ZONE_ID
+import org.springframework.transaction.annotation.Propagation
 import java.util.UUID
 
 // 호출자 책임 (TestService 등)
@@ -83,6 +84,12 @@ class ProgressUpdateService(
             termProgressRepository.saveAll(newProgresses)
         }
         applyProgressAggregation(user, aggregation, now, dailyDate)
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    fun lockUserForProgressUpdate(userId: UUID) {
+        userRepository.findByIdForUpdate(userId)
+            ?: throw ApiException(UserError.ACCOUNT_NOT_FOUND)
     }
 
     private fun updateGlossaryProgresses(user: UserEntity, learnedByGlossary: Map<Long, Int>, now: Instant) {

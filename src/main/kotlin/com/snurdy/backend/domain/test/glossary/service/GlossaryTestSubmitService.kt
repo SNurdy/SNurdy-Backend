@@ -61,7 +61,8 @@ class GlossaryTestSubmitService(
         val requested = termIds.toSet()
         val matched = glossaryTermRepository
             .findAllByIdGlossaryIdAndIdTermIdIn(glossaryId, requested)
-            .mapTo(mutableSetOf()) { it.id.termId }
+            .map { it.id.termId }
+            .toSet()
         if (matched.size != requested.size) {
             throw ApiException(TestError.TEST_RESULT_INVALID)
         }

@@ -11,15 +11,9 @@ import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.service.ProgressUpdateService
-import com.snurdy.backend.domain.test.common.dto.deriveAnswer
-import com.snurdy.backend.domain.test.common.dto.deriveQuestion
-import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
 import com.snurdy.backend.domain.test.common.entity.TestSubmissionType
 import com.snurdy.backend.domain.test.common.service.TestSubmissionService
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryLevelUpEvent
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCard
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSnapshot
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
@@ -34,7 +28,7 @@ import java.util.UUID
 import java.time.Clock
 
 @Service
-class GlossaryTestService(
+class GlossaryTestSubmitService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val bookmarkRepository: BookmarkRepository,
@@ -48,71 +42,6 @@ class GlossaryTestService(
     private val testSubmissionService: TestSubmissionService,
     private val clock: Clock
 ) {
-
-    @Transactional(readOnly = true)
-    fun listTestCards(
-        userId: UUID,
-        glossaryId: Long,
-        request: GlossaryTestCardsRequest
-    ): GlossaryTestCardsResponse {
-        if (!glossaryRepository.existsById(glossaryId)) {
-            throw ApiException(DictionaryError.GLOSSARY_NOT_FOUND)
-        }
-
-        // 학습한 단어(termIds)로만 카드 생성 — 샘플링 없이 학습-테스트 단어 일치 보장
-        val terms = glossaryTermRepository
-            .findSimpleTermsByGlossaryIdAndTermIds(glossaryId, request.termIds)
-        if (terms.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-
-        val slots = cardCountDistributor.groupIntoSlots(request.testTypes)
-        val assignments = cardTermDistributor.distribute(terms, slots)
-        if (assignments.isEmpty()) throw ApiException(TestError.TEST_TYPE_NOT_AVAILABLE)
-
-        val distractorPool = if (assignments.any { it.second.isMultipleChoice() }) {
-            glossaryTermRepository.findAllSimpleTermsByGlossaryId(glossaryId)
-        } else {
-            emptyList()
-        }
-
-        val termIds = terms.map { it.termId }
-        val bookmarkedTermIds = bookmarkRepository
-            .findBookmarkedTermIds(userId, glossaryId, termIds)
-            .toSet()
-        val morphemesByTermId = morphemeHighlightAssembler.buildByTermIds(
-            termIds = termIds,
-            spellingByTermId = terms.associate { it.termId to it.spelling }
-        )
-
-        val cards = assignments.map { (term, testType) ->
-            val answer = testType.deriveAnswer(term.spelling, term.meaning, term.abbreviation)
-            GlossaryTestCard(
-                termId = term.termId,
-                testType = testType,
-                question = testType.deriveQuestion(term.spelling, term.meaning, term.abbreviation),
-                answer = answer,
-                answers = splitAcceptableAnswers(answer),
-                distractors = if (testType.isMultipleChoice()) {
-                    distractorSelector.select(term.termId, answer, testType, distractorPool)
-                } else null,
-                spelling = term.spelling,
-                meaning = term.meaning,
-                abbreviation = term.abbreviation,
-                explanation = term.explanation,
-                bookmarked = term.termId in bookmarkedTermIds,
-                morphemes = morphemesByTermId[term.termId].orEmpty()
-            )
-        }
-
-        val availableCounts = cards
-            .groupingBy { it.testType }
-            .eachCount()
-
-        return GlossaryTestCardsResponse(
-            availableCounts = availableCounts,
-            cards = cards.shuffled()
-        )
-    }
-
     @Transactional
     fun submitTest(
         userId: UUID,
@@ -193,8 +122,4 @@ class GlossaryTestService(
             throw ApiException(TestError.TEST_RESULT_INVALID)
         }
     }
-
-    // 콤마 동의어를 작성형 인정 정답 목록으로 분리
-    private fun splitAcceptableAnswers(answer: String): List<String> =
-        answer.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 }

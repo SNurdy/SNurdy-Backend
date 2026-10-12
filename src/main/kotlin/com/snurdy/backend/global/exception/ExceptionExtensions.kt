@@ -15,9 +15,12 @@ import org.hibernate.JDBCException
 import org.hibernate.exception.ConstraintViolationException as HibernateConstraintViolationException
 import org.hibernate.exception.DataException as HibernateDataException
 import org.hibernate.exception.LockAcquisitionException as HibernateLockAcquisitionException
+import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.data.redis.RedisConnectionFailureException
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.transaction.CannotCreateTransactionException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.MissingServletRequestParameterException
@@ -48,6 +51,11 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is ConstraintViolationException -> this.toConstraintViolationApiException()
     is DataIntegrityViolationException -> this.toDataIntegrityApiException()
     is OptimisticLockingFailureException -> ApiException(CommonError.CONFLICT, cause = this)
+
+    // DB Redis 커넥션 획득 실패 등 인프라 일시 장애는 503 으로 내려 클라이언트 재시도를 유도
+    is DataAccessResourceFailureException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
+    is CannotCreateTransactionException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
+    is RedisConnectionFailureException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->

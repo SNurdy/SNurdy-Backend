@@ -3,8 +3,8 @@ package com.snurdy.backend.domain.test.glossary.service
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
 import com.snurdy.backend.domain.dictionary.term.repository.DistractorTermProjection
 import com.snurdy.backend.domain.dictionary.term.repository.TermRepository
-import com.snurdy.backend.domain.test.common.TestType
-import com.snurdy.backend.domain.test.common.multipleChoiceFieldOf
+import com.snurdy.backend.domain.test.common.dto.TestType
+import com.snurdy.backend.domain.test.common.dto.multipleChoiceFieldOf
 import org.springframework.stereotype.Component
 
 @Component

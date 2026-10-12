@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.test.glossary.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
-import com.snurdy.backend.domain.test.common.TestType
+import com.snurdy.backend.domain.test.common.dto.TestType
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerExample
 import io.swagger.v3.oas.annotations.media.Schema

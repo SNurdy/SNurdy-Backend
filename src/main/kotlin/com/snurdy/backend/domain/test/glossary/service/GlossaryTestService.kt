@@ -11,9 +11,9 @@ import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
 import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
 import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
 import com.snurdy.backend.domain.progress.service.ProgressUpdateService
-import com.snurdy.backend.domain.test.common.deriveAnswer
-import com.snurdy.backend.domain.test.common.deriveQuestion
-import com.snurdy.backend.domain.test.common.isMultipleChoice
+import com.snurdy.backend.domain.test.common.dto.deriveAnswer
+import com.snurdy.backend.domain.test.common.dto.deriveQuestion
+import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryLevelUpEvent
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCard
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest

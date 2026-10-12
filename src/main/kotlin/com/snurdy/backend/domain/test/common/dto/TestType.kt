@@ -1,4 +1,4 @@
-package com.snurdy.backend.domain.test.common
+package com.snurdy.backend.domain.test.common.dto
 
 enum class TestType {
     WRITE_MEANING_FROM_TERM,

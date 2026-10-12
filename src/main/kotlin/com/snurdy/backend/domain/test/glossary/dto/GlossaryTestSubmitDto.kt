@@ -130,6 +130,41 @@ data class GlossaryLevelUpEvent(
     val to: Int
 )
 
+fun List<GlossaryTestResultItem>.toSubmitResponse(
+    glossaryId: Long,
+    studiedTermCount: Int?,
+    before: GlossaryTestProgressSnapshot,
+    after: GlossaryTestProgressSnapshot
+): GlossaryTestSubmitResponse {
+    val correctCount = count { it.correct }
+    return GlossaryTestSubmitResponse(
+        correctCount = correctCount,
+        incorrectCount = size - correctCount,
+        sessionStudiedCount = studiedTermCount ?: size,
+        todayStudiedCount = after.todayStudiedCount,
+        totalStudiedCount = after.totalStudiedCount,
+        todayGoalCompleted = !before.activeToday,
+        glossary = GlossaryTestSnapshot(
+            glossaryId = glossaryId,
+            progressRateBefore = before.progressRate,
+            progressRateAfter = after.progressRate,
+            levelBefore = before.level,
+            levelUp = if (after.level > before.level) {
+                GlossaryLevelUpEvent(from = before.level, to = after.level)
+            } else null
+        )
+    )
+}
+
+// 시험 제출 전후 학습 상태를 같은 모양으로 비교하기 위한 한 시점의 지표 묶음
+data class GlossaryTestProgressSnapshot(
+    val progressRate: Double,
+    val level: Int,
+    val activeToday: Boolean,
+    val todayStudiedCount: Int,
+    val totalStudiedCount: Int
+)
+
 fun GlossaryTestResultItem.toProgressEvent(glossaryId: Long): ProgressEvent =
     ProgressEvent(
         glossaryId = glossaryId,

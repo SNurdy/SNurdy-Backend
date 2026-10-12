@@ -7,13 +7,13 @@ import com.snurdy.backend.domain.test.common.entity.TestSubmissionType
 import com.snurdy.backend.domain.test.common.service.TestSubmissionService
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
+import com.snurdy.backend.domain.test.glossary.dto.toProgressEvent
 import com.snurdy.backend.domain.test.glossary.dto.toSubmitResponse
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import com.snurdy.backend.domain.test.glossary.dto.toProgressEvent
 import java.util.UUID
 
 @Service

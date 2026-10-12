@@ -15,6 +15,7 @@ import com.snurdy.backend.domain.test.glossary.dto.GlossaryLevelUpEvent
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSnapshot
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
+import com.snurdy.backend.domain.test.glossary.dto.toProgressEvent
 import com.snurdy.backend.global.constants.APP_ZONE_ID
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
@@ -66,9 +67,7 @@ class GlossaryTestSubmitService(
         val todayBefore = dailyProgressRepository.findByIdOrNull(DailyProgressId(userId, today))
         val todayWasActiveBefore = todayBefore?.let { (it.newLearnedCount + it.allLearnedCount) > 0 } ?: false
 
-        val events = results.map {
-            ProgressEvent(glossaryId = glossaryId, termId = it.termId, correct = it.correct)
-        }
+        val events = results.map { it.toProgressEvent(glossaryId) }
         progressUpdateService.updateProgress(userId, events)
 
         val learnedAfter = glossaryProgressRepository

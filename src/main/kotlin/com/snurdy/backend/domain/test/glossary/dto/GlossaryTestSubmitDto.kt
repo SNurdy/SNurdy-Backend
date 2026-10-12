@@ -1,5 +1,6 @@
 package com.snurdy.backend.domain.test.glossary.dto
 
+import com.snurdy.backend.domain.progress.dto.ProgressEvent
 import com.snurdy.backend.domain.test.common.dto.TestType
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerExample
@@ -128,3 +129,10 @@ data class GlossaryLevelUpEvent(
     )
     val to: Int
 )
+
+fun GlossaryTestResultItem.toProgressEvent(glossaryId: Long): ProgressEvent =
+    ProgressEvent(
+        glossaryId = glossaryId,
+        termId = termId,
+        correct = correct
+    )

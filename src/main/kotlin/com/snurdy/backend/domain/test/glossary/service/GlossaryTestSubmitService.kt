@@ -1,10 +1,8 @@
 package com.snurdy.backend.domain.test.glossary.service
 
-import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
 import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
-import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
 import com.snurdy.backend.domain.progress.dto.ProgressEvent
 import com.snurdy.backend.domain.progress.entity.DailyProgressId
 import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
@@ -31,11 +29,6 @@ import java.time.Clock
 class GlossaryTestSubmitService(
     private val glossaryRepository: GlossaryRepository,
     private val glossaryTermRepository: GlossaryTermRepository,
-    private val bookmarkRepository: BookmarkRepository,
-    private val cardCountDistributor: GlossaryCardCountDistributor,
-    private val cardTermDistributor: GlossaryCardTermDistributor,
-    private val distractorSelector: GlossaryDistractorSelector,
-    private val morphemeHighlightAssembler: MorphemeHighlightAssembler,
     private val glossaryProgressRepository: GlossaryProgressRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val progressUpdateService: ProgressUpdateService,

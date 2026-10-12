@@ -1,37 +1,21 @@
 package com.snurdy.backend.domain.test.glossary.service
 
 import com.snurdy.backend.domain.bookmark.repository.BookmarkRepository
-import com.snurdy.backend.domain.dictionary.glossary.GlossaryProgressCalculator
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryRepository
 import com.snurdy.backend.domain.dictionary.glossary.repository.GlossaryTermRepository
 import com.snurdy.backend.domain.dictionary.morpheme.service.MorphemeHighlightAssembler
-import com.snurdy.backend.domain.progress.dto.ProgressEvent
-import com.snurdy.backend.domain.progress.entity.DailyProgressId
-import com.snurdy.backend.domain.progress.entity.GlossaryProgressId
-import com.snurdy.backend.domain.progress.repository.DailyProgressRepository
-import com.snurdy.backend.domain.progress.repository.GlossaryProgressRepository
-import com.snurdy.backend.domain.progress.service.ProgressUpdateService
 import com.snurdy.backend.domain.test.common.dto.deriveAnswer
 import com.snurdy.backend.domain.test.common.dto.deriveQuestion
 import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
-import com.snurdy.backend.domain.test.common.entity.TestSubmissionType
-import com.snurdy.backend.domain.test.common.service.TestSubmissionService
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryLevelUpEvent
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCard
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSnapshot
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
-import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
-import com.snurdy.backend.global.constants.APP_ZONE_ID
 import com.snurdy.backend.global.constants.DictionaryError
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.data.repository.findByIdOrNull
 import java.util.UUID
-import java.time.Clock
 
 @Service
 class GlossaryTestCardService(
@@ -41,8 +25,7 @@ class GlossaryTestCardService(
     private val cardCountDistributor: GlossaryCardCountDistributor,
     private val cardTermDistributor: GlossaryCardTermDistributor,
     private val distractorSelector: GlossaryDistractorSelector,
-    private val morphemeHighlightAssembler: MorphemeHighlightAssembler,
-    private val glossaryProgressRepository: GlossaryProgressRepository
+    private val morphemeHighlightAssembler: MorphemeHighlightAssembler
 ) {
 
     @Transactional(readOnly = true)

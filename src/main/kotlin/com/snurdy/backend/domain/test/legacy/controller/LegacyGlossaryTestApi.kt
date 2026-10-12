@@ -35,7 +35,7 @@ interface LegacyGlossaryTestApi {
     @Deprecated("구버전 앱 호환용")
     @Operation(summary = "기본 단어장 테스트 결과 제출")
     @ApiSuccessCode("TEST_S002")
-    @ApiErrorCodes("DICTIONARY_E001", "TEST_E002", "USER_E010")
+    @ApiErrorCodes("DICTIONARY_E001", "TEST_E002")
     @PostMapping("/submit")
     fun submit(
         @CurrentUserId userId: UUID,

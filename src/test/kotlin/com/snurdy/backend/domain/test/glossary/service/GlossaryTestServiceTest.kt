@@ -30,7 +30,6 @@ class GlossaryTestServiceTest {
     private lateinit var distractorSelector: GlossaryDistractorSelector
     private lateinit var morphemeHighlightAssembler: MorphemeHighlightAssembler
     private lateinit var glossaryTestService: GlossaryTestService
-    private lateinit var testSubmissionService: TestSubmissionService
 
     private val userId = UUID.randomUUID()
     private val glossaryId = 12L

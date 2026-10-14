@@ -1,7 +1,9 @@
 package com.snurdy.backend.domain.test.glossary.dto
 
 import com.snurdy.backend.domain.dictionary.dto.OrderedMorpheme
-import com.snurdy.backend.domain.test.common.TestType
+import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
+import com.snurdy.backend.domain.test.common.dto.TestType
+import com.snurdy.backend.domain.test.common.dto.deriveQuestion
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerDescription
 import com.snurdy.backend.domain.test.glossary.docs.GlossaryTestSwaggerExample
 import io.swagger.v3.oas.annotations.media.Schema
@@ -102,3 +104,28 @@ data class GlossaryTestCard(
     )
     val morphemes: List<OrderedMorpheme>
 )
+
+fun SimpleTermProjection.toTestCard(
+    testType: TestType,
+    answer: String,
+    distractors: List<String>?,
+    bookmarked: Boolean,
+    morphemes: List<OrderedMorpheme>
+): GlossaryTestCard =
+    GlossaryTestCard(
+        termId = termId,
+        testType = testType,
+        question = testType.deriveQuestion(spelling, meaning, abbreviation),
+        answer = answer,
+        answers = splitAcceptableAnswers(answer),
+        distractors = distractors,
+        spelling = spelling,
+        meaning = meaning,
+        abbreviation = abbreviation,
+        explanation = explanation,
+        bookmarked = bookmarked,
+        morphemes = morphemes
+    )
+
+private fun splitAcceptableAnswers(answer: String): List<String> =
+    answer.split(",").map { it.trim() }.filter { it.isNotEmpty() }

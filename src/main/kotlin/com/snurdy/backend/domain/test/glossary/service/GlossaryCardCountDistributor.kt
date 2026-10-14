@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.test.glossary.service
 
-import com.snurdy.backend.domain.test.common.TestType
-import com.snurdy.backend.domain.test.common.isMultipleChoice
+import com.snurdy.backend.domain.test.common.dto.TestType
+import com.snurdy.backend.domain.test.common.dto.isMultipleChoice
 import com.snurdy.backend.global.constants.TestError
 import com.snurdy.backend.global.exception.ApiException
 import org.springframework.stereotype.Component

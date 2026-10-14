@@ -1,7 +1,7 @@
 package com.snurdy.backend.domain.test.glossary.service
 
 import com.snurdy.backend.domain.dictionary.glossary.repository.SimpleTermProjection
-import com.snurdy.backend.domain.test.common.TestType
+import com.snurdy.backend.domain.test.common.dto.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

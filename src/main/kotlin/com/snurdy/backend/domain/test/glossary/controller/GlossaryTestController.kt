@@ -4,7 +4,8 @@ import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestCardsResponse
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitRequest
 import com.snurdy.backend.domain.test.glossary.dto.GlossaryTestSubmitResponse
-import com.snurdy.backend.domain.test.glossary.service.GlossaryTestService
+import com.snurdy.backend.domain.test.glossary.service.GlossaryTestCardService
+import com.snurdy.backend.domain.test.glossary.service.GlossaryTestSubmitService
 import com.snurdy.backend.global.constants.TestSuccess
 import com.snurdy.backend.global.dto.response.ApiResponse
 import org.springframework.web.bind.annotation.RestController
@@ -12,7 +13,8 @@ import java.util.UUID
 
 @RestController
 class GlossaryTestController(
-    private val glossaryTestService: GlossaryTestService
+    private val glossaryTestSubmitService: GlossaryTestSubmitService,
+    private val glossaryTestCardService: GlossaryTestCardService
 ) : GlossaryTestApi {
 
     override fun listTestCards(
@@ -22,16 +24,17 @@ class GlossaryTestController(
     ): ApiResponse<GlossaryTestCardsResponse> =
         ApiResponse.success(
             TestSuccess.LIST_TEST_CARDS,
-            glossaryTestService.listTestCards(userId, glossaryId, request)
+            glossaryTestCardService.listTestCards(userId, glossaryId, request)
         )
 
     override fun submit(
         userId: UUID,
         glossaryId: Long,
+        idempotencyKey: UUID?,
         request: GlossaryTestSubmitRequest
     ): ApiResponse<GlossaryTestSubmitResponse> =
         ApiResponse.success(
             TestSuccess.SUBMIT_TEST,
-            glossaryTestService.submitTest(userId, glossaryId, request)
+            glossaryTestSubmitService.submitTest(userId, glossaryId, request, idempotencyKey)
         )
 }

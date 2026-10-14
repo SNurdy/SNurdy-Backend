@@ -3,6 +3,10 @@ name: SNurdy-Prod-CD
 on:
   workflow_dispatch:
 
+concurrency:
+  group: prod-deploy
+  cancel-in-progress: false
+
 jobs:
   guard:
     name: 브랜치 검증
@@ -99,6 +103,18 @@ jobs:
             --protocol tcp --port 22 \
             --cidr ${{ steps.ip.outputs.ipv4 }}/32 || true
 
+      - uses: actions/checkout@v4
+
+      - name: 배포 스크립트 업로드
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_PROD_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_PROD_SSH_PRIVATE_KEY }}
+          source: "infra/prod/common.sh,infra/prod/deploy.sh,infra/prod/rollback.sh,infra/prod/docker-compose-prod.yml"
+          target: /app/shared
+          strip_components: 2
+
       - name: Prod 서버 배포
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -106,7 +122,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PROD_SSH_PRIVATE_KEY }}
           script: |
-            /app/shared/deploy.sh ${{ github.sha }}
+            bash /app/shared/deploy.sh ${{ github.sha }}
 
       - name: 보안 그룹에서 IP 제거
         if: always()

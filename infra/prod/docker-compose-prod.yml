@@ -1,0 +1,67 @@
+services:
+  app-blue:
+    image: ${IMAGE:-yo0oni/snurdy-app-prod:latest}
+    container_name: snurdy-app-blue
+    restart: unless-stopped
+    env_file:
+      - /app/shared/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Seoul
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis-prod:
+        condition: service_healthy
+    volumes:
+      - /app/shared/keys/apple-auth-key.p8:/app/keys/apple-auth-key.p8:ro
+    networks:
+      - snurdy-prod-network
+    profiles:
+      - blue
+    stop_grace_period: 40s
+
+  app-green:
+    image: ${IMAGE:-yo0oni/snurdy-app-prod:latest}
+    container_name: snurdy-app-green
+    restart: unless-stopped
+    env_file:
+      - /app/shared/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - TZ=Asia/Seoul
+    ports:
+      - "8081:8080"
+    depends_on:
+      redis-prod:
+        condition: service_healthy
+    volumes:
+      - /app/shared/keys/apple-auth-key.p8:/app/keys/apple-auth-key.p8:ro
+    networks:
+      - snurdy-prod-network
+    profiles:
+      - green
+    stop_grace_period: 40s
+
+  redis-prod:
+    image: redis:7-alpine
+    container_name: snurdy-redis-prod
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-prod-data:/data
+    networks:
+      - snurdy-prod-network
+
+networks:
+  snurdy-prod-network:
+    driver: bridge
+
+volumes:
+  redis-prod-data:

@@ -9,8 +9,8 @@ LOCK_FILE="${SHARED_DIR}/deploy.lock"
 UPSTREAM_FILE="/etc/nginx/conf.d/active_upstream.conf"
 UPSTREAM_BACKUP_FILE="${UPSTREAM_FILE}.bak"
 
-# actuator 는 Nginx 에서 외부 차단되므로 Nginx 경유 확인은 DB 를 거치지 않는 공개 API 로 한다
-VERIFY_URL="https://127.0.0.1/api/v1/app/version/check?clientVersion=1.0.0&platform=IOS"
+VERIFY_HOST="api.snurdy.org"
+VERIFY_URL="https://${VERIFY_HOST}/api/v1/app/version/check?clientVersion=1.0.0&platform=IOS"
 
 # 이전 Nginx worker 가 이전 슬롯과의 연결을 정리할 시간
 DRAIN_SECONDS=5
@@ -81,7 +81,7 @@ verify_through_nginx() {
     local status
     sleep 2
     for i in $(seq 1 5); do
-        status=$(curl -sk -o /dev/null -w "%{http_code}" "$VERIFY_URL" 2>/dev/null || echo "000")
+        status=$(curl -sk --resolve "${VERIFY_HOST}:443:127.0.0.1" -o /dev/null -w "%{http_code}" "$VERIFY_URL" 2>/dev/null || echo "000")
         if [ "$status" = "200" ]; then
             echo "  → Nginx 경유 확인 통과"
             return 0

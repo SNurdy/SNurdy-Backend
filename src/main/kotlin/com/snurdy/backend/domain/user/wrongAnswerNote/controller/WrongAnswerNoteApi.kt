@@ -39,10 +39,18 @@ interface WrongAnswerNoteApi {
         @CurrentUserId userId: UUID
     ): ApiResponse<WrongAnswerPeriodCardListResponse>
 
+    @Deprecated("구버전 앱 호환용")
     @Operation(summary = WrongAnswerNoteSwaggerDescription.LIST_BY_GLOSSARY_SUMMARY)
     @ApiSuccessCode("WRONG_ANSWER_NOTE_S002")
     @GetMapping("/by-glossary")
     fun listByGlossary(
+        @CurrentUserId userId: UUID
+    ): ApiResponse<WrongAnswerGlossaryCardListResponse>
+
+    @Operation(summary = WrongAnswerNoteSwaggerDescription.LIST_BY_GLOSSARY_SUMMARY)
+    @ApiSuccessCode("WRONG_ANSWER_NOTE_S006")
+    @GetMapping("/by-glossary/all")
+    fun listAllGlossaries(
         @CurrentUserId userId: UUID
     ): ApiResponse<WrongAnswerGlossaryCardListResponse>
 

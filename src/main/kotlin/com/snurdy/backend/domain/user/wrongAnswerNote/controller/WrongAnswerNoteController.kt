@@ -22,6 +22,9 @@ class WrongAnswerNoteController(
     override fun listByGlossary(userId: UUID): ApiResponse<WrongAnswerGlossaryCardListResponse> =
         ApiResponse.success(WrongAnswerNoteSuccess.LIST_BY_GLOSSARY, wrongAnswerNoteService.listByGlossary(userId))
 
+    override fun listAllGlossaries(userId: UUID): ApiResponse<WrongAnswerGlossaryCardListResponse> =
+        ApiResponse.success(WrongAnswerNoteSuccess.LIST_BY_GLOSSARY, wrongAnswerNoteService.listAllGlossaries(userId))
+
     override fun listTodayTerms(
         userId: UUID,
         page: Int,

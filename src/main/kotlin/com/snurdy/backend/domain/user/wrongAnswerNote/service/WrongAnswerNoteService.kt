@@ -70,8 +70,25 @@ class WrongAnswerNoteService(
         return WrongAnswerPeriodCardListResponse(periods = cards)
     }
 
+    // 오답이 있는 과만 노출. 이미 배포된 구버전 앱 계약 유지용
     @Transactional(readOnly = true)
     fun listByGlossary(userId: UUID): WrongAnswerGlossaryCardListResponse {
+        val groups = wrongAnswerTermRepository.groupByGlossary(userId)
+        if (groups.isEmpty()) return WrongAnswerGlossaryCardListResponse(glossaries = emptyList())
+
+        val glossaryIds = groups.map { it.glossaryId }
+        val glossaries = glossaryRepository.findAllById(glossaryIds).associateBy { it.id }
+
+        val cards = groups
+            .mapNotNull { group ->
+                val glossary = glossaries[group.glossaryId] ?: return@mapNotNull null
+                glossary.toWrongAnswerCard(group.incorrectTermCount)
+            }
+            .sortedBy { it.glossaryId }
+        return WrongAnswerGlossaryCardListResponse(glossaries = cards)
+    }
+
+    fun listAllGlossaries(userId: UUID): WrongAnswerGlossaryCardListResponse {
         val counts = wrongAnswerTermRepository.groupByGlossary(userId)
             .associate { it.glossaryId to it.incorrectTermCount }
 
@@ -81,6 +98,7 @@ class WrongAnswerNoteService(
 
         return WrongAnswerGlossaryCardListResponse(glossaries = cards)
     }
+
 
     @Transactional(readOnly = true)
     fun listPeriodTerms(

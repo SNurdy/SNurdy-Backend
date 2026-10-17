@@ -18,6 +18,7 @@ import org.hibernate.exception.LockAcquisitionException as HibernateLockAcquisit
 import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.dao.PessimisticLockingFailureException
 import org.springframework.data.redis.RedisConnectionFailureException
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.transaction.CannotCreateTransactionException
@@ -56,6 +57,9 @@ fun Throwable.toApiException(): ApiException = when (this) {
     is DataAccessResourceFailureException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
     is CannotCreateTransactionException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
     is RedisConnectionFailureException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
+
+    // 락 대기 초과와 교착상태는 재시도하면 성공하는 일시적 경합이라 503 으로 내리고 5xx 로그로 Sentry 알림을 유지
+    is PessimisticLockingFailureException -> ApiException(CommonError.SERVICE_UNAVAILABLE, cause = this)
 
     // HTTP 메서드 - 어떤 메서드인지 알려줌
     is HttpRequestMethodNotSupportedException ->

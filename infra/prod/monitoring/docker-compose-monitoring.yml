@@ -1,0 +1,55 @@
+services:
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: snurdy-prometheus
+    restart: unless-stopped
+    volumes:
+      - /app/shared/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - snurdy-monitoring-network
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: snurdy-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=snurdyprod
+      - GF_SECURITY_ADMIN_PASSWORD=snurdyprod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - snurdy-monitoring-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.1
+    container_name: snurdy-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
+    networks:
+      - snurdy-monitoring-network
+
+networks:
+  snurdy-monitoring-network:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

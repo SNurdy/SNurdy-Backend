@@ -7,7 +7,7 @@ services:
       - /app/shared/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -18,14 +18,11 @@ services:
     container_name: snurdy-grafana
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - grafana-data:/var/lib/grafana
-    environment:
-      - GF_SECURITY_ADMIN_USER=snurdyprod
-      - GF_SECURITY_ADMIN_PASSWORD=snurdyprod
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    env_file:
+      - /app/shared/monitoring.env
     networks:
       - snurdy-monitoring-network
 
@@ -33,8 +30,6 @@ services:
     image: prom/node-exporter:v1.8.1
     container_name: snurdy-node-exporter
     restart: unless-stopped
-    ports:
-      - "9100:9100"
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro

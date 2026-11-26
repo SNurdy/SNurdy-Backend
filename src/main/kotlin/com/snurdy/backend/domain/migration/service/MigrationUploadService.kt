@@ -54,6 +54,7 @@ class MigrationUploadService(
     private val bookmarkRepository: BookmarkRepository,
     private val dailyProgressRepository: DailyProgressRepository,
     private val termRepository: TermRepository,
+    private val migrationTermIdAliasService: MigrationTermIdAliasService,
     private val glossaryTermRepository: GlossaryTermRepository,
     private val glossaryRepository: GlossaryRepository,
     private val customNoteRepository: CustomNoteRepository,
@@ -92,9 +93,11 @@ class MigrationUploadService(
                 throw ApiException(MigrationError.MIGRATION_DATA_CONFLICT)
             }
 
-            val savedTermCount = saveTermProgresses(user, request.termProgresses)
+            val aliasReplacedPayloads = migrationTermIdAliasService.replaceAliasTermIds(request)
+
+            val savedTermCount = saveTermProgresses(user, aliasReplacedPayloads.termProgresses)
             val savedGlossaryCount = saveGlossaryProgresses(user, request.glossaryProgresses)
-            val savedBookmarkCount = saveBookmarks(user, request.bookmarks)
+            val savedBookmarkCount = saveBookmarks(user, aliasReplacedPayloads.bookmarks)
             val savedDailyProgressCount = saveDailyProgresses(user, request.dailyProgresses)
             applyUserSummary(user, request.userSummary)
 
@@ -341,9 +344,9 @@ class MigrationUploadService(
 
     private fun hasExistingProgressData(userId: UUID): Boolean =
         termProgressRepository.existsByUserId(userId) ||
-            glossaryProgressRepository.existsByUserId(userId) ||
-            bookmarkRepository.existsByIdUserId(userId) ||
-            dailyProgressRepository.existsByIdUserId(userId)
+                glossaryProgressRepository.existsByUserId(userId) ||
+                bookmarkRepository.existsByIdUserId(userId) ||
+                dailyProgressRepository.existsByIdUserId(userId)
 
     private fun loadUploadCounts(migrationId: String, userId: UUID): MigrationUploadResponse =
         MigrationUploadResponse(

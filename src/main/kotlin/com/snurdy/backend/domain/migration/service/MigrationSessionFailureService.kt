@@ -12,10 +12,11 @@ class MigrationSessionFailureService(
 ) {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun markFailed(sessionId: UUID, reason: String) {
-        val session = migrationSessionRepository.findById(sessionId).orElse(null) ?: return
-        if (session.isCompleted()) return
+    fun markFailed(sessionId: UUID, reason: String): Boolean {
+        val session = migrationSessionRepository.findById(sessionId).orElse(null) ?: return false
+        if (session.isCompleted()) return false
         session.fail(reason)
         migrationSessionRepository.save(session)
+        return true
     }
 }

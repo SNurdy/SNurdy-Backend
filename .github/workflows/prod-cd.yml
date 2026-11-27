@@ -40,7 +40,8 @@ jobs:
           chmod +x gradlew
           ./gradlew clean test \
             --tests "*CoreApiSmokeTest" \
-            --tests "*MigrationFlowSmokeTest"
+            --tests "*MigrationFlowSmokeTest" \
+            --tests "*MigrationTermIdAliasSmokeTest"
 
   build-and-push:
     name: 빌드 및 이미지 푸시
